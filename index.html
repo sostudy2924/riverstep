@@ -2365,8 +2365,8 @@ function startIntro(){
     g.restore(); }
   const tprints=[]; let lastT=-1;
   // 남생이 발자국: 사람 한 걸음마다 남생이도 앞·뒷발 자국을 좌우에 남김(몸 양옆 두 줄)
-  function tstamp(j,x){ const tw=tu.getBoundingClientRect().width||180, side=j%2?1:-1, y=tuY()+side*tw*.30;
-    for(const dx of [tw*.18,-tw*.20]) tprints.push({x:x+dx+(side>0?tw*.04:0), y:y+(dx>0?-side*tw*.02:side*tw*.02), side, s:tw/200, t:performance.now()}); }
+  function tstamp(j,x){ const tw=tu.getBoundingClientRect().width||180, side=j%2?1:-1, y=tuY()+side*tw*.22;
+    for(const dx of [tw*.18,-tw*.20]) tprints.push({x:x+dx+(side>0?tw*.04:0), y:y+(dx>0?-side*tw*.02:side*tw*.02), side, s:tw/170, t:performance.now()}); }
   function drawTPrint(f,now){ const al=Math.min(1,(now-f.t)/450)*.30; g.save(); g.translate(f.x,f.y); g.scale(f.s,f.s);
     g.fillStyle=`rgba(104,82,52,${al})`; g.beginPath(); g.ellipse(0,0,7,5.5,0,0,Math.PI*2); g.fill();
     for(const cy of [-5,0,5]){ g.beginPath(); g.ellipse(9.5,cy+f.side*1.2,2,1.4,0,0,Math.PI*2); g.fill(); } g.restore(); }
