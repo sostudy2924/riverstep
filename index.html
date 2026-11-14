@@ -2354,7 +2354,7 @@ function startIntro(){
   const STEPS=10, DUR=reduceMotion?0:4200, t0=performance.now()+600;
   const prints=[]; let lastStep=-1, ready=false, leaving=false, raf=0;
   const footY=()=>H*.56, footX=i=>W*(.12+.44*(i/(STEPS-1)));   // 왼쪽 모래에서 물가 앞까지
-  function stamp(i){ const side=i%2?1:-1, sz=Math.min(W,H*1.6)*.022; prints.push({x:footX(i), y:footY()+side*sz*1.15, side, sz, t:performance.now()}); }
+  function stamp(i){ const side=i%2?1:-1, sz=Math.min(W,H*1.6)*.022; prints.push({x:footX(i), y:footY()+side*sz*.62, side, sz:sz*.92, t:performance.now()}); }
   function drawPrint(f,now){ const al=Math.min(1,(now-f.t)/500)*.30, k=f.sz/20;
     g.save(); g.translate(f.x,f.y); g.rotate(Math.PI/2); if(f.side<0) g.scale(-1,1); g.scale(k,k);
     g.fillStyle=`rgba(104,82,52,${al})`;
