@@ -2363,20 +2363,30 @@ function startIntro(){
     g.bezierCurveTo(-9,14,-4,8,-6,0); g.bezierCurveTo(-8,-9,-11,-17,-2,-18); g.fill();
     for(const [tx,ty,r] of [[-5,-24,3.6],[1,-26,2.8],[5.6,-25,2.4],[9,-22.5,2.1],[11.6,-19,1.8]]){ g.beginPath(); g.ellipse(tx,ty,r,r*1.15,0,0,Math.PI*2); g.fill(); }
     g.restore(); }
+  const tprints=[]; let lastT=-1;
+  // 남생이 발자국: 사람 한 걸음마다 남생이도 앞·뒷발 자국을 좌우에 남김(몸 양옆 두 줄)
+  function tstamp(j,x){ const tw=tu.getBoundingClientRect().width||180, side=j%2?1:-1, y=tuY()+side*tw*.30;
+    for(const dx of [tw*.18,-tw*.20]) tprints.push({x:x+dx+(side>0?tw*.04:0), y:y+(dx>0?-side*tw*.02:side*tw*.02), side, s:tw/200, t:performance.now()}); }
+  function drawTPrint(f,now){ const al=Math.min(1,(now-f.t)/450)*.30; g.save(); g.translate(f.x,f.y); g.scale(f.s,f.s);
+    g.fillStyle=`rgba(104,82,52,${al})`; g.beginPath(); g.ellipse(0,0,7,5.5,0,0,Math.PI*2); g.fill();
+    for(const cy of [-5,0,5]){ g.beginPath(); g.ellipse(9.5,cy+f.side*1.2,2,1.4,0,0,Math.PI*2); g.fill(); } g.restore(); }
   const tuY=()=>H*.85, tuX=u=>-W*.12+W*.70*u;                   // 화면 밖 왼쪽 아래에서 나와 물가 쪽으로
   function frame(now){
     const u=DUR?Math.max(0,Math.min(1,(now-t0)/DUR)):1;
     const step=Math.floor(u*STEPS-1e-6); while(lastStep<step){ lastStep++; stamp(lastStep); }
+    // 남생이는 화면에 들어온 뒤부터 걸음마다 자국(몸 뒤쪽에 남도록 현재 위치 기준)
+    const tstep=Math.floor(u*STEPS*1.5-1e-6); while(lastT<tstep){ lastT++; const x=tuX(lastT/(STEPS*1.5)); if(x>-20) tstamp(lastT,x); }
     const tw=tu.getBoundingClientRect().width||180, th=tu.getBoundingClientRect().height||180;
     const walking=u>0&&u<1, ph=u*STEPS*Math.PI, sway=walking?Math.sin(ph)*.05:0, bob=walking?Math.abs(Math.sin(ph))*2.5:0;
     tu.style.opacity=1;
     tu.style.transform=`translate(${tuX(u)-tw/2}px,${tuY()-th/2-bob}px) rotate(${sway}rad)`;
     g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
     for(const f of prints) drawPrint(f,now);
+    for(const f of tprints) drawTPrint(f,now);
     if(u>=1&&!ready){ ready=true; box.classList.add('ready'); }
     if(!ready) raf=requestAnimationFrame(frame);
   }
-  const onResize=()=>{ fit(); prints.length=0; for(let i=0;i<=lastStep;i++) stamp(i); prints.forEach(f=>f.t=0); if(ready){ ready=false; frame(performance.now()); } };
+  const onResize=()=>{ fit(); prints.length=0; tprints.length=0; for(let i=0;i<=lastStep;i++) stamp(i); for(let j=0;j<=lastT;j++){ const x=tuX(j/(STEPS*1.5)); if(x>-20) tstamp(j,x); } prints.forEach(f=>f.t=0); tprints.forEach(f=>f.t=0); if(ready){ ready=false; frame(performance.now()); } };
   addEventListener('resize',onResize);
   raf=requestAnimationFrame(frame);
   setTimeout(()=>{ if(!ready){ ready=true; box.classList.add('ready'); } },DUR+3500);
