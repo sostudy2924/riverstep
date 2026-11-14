@@ -334,7 +334,7 @@ html.tv .tvhint{display:flex}
 html.tv :focus-visible{outline-width:8px;outline-offset:4px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}.side div{animation:none}}
 
-/* ── 입장(로딩) 화면 시안 A '발자국': 주소에 ?intro 가 있을 때만 ──
+/* ── 입장(로딩) 화면 '발자국': 처음 들어오면 뜸(?nointro 로 끌 수 있음) ──
    위에서 내려다본 모래톱. 남생이가 걸을 때마다 발자국이 한 쌍씩 찍히고, 그 줄이 곧 진행 표시.
    색은 모래·청록·먹색 셋. 글자는 화면 가운데 90% 안. 움직이는 건 남생이와 발자국뿐, 반복 없음 */
 #intro{--in-ink:#2f3b36;--in-ink2:#55625a;--in-sand:#e9dfc9;position:fixed;inset:0;z-index:1000;background:var(--in-sand) center/cover no-repeat;overflow:hidden;cursor:pointer;-webkit-user-select:none;user-select:none}
@@ -2430,7 +2430,8 @@ function startIntro(){
   }
   box.addEventListener('click',e=>{ if(e.target.id==='inSkip') return; enter(false); });
   $('#inSkip').addEventListener('click',e=>{ e.stopPropagation(); enter(true); });
-  box.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.id!=='inSkip'){ e.preventDefault(); enter(false); } });
+  // TV 리모컨: 확인(Enter)·뒤로(Escape/Backspace/GoBack)를 누르면 영상이 끝나기 전이라도 바로 들어감(=건너뛰기)
+  box.addEventListener('keydown',e=>{ if(['Enter',' ','Escape','Backspace','GoBack','BrowserBack'].includes(e.key)||e.keyCode===10009||e.keyCode===461){ e.preventDefault(); enter(true); } });
 }
 
 // ── 시작 ────────────────────────────────────────────
@@ -2445,7 +2446,7 @@ if(params.has('sensor')){
 } else {
   resetSession('keys'); S.screen='site'; applyTV(); route(); resizeAll(); renderSyncButtons(); initSync();
   requestAnimationFrame(frame);
-  if(params.has('intro')) startIntro();
+  if(!params.has('nointro')) startIntro();   // 처음 들어오면 입장 화면. 주소 끝에 ?nointro 를 붙이면 바로 게임
 }
 })();
 </script>
