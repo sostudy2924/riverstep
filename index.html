@@ -1434,8 +1434,8 @@ function drawArtTurtle(g,x,y,s,phase,t,moving){
   for(let i=0;i<2;i++){ const r=4+i*5+((t*8)%5); g.beginPath(); g.arc(hx,hy,r,-.7,.7); g.stroke(); } g.restore();
 }
 function drawArtItem(g,type,x,y,s,ph,t,ar){
-  if(!ar) y-=14; const im=(ar&&ART.ok['ar_'+type])?ART.img['ar_'+type]:ART.img[type]; if(!im) return false; const w=58*s, h=w*im.naturalHeight/im.naturalWidth, bob=Math.sin((t||0)*1.4+(ph||0))*1.6;
-  g.save(); g.shadowColor='rgba(255,252,240,.95)'; g.shadowBlur=8; drawSubmerged(g,im,x-w/2,y-h/2+bob,w,h,.58,Math.sin(ph||0)*.06); g.restore();
+  if(!ar) y-=14; else s=Math.min(s,.72); const im=(ar&&ART.ok['ar_'+type])?ART.img['ar_'+type]:ART.img[type]; if(!im) return false; const w=(ar?50:58)*s, h=w*im.naturalHeight/im.naturalWidth, bob=Math.sin((t||0)*1.4+(ph||0))*1.6;
+  g.save(); g.shadowColor='rgba(255,252,240,.7)'; g.shadowBlur=5; drawSubmerged(g,im,x-w/2,y-h/2+bob,w,h,.58,Math.sin(ph||0)*.06); g.restore();
   waterline(g,x,y-h/2+bob+h*.58+1,w*.48,(t||0)+ph,.8);
   return true;
 }
@@ -2593,7 +2593,7 @@ function checkLevelUp(){
 }
 function drawAccessory(g,x,y,w,view){
   if(!NEWART||!wearing) return; const im=ART.img['acc_'+wearing]; if(!im||!ART.ok['acc_'+wearing]) return;
-  const aw=w*(view==='rear'?.42:.34), ah=aw*im.naturalHeight/im.naturalWidth;
+  const aw=w*(view==='rear'?.34:.34), ah=aw*im.naturalHeight/im.naturalWidth;
   g.drawImage(im,x-aw/2,y-ah*.82,aw,ah);
 }
 // ── 시작 ────────────────────────────────────────────
