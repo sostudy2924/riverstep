@@ -275,6 +275,10 @@ tr.ex td{color:var(--text-2)}
 .feet button[aria-pressed="true"]{background:var(--text);color:var(--card)}
 .live{font:800 96px/1 var(--num);text-align:center;font-variant-numeric:tabular-nums}
 .live small{display:block;font:700 20px var(--font);color:var(--text-2)}
+#spDimLayer{position:fixed;inset:0;z-index:60;background:#000;color:#4a4a4a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+#spDimLayer b{font:800 88px/1 var(--num);color:#5a5a5a;font-variant-numeric:tabular-nums}
+#spDimLayer p{margin:0;font:700 18px/1.5 var(--font)}
+#spKeep{position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:.01;pointer-events:none}
 /* 쓰레기를 주웠을 때 오른쪽 위 작은 알림 */
 .side{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none;max-width:min(360px,62%);z-index:3}
 .side div{background:var(--card);color:var(--text);border:4px double var(--edge);padding:8px 16px;font:800 22px/1.3 var(--num);animation:sidein .25s ease-out;transition:opacity .45s}
@@ -737,8 +741,14 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
     <button class="btn go" id="spStart">센서 시작</button>
     <p class="state" id="spState">노트북에서 '휴대폰을 센서로 연결'을 누른 뒤 시작하세요.</p>
     <div class="live" id="spLive">0<small>이 발로 검출한 걸음</small></div>
-    <p class="small">화면이 꺼지면 센서도 멈춰요. 화면을 켠 채로 발목 바깥쪽에 밴드로 단단히 고정하세요.</p>
+    <p class="state" id="spAwake" aria-live="polite"></p>
+    <button class="btn" id="spDim" hidden>화면 어둡게 하고 차기</button>
+    <p class="small">시작하면 화면이 저절로 꺼지지 않게 막아요. <b>전원 버튼은 누르지 마세요.</b> 전원 버튼으로 끄면 휴대폰이 센서를 멈춰요. 주머니나 밴드에 넣을 땐 '화면 어둡게'를 누르면 화면이 까맣게 되고 걸음은 계속 세요.</p>
     <button class="btn sm" id="spStop" hidden>멈추기</button>
+  </div>
+  <div id="spDimLayer" hidden><b id="spDimCount">0</b><p>걸음을 세고 있어요</p><p>돌아가려면 화면을 빠르게 두 번 톡톡</p></div>
+  <video id="spKeep" muted playsinline loop preload="auto" src="data:video/mp4;base64,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"></video>
+  <div hidden>
   </div>
 </section>
 
@@ -1723,6 +1733,7 @@ function onPhoneData(c,m){
     renderSensorState(); if(!$('#pairModal').hidden) showPair();
     if(S.screen==='game'&&S.source!=='replay'){ S.source='phone'; setConn(); $('#lost').hidden=true; }
     return; }
+  if(m.type==='sleep'){ if(S.screen==='game') notify('휴대폰 화면이 꺼졌어요','휴대폰 화면을 다시 켜면 이어서 세요'); return; }
   if(m.type==='step'&&typeof m.count==='number'){
     if(m.foot) c.foot=m.foot==='R'?'R':'L';
     const d = c.last===null ? 1 : m.count-c.last; c.last=m.count;
@@ -1750,33 +1761,69 @@ function spSend(m){ try{ if(sp.conn&&sp.conn.open) sp.conn.send(m); }catch(e){} 
 function spConnect(){
   const code=$('#spCode').value.trim();
   if(!/^\d{4}$/.test(code)){ spState('연결 번호 4자리를 넣어 주세요.',true); return; }
+  if(sp.peer && sp.peer.destroyed) sp.peer=null;
   if(!sp.peer){ sp.peer=new window.Peer(undefined, window.RS_PEER||{}); sp.peer.on('error',()=>{ spState('노트북을 찾지 못했어요. 번호를 확인하고 노트북의 연결 창이 열려 있는지 보세요. 다시 시도하는 중이에요.',true); }); }
+  else if(sp.peer.disconnected){ try{ sp.peer.reconnect(); }catch(e){} }
   const go=()=>{
+    clearTimeout(sp.retry);
+    if(sp.conn && sp.conn.open) return;
     const conn=sp.peer.connect(PEER_PREFIX+code,{reliable:true}); sp.conn=conn;
-    conn.on('open',()=>{ spState('노트북과 연결됐어요. 걸으면 남생이가 움직여요.'); spSend({type:'hello',foot:sp.foot,count:sp.count}); });
-    conn.on('close',()=>{ if(sp.running){ spState('연결이 끊겼어요. 다시 잇는 중이에요.',true); clearTimeout(sp.retry); sp.retry=setTimeout(go,3000); } });
+    conn.on('open',()=>{ if(sp.conn!==conn) return; spState('노트북과 연결됐어요. 걸으면 남생이가 움직여요.'); spSend({type:'hello',foot:sp.foot,count:sp.count}); });
+    conn.on('close',()=>{ if(sp.conn===conn && sp.running){ spState('연결이 끊겼어요. 다시 잇는 중이에요.',true); clearTimeout(sp.retry); sp.retry=setTimeout(spConnect,3000); } });
   };
-  if(sp.peer.open) go(); else sp.peer.on('open',go);
+  if(sp.peer.open) go(); else sp.peer.once('open',go);
 }
+// ── 화면 꺼짐 막기 ─────────────────────────────────
+// 1) 화면 켜짐 유지(Wake Lock)  2) 지원 안 하는 휴대폰은 소리 없는 작은 영상을 반복 재생
+// 전원 버튼으로 끄는 것은 웹페이지가 막을 수 없어서, 다시 켜면 자동으로 이어 붙임
+const awake={lock:null,video:false,hiddenAt:0};
+function showAwake(){
+  const el=$('#spAwake'); if(!sp.running){ el.textContent=''; return; }
+  const ok=(awake.lock&&!awake.lock.released)||awake.video;
+  el.textContent= ok?'화면이 저절로 꺼지지 않게 막고 있어요.':'이 휴대폰은 화면 꺼짐을 막지 못했어요. 설정에서 자동 잠금을 잠시 \'안 함\'으로 바꿔 주세요.';
+  el.style.color= ok?'':'var(--warn)';
+}
+function playKeepVideo(){ const v=$('#spKeep'); try{ const pr=v.play(); if(pr&&pr.then) pr.then(()=>{ awake.video=true; showAwake(); }).catch(()=>{ awake.video=false; showAwake(); }); }catch(e){} }
+async function keepAwake(){
+  if('wakeLock' in navigator){
+    try{
+      if(!awake.lock||awake.lock.released){ awake.lock=await navigator.wakeLock.request('screen'); awake.lock.addEventListener('release',showAwake); }
+      showAwake(); return;
+    }catch(e){ awake.lock=null; }
+  }
+  playKeepVideo();
+}
+function releaseAwake(){ try{ awake.lock&&awake.lock.release(); }catch(e){} awake.lock=null; try{ $('#spKeep').pause(); }catch(e){} awake.video=false; showAwake(); }
+document.addEventListener('visibilitychange',()=>{
+  if(!sp.running) return;
+  if(document.hidden){ awake.hiddenAt=Date.now(); spSend({type:'sleep'}); return; }
+  const gap=awake.hiddenAt?Math.round((Date.now()-awake.hiddenAt)/1000):0; awake.hiddenAt=0;
+  keepAwake();
+  if(sp.conn&&sp.conn.open) spSend({type:'hello',foot:sp.foot,count:sp.count}); else spConnect();
+  if(gap>=2) spState('화면이 꺼져 있던 '+gap+'초 동안은 걸음을 세지 못했어요. 지금은 다시 세고 있어요.',true);
+});
+function spDim(on){ $('#spDimLayer').hidden=!on; $('#spDimCount').textContent=String(sp.count); if(on) keepAwake(); }
+{ let lastTap=0; document.addEventListener('pointerup',e=>{ if($('#spDimLayer').hidden||!e.target.closest('#spDimLayer')) return; const n=Date.now(); if(n-lastTap<450){ spDim(false); lastTap=0; } else lastTap=n; }); }
 function onMotion(e){
   const a=e.accelerationIncludingGravity; if(!a||a.x==null) return;
   sp.det.push(e.timeStamp/1000, Math.hypot(a.x,a.y,a.z));
 }
 async function spStart(){
   spState('준비하고 있어요.');
+  sp.running=true; keepAwake(); if(!('wakeLock' in navigator)) playKeepVideo(); sp.running=false;
   try{ if(typeof DeviceMotionEvent!=='undefined' && typeof DeviceMotionEvent.requestPermission==='function'){ const r=await DeviceMotionEvent.requestPermission(); if(r!=='granted'){ spState('움직임 센서 사용을 허용해야 해요. 다시 눌러 허용을 선택하세요.',true); return; } } }
   catch(e){ spState('움직임 센서 권한을 받지 못했어요. 다시 눌러 주세요.',true); return; }
   if(!window.isSecureContext){ spState('https:// 로 시작하는 주소에서만 휴대폰 센서를 쓸 수 있어요.',true); return; }
   try{ await loadScript(PEERJS_URL); }catch(e){ spState('연결 프로그램을 불러오지 못했어요. 인터넷을 확인해 주세요.',true); return; }
-  sp.det=new Detector(9.81,t=>{ sp.count++; $('#spLive').firstChild.nodeValue=String(sp.count); spSend({type:'step',foot:sp.foot,count:sp.count,t}); try{ navigator.vibrate&&navigator.vibrate(30); }catch(e){} });
+  sp.det=new Detector(9.81,t=>{ sp.count++; $('#spLive').firstChild.nodeValue=String(sp.count); $('#spDimCount').textContent=String(sp.count); spSend({type:'step',foot:sp.foot,count:sp.count,t}); try{ navigator.vibrate&&navigator.vibrate(30); }catch(e){} });
   window.addEventListener('devicemotion',onMotion);
-  sp.running=true; $('#spStart').hidden=true; $('#spStop').hidden=false;
-  try{ navigator.wakeLock && navigator.wakeLock.request('screen').catch(()=>{}); }catch(e){}
+  sp.running=true; $('#spStart').hidden=true; $('#spStop').hidden=false; $('#spDim').hidden=false;
+  keepAwake(); showAwake();
   let got=false; const chk=e=>{ got=true; window.removeEventListener('devicemotion',chk); }; window.addEventListener('devicemotion',chk);
   setTimeout(()=>{ if(!got) spState('이 휴대폰에서 움직임 센서 값이 들어오지 않아요. 다른 브라우저(크롬·사파리)로 열어 보세요.',true); },2500);
   spConnect();
 }
-function spStop(){ sp.running=false; window.removeEventListener('devicemotion',onMotion); try{ sp.conn&&sp.conn.close(); }catch(e){} $('#spStart').hidden=false; $('#spStop').hidden=true; spState('멈췄어요. 다시 시작하려면 센서 시작을 누르세요.'); }
+function spStop(){ sp.running=false; spDim(false); $('#spDim').hidden=true; releaseAwake(); window.removeEventListener('devicemotion',onMotion); try{ sp.conn&&sp.conn.close(); }catch(e){} $('#spStart').hidden=false; $('#spStop').hidden=true; spState('멈췄어요. 다시 시작하려면 센서 시작을 누르세요.'); }
 
 // ── 커프 연결 (실물 제작 시, Web Bluetooth) ───────────
 function parseCount(dv){ if(dv.byteLength>=5) return {foot:dv.getUint8(0)===1?'R':'L', count:dv.getUint32(1,true)};
@@ -2189,6 +2236,7 @@ function applySpecies(){ $$('#spSeg button').forEach(b=>b.setAttribute('aria-pre
 $('#spSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; species=b.dataset.sp; try{ localStorage.setItem('riverstep:species',species); }catch(err){} applySpecies(); });
 applySpecies();
 $('#spStop').addEventListener('click',spStop);
+$('#spDim').addEventListener('click',()=>spDim(true));
 
 // ── 메인 루프 ───────────────────────────────────────
 let last=performance.now();
@@ -2221,6 +2269,5 @@ if(params.has('sensor')){
 }
 })();
 </script>
-
 </body>
 </html>
