@@ -2344,7 +2344,7 @@ function frame(now){
 // 배경 그림과 남생이가 걷는 영상은 Higgsfield로 만든 것(Nano Banana Pro 그림 → Seedance 2.0 영상).
 // 진짜로 기다리는 건 글꼴 불러오기뿐이고, 영상을 보여 주려고 최소 3.5초는 일부러 기다려요.
 const INTRO_BG='https://d8j0ntlcm91z4.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/hf_20261114_133410_f17239d7-1dcd-4f93-84d6-19e17994d0e5.png';
-const INTRO_VID='https://d8j0ntlcm91z4.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/hf_20261114_140833_7c2cc46f-6d7c-4d1d-8a37-6069c02b5ee1.mp4';
+const INTRO_VID='https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/420dbb0f-6147-4af2-8f7f-97e4e46a7582.mp4';   // 걷기 7초 + 물에 들어가기 5초(Seedance 2.0 → 2.5 이어 만들기)
 // 영상 속 남생이 위치(Higgsfield 영상을 1초에 10장씩 잘라 등딱지 색으로 찾은 값, 영상 가로·세로 대비 비율)
 const INTRO_TRACK=null;   // 영상이 자국을 스스로 남겨서 코드 자국은 끔(켜려면 추적값을 넣으면 됨)
 function startIntro(){
@@ -2410,9 +2410,10 @@ function startIntro(){
   }
   const done=()=>{ if(ready) return; ready=true; box.classList.add('ready'); };
   if(reduceMotion||!INTRO_VID.startsWith('http')){ setTimeout(done,reduceMotion?200:times[N-1]*1000+900); }
-  else { v.src=INTRO_VID; v.playbackRate=1.2;
-    v.addEventListener('ended',done,{once:true}); v.addEventListener('error',()=>setTimeout(done,times[N-1]*1000+900),{once:true});
-    v.play().then(()=>{ v.playbackRate=1.2; }).catch(()=>setTimeout(done,times[N-1]*1000+900)); setTimeout(done,10000); }
+  else { v.src=INTRO_VID; v.playbackRate=1.4;
+    // 확인 버튼은 사람 발자국이 다 찍히면 바로 띄우고, 남생이는 그 뒤로도 물에 들어갈 때까지 계속 걸음(기다리지 않아도 됨)
+    setTimeout(done,times[N-1]*1000+900);
+    v.play().then(()=>{ v.playbackRate=1.4; }).catch(()=>{}); }
   raf=requestAnimationFrame(frame);
   const onResize=()=>{ fit(); const n=prints.length; prints.length=0; for(let i=0;i<n;i++) stamp(i); prints.forEach(f=>f.t=0);
     const vt=v.currentTime||0; tmarks.length=0; tDist=0; tLast=null; tNext=0; tIdx=0; for(let t=0;t<=vt;t+=.05) trailTo(t); tmarks.forEach(f=>f.t=0); requestAnimationFrame(frame); };
