@@ -1519,9 +1519,10 @@ function drawSceneAR(g,W,H,dpr,st){
   const T=arAt(Ln,AR.YT), ts=Math.min(1.2,T.w/120), ty=AR.YT+Math.sin(a*1.3)*1.5;
   drawFeetUnder(g,T.cx,ty+33*ts,15*ts,20*ts,st.t,m);
   if(NA){ // 위에서 본 남생이가 화면 안쪽으로 헤엄침: 다리 쪽은 물에 잠기고, 몸이 좌우로 살짝 흔들림
-    const im=ART.img.up, w=78*ts, h=w*im.naturalHeight/im.naturalWidth, sway=Math.sin(st.phase)*.06;
-    drawSubmerged(g,im,T.cx-w/2,ty-h*.5,w,h,.72,sway);
-    g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.08,r,r*.32,0,.15,Math.PI-.15); g.stroke(); } g.restore();
+    // 뒤에서 비스듬히 내려다보는 시점: 위에서 본 그림을 세로로 눌러(원근 축소) 등딱지가 멀어지는 방향으로 보이게
+    const im=ART.img.up, w=86*ts, h=w*im.naturalHeight/im.naturalWidth*.52, sway=Math.sin(st.phase)*.05;
+    drawSubmerged(g,im,T.cx-w/2,ty-h*.62,w,h,.66,sway);
+    g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.12,r,r*.26,0,.15,Math.PI-.15); g.stroke(); } g.restore();
   } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
   if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,26); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,26);
