@@ -741,9 +741,11 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
     <button class="btn go" id="spStart">센서 시작</button>
     <p class="state" id="spState">노트북에서 '휴대폰을 센서로 연결'을 누른 뒤 시작하세요.</p>
     <div class="live" id="spLive">0<small>이 발로 검출한 걸음</small></div>
+    <p class="state" id="spGate" aria-live="polite"></p>
     <p class="state" id="spAwake" aria-live="polite"></p>
+    <button class="btn" id="spRefix" hidden>다시 고정하기 (5초 동안 안 세요)</button>
     <button class="btn" id="spDim" hidden>화면 어둡게 하고 차기</button>
-    <p class="small">시작하면 화면이 저절로 꺼지지 않게 막아요. <b>전원 버튼은 누르지 마세요.</b> 전원 버튼으로 끄면 휴대폰이 센서를 멈춰요. 주머니나 밴드에 넣을 땐 '화면 어둡게'를 누르면 화면이 까맣게 되고 걸음은 계속 세요.</p>
+    <p class="small">시작 후 5초는 발목에 고정하는 시간이라 세지 않아요. 그 뒤에도 걸음이 3번 이어져야 세기 시작해요. 시작하면 화면이 저절로 꺼지지 않게 막아요. <b>전원 버튼은 누르지 마세요.</b> 전원 버튼으로 끄면 휴대폰이 센서를 멈춰요. 주머니나 밴드에 넣을 땐 '화면 어둡게'를 누르면 화면이 까맣게 되고 걸음은 계속 세요.</p>
     <button class="btn sm" id="spStop" hidden>멈추기</button>
   </div>
   <div id="spDimLayer" hidden><b id="spDimCount">0</b><p>걸음을 세고 있어요</p><p>돌아가려면 화면을 빠르게 두 번 톡톡</p></div>
@@ -1773,6 +1775,45 @@ function spConnect(){
   };
   if(sp.peer.open) go(); else sp.peer.once('open',go);
 }
+// ── 고정하는 동안 잘못 세는 것 막기 ─────────────────────
+// 1) 시작 후 5초는 고정 시간이라 세지 않음
+// 2) 발 한쪽 걸음이 비슷한 간격으로 3번 이어져야 "걷는 중"으로 판단하고, 그 3걸음을 한꺼번에 더함
+// 3) 3.5초 넘게 멈추면 다시 3번 이어질 때까지 기다림 → 휴대폰을 만지는 툭툭 움직임은 안 셈
+const FIX_SEC=5, GAP_MAX=3.5;
+const gate={armedAt:0,pend:[],on:false,last:-1e9,tick:null};
+function spCount(t){
+  sp.count++; $('#spLive').firstChild.nodeValue=String(sp.count); $('#spDimCount').textContent=String(sp.count);
+  spSend({type:'step',foot:sp.foot,count:sp.count,t}); try{ navigator.vibrate&&navigator.vibrate(30); }catch(e){}
+}
+function spGateMsg(){
+  const el=$('#spGate'); if(!sp.running){ el.textContent=''; return; }
+  const left=Math.ceil(gate.armedAt-performance.now()/1000);
+  if(left>0) el.textContent='고정하는 시간이에요. '+left+'초 뒤부터 세요.';
+  else if(gate.on) el.textContent='걷는 중이라고 판단해서 세고 있어요.';
+  else if(gate.pend.length) el.textContent='걸음을 확인하는 중이에요 ('+gate.pend.length+'/3). 3번 이어지면 한꺼번에 더해요.';
+  else el.textContent='걸으면 세요. 툭 건드리는 움직임은 세지 않아요.';
+}
+function spArm(sec){
+  gate.armedAt=performance.now()/1000+sec; gate.pend=[]; gate.on=false; gate.last=-1e9;
+  clearInterval(gate.tick); spGateMsg();
+  gate.tick=setInterval(()=>{ spGateMsg(); if(performance.now()/1000>=gate.armedAt){ clearInterval(gate.tick); try{ navigator.vibrate&&navigator.vibrate([60,60,60]); }catch(e){} } },250);
+}
+function spOnRaw(t){
+  if(t<gate.armedAt) return;
+  if(gate.on){
+    if(t-gate.last>GAP_MAX){ gate.on=false; gate.pend=[t]; gate.last=t; spGateMsg(); return; }
+    gate.last=t; spCount(t); return;
+  }
+  const p=gate.pend;
+  if(p.length && t-p[p.length-1]>GAP_MAX) p.length=0;
+  p.push(t);
+  if(p.length>=3){
+    const i1=p[p.length-2]-p[p.length-3], i2=p[p.length-1]-p[p.length-2], r=i1/i2;
+    if(r>0.55 && r<1.8){ const q=p.slice(-3); p.length=0; gate.on=true; gate.last=t; q.forEach(spCount); }
+    else p.shift();
+  }
+  spGateMsg();
+}
 // ── 화면 꺼짐 막기 ─────────────────────────────────
 // 1) 화면 켜짐 유지(Wake Lock)  2) 지원 안 하는 휴대폰은 소리 없는 작은 영상을 반복 재생
 // 전원 버튼으로 끄는 것은 웹페이지가 막을 수 없어서, 다시 켜면 자동으로 이어 붙임
@@ -1798,7 +1839,7 @@ document.addEventListener('visibilitychange',()=>{
   if(!sp.running) return;
   if(document.hidden){ awake.hiddenAt=Date.now(); spSend({type:'sleep'}); return; }
   const gap=awake.hiddenAt?Math.round((Date.now()-awake.hiddenAt)/1000):0; awake.hiddenAt=0;
-  keepAwake();
+  keepAwake(); spArm(3);
   if(sp.conn&&sp.conn.open) spSend({type:'hello',foot:sp.foot,count:sp.count}); else spConnect();
   if(gap>=2) spState('화면이 꺼져 있던 '+gap+'초 동안은 걸음을 세지 못했어요. 지금은 다시 세고 있어요.',true);
 });
@@ -1815,15 +1856,15 @@ async function spStart(){
   catch(e){ spState('움직임 센서 권한을 받지 못했어요. 다시 눌러 주세요.',true); return; }
   if(!window.isSecureContext){ spState('https:// 로 시작하는 주소에서만 휴대폰 센서를 쓸 수 있어요.',true); return; }
   try{ await loadScript(PEERJS_URL); }catch(e){ spState('연결 프로그램을 불러오지 못했어요. 인터넷을 확인해 주세요.',true); return; }
-  sp.det=new Detector(9.81,t=>{ sp.count++; $('#spLive').firstChild.nodeValue=String(sp.count); $('#spDimCount').textContent=String(sp.count); spSend({type:'step',foot:sp.foot,count:sp.count,t}); try{ navigator.vibrate&&navigator.vibrate(30); }catch(e){} });
+  sp.det=new Detector(9.81,spOnRaw);
   window.addEventListener('devicemotion',onMotion);
-  sp.running=true; $('#spStart').hidden=true; $('#spStop').hidden=false; $('#spDim').hidden=false;
+  sp.running=true; $('#spStart').hidden=true; $('#spStop').hidden=false; $('#spDim').hidden=false; $('#spRefix').hidden=false; spArm(FIX_SEC);
   keepAwake(); showAwake();
   let got=false; const chk=e=>{ got=true; window.removeEventListener('devicemotion',chk); }; window.addEventListener('devicemotion',chk);
   setTimeout(()=>{ if(!got) spState('이 휴대폰에서 움직임 센서 값이 들어오지 않아요. 다른 브라우저(크롬·사파리)로 열어 보세요.',true); },2500);
   spConnect();
 }
-function spStop(){ sp.running=false; spDim(false); $('#spDim').hidden=true; releaseAwake(); window.removeEventListener('devicemotion',onMotion); try{ sp.conn&&sp.conn.close(); }catch(e){} $('#spStart').hidden=false; $('#spStop').hidden=true; spState('멈췄어요. 다시 시작하려면 센서 시작을 누르세요.'); }
+function spStop(){ sp.running=false; clearInterval(gate.tick); spGateMsg(); $('#spRefix').hidden=true; spDim(false); $('#spDim').hidden=true; releaseAwake(); window.removeEventListener('devicemotion',onMotion); try{ sp.conn&&sp.conn.close(); }catch(e){} $('#spStart').hidden=false; $('#spStop').hidden=true; spState('멈췄어요. 다시 시작하려면 센서 시작을 누르세요.'); }
 
 // ── 커프 연결 (실물 제작 시, Web Bluetooth) ───────────
 function parseCount(dv){ if(dv.byteLength>=5) return {foot:dv.getUint8(0)===1?'R':'L', count:dv.getUint32(1,true)};
@@ -2237,6 +2278,7 @@ $('#spSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if
 applySpecies();
 $('#spStop').addEventListener('click',spStop);
 $('#spDim').addEventListener('click',()=>spDim(true));
+$('#spRefix').addEventListener('click',()=>spArm(FIX_SEC));
 
 // ── 메인 루프 ───────────────────────────────────────
 let last=performance.now();
