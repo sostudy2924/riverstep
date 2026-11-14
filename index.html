@@ -120,7 +120,12 @@ a{color:inherit}
 .goalnum{width:4.2em;min-height:72px;font:800 40px var(--num);text-align:center;font-variant-numeric:tabular-nums;border:3px solid var(--edge);border-radius:0;background:var(--card);color:var(--text);box-sizing:border-box}
 .goalunit{font:700 22px var(--font)}
 .goalhint{margin:8px 0 0;font-size:18px;color:var(--text-2)}
-.safety{margin:0;background:var(--note-bg);border:4px double var(--edge);padding:14px 18px;font-size:20px;line-height:1.55}
+.safety{margin:0;background:var(--note-bg);border:2px solid var(--edge);padding:10px 14px;font-size:18px;line-height:1.5}
+.morestory>summary{cursor:pointer;font:800 19px var(--num);color:var(--text-2);padding:10px 0;border-top:2px solid var(--soft);list-style:none}
+.morestory>summary::-webkit-details-marker{display:none}
+.morestory>summary::after{content:' ＋'}
+.morestory[open]>summary::after{content:' －'}
+.morestory{display:flex;flex-direction:column;gap:14px}
 .safety b{display:block;font-size:22px}
 .sensor{display:flex;flex-direction:column;gap:10px;border-top:2px solid var(--soft);padding-top:18px}
 .sensor h3{margin:0;font:800 22px var(--num)}
@@ -350,6 +355,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
         <p class="say" id="say"><b>내가 한 걸음 걸으면<br>남생이도 한 걸음.</b><span>걸을수록 쓰레기를 건져서 하천이 맑아져요.</span></p>
         <canvas id="pic" aria-label="하천을 헤엄치는 남생이와 떠 있는 쓰레기 그림"></canvas>
         <p class="today" id="todayLine">오늘은 아직 걷지 않았어요.</p>
+        <details class="morestory"><summary>남생이 이야기 · 걸음 기부 보기</summary>
         <div class="story" id="namStory">
           <h2>남생이 이야기</h2>
           <p>남생이는 우리 하천에 사는 <b>토종 민물거북</b>이에요. 천연기념물이자 멸종위기 야생생물 Ⅱ급이에요. 외래종인 붉은귀거북이 늘면서 살 곳을 위협받고 있어요. 바다거북과 달리 지느러미 대신 <b>발톱 달린 네 발</b>로 물가를 걸어요.</p>
@@ -361,6 +367,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
           <div class="givebar"><i id="giveFill"></i></div>
           <p class="src" id="giveNote"></p>
         </div>
+        </details>
       </div>
       <div class="box">
         <div class="stepno">
@@ -390,10 +397,12 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
           <h2><span class="n">+</span>걷는 길</h2>
           <div class="seg" role="group" aria-label="걷는 길" id="courseSeg">
             <button data-course="straight" aria-pressed="true">곧게 걷기</button>
-            <button data-course="turn" aria-pressed="false" disabled>방향 전환 연습</button>
+            <button data-course="turn" aria-pressed="false">방향 전환 연습</button>
           </div>
-          <label class="chk" style="margin-top:10px"><input type="checkbox" id="guardChk"><span>보호자가 옆에 있고, 주변이 넓고 걸리는 물건이 없어요<br><span class="small">체크해야 방향 전환 연습이 열려요.</span></span></label>
-          <p class="small" id="courseHelp">앞으로 6걸음 → 왼쪽으로 반 바퀴 → 6걸음 → 오른쪽으로 반 바퀴 → 4걸음. 돌 때는 화면이 안 보이니 목소리로 안내해요. 돌기마다 걸린 시간을 기록해요.</p>
+          <div id="turnBox" hidden>
+          <label class="chk" style="margin-top:10px"><input type="checkbox" id="guardChk"><span>보호자가 옆에 있고, 주변이 넓고 걸리는 물건이 없어요<br><span class="small">체크해야 시작할 수 있어요.</span></span></label>
+          <p class="small" id="courseHelp">6걸음 → 왼쪽 반 바퀴 → 6걸음 → 오른쪽 반 바퀴 → 4걸음. 돌 때는 목소리로 안내해요.</p>
+          </div>
         </div>
         <div class="stepno">
           <h2><span class="n">3</span>걸을 때 들을 소리</h2>
@@ -417,7 +426,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
           </div>
           <p class="small" id="songSrc" hidden>내가 가진 노래 파일(MP3 등)을 고르세요. 무료로 쓸 수 있는 민요·국악 음원은 <a href="https://gongu.copyright.or.kr/gongu/main/main.do" target="_blank" rel="noopener">공유마당(한국저작권위원회)</a>에서 찾을 수 있어요. 음원마다 이용 조건을 확인하세요.</p>
         </div>
-        <p class="safety"><b>걷기 전에 확인하세요</b>손잡이를 잡거나 벽·의자 옆에서 걸으세요. 어지럽거나 아프면 바로 멈추세요.</p>
+        <p class="safety">손잡이나 벽 옆에서 걷고, 어지러우면 바로 멈춰요.</p>
         <div class="stepno">
           <h2><span class="n">4</span>준비되면 누르세요</h2>
           <button class="btn go" id="btnStart">시작하기</button>
@@ -864,8 +873,8 @@ function renderName(){ const n=tname().replace(/[<>&"']/g,''); $('#say').innerHT
 let musicMode='melody', bpm=24, voiceOn=true;
 try{ const m=localStorage.getItem('riverstep:music'); if(['melody','beat','song','off'].includes(m)) musicMode=m; const b=Number(localStorage.getItem('riverstep:bpm')); if([16,20,24,30].includes(b)) bpm=b; voiceOn=localStorage.getItem('riverstep:voice')!=='0'; }catch(e){}
 const MUSIC_HELP={melody:'걸을 때마다 음이 하나씩 이어져서 가락이 돼요.',
-  beat:'일정한 박자 소리에 맞춰 왼발·오른발 버튼이 번갈아 깜박여요. 박자에 맞춰 걷는 연습은 뇌졸중 재활에서도 쓰이는 방법이에요. 박자를 놓쳐도 괜찮으니 내 발걸음이 편한 속도를 먼저 지키세요. 박자가 부담스러우면 ‘걸음 가락’을 고르세요. 내가 걷는 만큼만 소리가 나요.',
-  song:'걸으면 노래가 흘러나와요. 중간에 쉬어도 노래는 계속 나오고, 50초 넘게 쉬면 그때 노래도 쉬어요.',
+  beat:'박자 소리에 맞춰 디딜 발이 깜박여요. 놓쳐도 괜찮으니 편한 속도로 걸으세요.',
+  song:'걸으면 내가 고른 노래가 나와요. 50초 넘게 쉬면 노래도 쉬어요.',
   off:'걸음 소리와 쓰레기 줍는 소리만 나요.'};
 // 5음계로 만든 짧은 가락(새로 지은 것). 낮은 음역이라 잘 들림
 const PHRASE=[0,2,4,7,9,7,4,2, 4,7,9,12,9,7,4,7, 9,7,4,2,0,2,4,0, 2,4,7,4,2,0,-3,0];
@@ -1515,9 +1524,9 @@ function drawTurnScene(g,W,H,dpr,st){
   g.restore();
   if(cam.on){ g.strokeStyle=edgeC; g.lineWidth=3; g.strokeRect(Lr.x,Lr.y,Lr.w,Lr.h); }
 }
-$('#guardChk').addEventListener('change',()=>{ const on=$('#guardChk').checked; const tb=$('#courseSeg button[data-course="turn"]'); tb.disabled=!on; if(!on&&course==='turn'){ course='straight'; } renderCourse(); });
+$('#guardChk').addEventListener('change',()=>{ renderCourse(); });
 $('#courseSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||b.disabled) return; course=b.dataset.course; renderCourse(); });
-function renderCourse(){ $$('#courseSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.course===course))); }
+function renderCourse(){ $$('#courseSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.course===course))); $('#turnBox').hidden=course!=='turn'; }
 
 // ── TV 모드 ─────────────────────────────────────────
 function applyTV(){ document.documentElement.classList.toggle('tv',tvOn); $$('#tvSeg button[data-tv]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.tv==='1')===tvOn))); requestAnimationFrame(resizeAll); }
@@ -2225,7 +2234,7 @@ $('#btnFull').addEventListener('click',()=>{ const m=$('#tvMsg'); m.hidden=true;
 $('#btnSyncOn').addEventListener('click',startSync);
 $('#btnSyncOff').addEventListener('click',stopSync);
 $('#nick').addEventListener('change',()=>{ queuePush(); });
-$('#btnStart').addEventListener('click',()=>{ audio(); phraseI=0; if(musicMode==='song'&&!song.audio){ $('#songName').textContent='노래 파일을 먼저 골라 주세요. 지금은 걸음 소리만 나요.'; } stopReplay(); applyCourseGoal(); resetSession(phonesOn()?'phone':cuffs.some(c=>c.on)?'cuff':'keys'); show('game'); });
+$('#btnStart').addEventListener('click',()=>{ if(course==='turn'&&!$('#guardChk').checked){ notify('보호자 확인을 체크해 주세요','방향 전환 연습은 옆에 보호자가 있을 때만 해요'); $('#guardChk').focus(); return; } audio(); phraseI=0; if(musicMode==='song'&&!song.audio){ $('#songName').textContent='노래 파일을 먼저 골라 주세요. 지금은 걸음 소리만 나요.'; } stopReplay(); applyCourseGoal(); resetSession(phonesOn()?'phone':cuffs.some(c=>c.on)?'cuff':'keys'); show('game'); });
 $('#btnPhone').addEventListener('click',openPhoneLink);
 $('#btnPairClose').addEventListener('click',()=>{ $('#pairModal').hidden=true; });
 $('#btnCuff').addEventListener('click',()=>{ audio(); connectCuff(); });
