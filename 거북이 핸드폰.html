@@ -1,0 +1,2085 @@
+<title>RiverStep 하천 정화</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap">
+<style>
+/* 레이아웃: 위 로고+메뉴(걷기·내 기록·치료사와 공유·함께 줍깅·걷기와 환경), 게임은 전체 화면.
+   버튼은 각진 인쇄 라벨처럼 안쪽 선 하나를 더 두르고, 상자는 이중선. 낮(7~17시)은 과슈, 그 외는 새벽 실루엣 */
+:root{
+  --font:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;
+  --num:'Nanum Gothic','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;  /* 제목·숫자도 굵은 고딕: 획이 고르게 굵어 멀리서도 또렷함 */
+  --bg:#f3f1ea; --card:#fcfbf7; --text:#2a2a25; --text-2:#55513f; --edge:#36352f; --soft:#d8d2c2;
+  --l-bg:#3f4a3c; --l-bg-down:#2c3529; --l-t:#fcfbf7;
+  --r-bg:#f0c25a; --r-bg-down:#d9a838; --r-t:#2a2a25;
+  --accent:#b8741a; --bar:#5f8a55; --bar-bg:#ebe6d8; --good:#4a7340; --warn:#a3261a;
+  --note-bg:#fbefcf; --stage:#cfe6ef; --veil:rgba(42,42,37,.6); --chip:#efe9da;
+  color-scheme:light;
+}
+:root[data-mood="dawn"]{
+  --bg:#111a24; --card:#18222e; --text:#f3f5f7; --text-2:#c3ccd5; --edge:#c3ccd5; --soft:#2f3c4b;
+  --l-bg:#e9edf1; --l-bg-down:#c9d0d7; --l-t:#16202b;
+  --r-bg:#f3c27e; --r-bg-down:#d9a862; --r-t:#16202b;
+  --accent:#f3c27e; --bar:#f3c27e; --bar-bg:#2c3a4a; --good:#f3c27e; --warn:#ff8a73;
+  --note-bg:#2b2719; --stage:#2a3b52; --veil:rgba(5,10,16,.74); --chip:#223040;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:21px;line-height:1.6;overflow:hidden;word-break:keep-all}
+button,summary,select,input{font-family:var(--font)}
+button,summary{cursor:pointer}
+a{color:inherit}
+:focus-visible{outline:5px solid #ff7a00;outline-offset:3px}
+.gut{padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.screen{position:fixed;inset:0}
+
+/* 버튼: 각진 라벨 + 안쪽 선 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:12px;min-height:80px;padding:12px 28px;border-radius:2px;border:3px solid var(--edge);
+  background:var(--card);color:var(--text);font:800 28px/1.2 var(--font);text-align:center;text-decoration:none;
+  box-shadow:inset 0 0 0 4px var(--card),inset 0 0 0 5.5px var(--edge)}
+.btn:active{filter:brightness(.93)}
+.btn.go{background:var(--r-bg);color:var(--r-t);border-color:var(--r-t);box-shadow:inset 0 0 0 4px var(--r-bg),inset 0 0 0 5.5px var(--r-t)}
+.btn.go:active{background:var(--r-bg-down)}
+.btn.sm{min-height:60px;font-size:20px;padding:8px 20px;border-width:2px;box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px var(--edge)}
+.row{display:flex;gap:14px;flex-wrap:wrap}
+.row>.btn{flex:1 1 220px}
+.msg{margin:0;font-size:19px;font-weight:700;color:var(--warn)}
+.small{margin:0;font-size:19px;color:var(--text-2)}
+.box{background:var(--card);border:4px double var(--edge);padding:24px;display:flex;flex-direction:column;gap:20px;min-width:0}
+.tag{display:inline-block;font-size:16px;font-weight:800;border:2px solid currentColor;padding:0 8px;line-height:1.5;vertical-align:middle}
+
+/* 사이트 틀 */
+.site{overflow-y:auto}
+.top{max-width:1180px;margin:0 auto;padding-block:18px 0;display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 28px;border-bottom:3px solid var(--edge)}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;padding-bottom:12px}
+.brand img{height:56px;width:auto;display:block}
+.brand b{font:800 36px/1 var(--num);letter-spacing:-.01em}
+.nav{display:flex;gap:6px 22px;overflow-x:auto;max-width:100%}
+.nav a{white-space:nowrap;text-decoration:none;font-size:20px;font-weight:800;color:var(--text-2);padding:10px 2px 12px;border-bottom:5px solid transparent;margin-bottom:-3px}
+.nav a[aria-current="page"]{color:var(--text);border-bottom-color:var(--accent)}
+.view{max-width:1180px;margin:0 auto;padding-block:30px 56px}
+.vh{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+.vh h1{margin:0;font:800 clamp(34px,4.6vw,48px)/1.2 var(--num);text-wrap:balance}
+.vh p{margin:0;max-width:60ch;color:var(--text-2)}
+
+/* 걷기(시작) */
+.walk{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,560px);gap:32px 48px;align-items:start}
+@media (max-width:900px){.walk{grid-template-columns:minmax(0,1fr)}}
+.intro{display:flex;flex-direction:column;gap:18px;min-width:0}
+.say{margin:0;word-break:keep-all}
+.say b{display:block;font:800 clamp(32px,3.6vw,42px)/1.32 var(--num);letter-spacing:-.01em}
+.say span{display:block;margin-top:12px;font:700 clamp(21px,2vw,24px)/1.5 var(--font);color:var(--text-2)}
+#pic{width:100%;aspect-ratio:16/9;border:4px double var(--edge);display:block;background:var(--stage)}
+.today{margin:0;font-size:20px;font-weight:700;color:var(--text-2)}
+.story{border-top:2px solid var(--soft);padding-top:16px;display:flex;flex-direction:column;gap:8px}
+.story h2{margin:0;font:800 22px/1.3 var(--num);display:flex;align-items:center;gap:10px}
+.story p{margin:0;font-size:19px;line-height:1.6}
+.story .tag{font:800 14px var(--font);border:2px solid var(--edge);padding:1px 8px}
+.givebar{height:22px;border:3px solid var(--edge);background:var(--bar-bg)}
+.givebar i{display:block;height:100%;width:0;background:var(--accent)}
+
+.more h3{margin:0 0 4px;font:800 19px var(--num);color:var(--text-2)}
+.row{border-top:1px solid var(--soft)}
+.row:last-child{border-bottom:1px solid var(--soft)}
+.row summary{list-style:none;display:flex;align-items:center;gap:12px;min-height:58px;cursor:pointer}
+.row summary::-webkit-details-marker{display:none}
+.row .k{font-weight:800;font-size:19px;flex:0 0 auto}
+.row .v{flex:1 1 auto;min-width:0;font-size:16px;color:var(--text-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.row .ch{flex:0 0 auto;font:700 16px var(--font);border:2px solid var(--soft);padding:4px 12px;color:var(--text-2)}
+.row[open] .ch{border-color:var(--edge);color:var(--text)}
+.row .body{padding:4px 0 18px;display:flex;flex-direction:column;gap:10px}
+.row .lab{margin:6px 0 -2px;font-weight:800;font-size:18px;color:var(--text);display:block}
+.vbox{display:flex;flex-direction:column;gap:10px}
+.vbox .btn.sm{align-self:flex-start}
+#voiceBox .sel{flex:none;align-self:flex-start;min-width:min(100%,320px)}
+@media (max-width:560px){.row .v{display:none}}
+
+.dress{display:flex;flex-direction:column;gap:12px;border-top:2px solid var(--soft);padding-top:18px}
+.dress h2{margin:0;font:800 24px/1.3 var(--num)}
+.namein{font:800 24px var(--font);min-height:58px;padding:6px 14px;border:3px solid var(--edge);border-radius:0;background:var(--card);color:var(--text);width:100%;box-sizing:border-box}
+.extra summary .small{font-size:16px;margin-left:4px}
+.stepno{display:flex;flex-direction:column;gap:12px}
+.stepno h2{margin:0;font:800 26px/1.3 var(--num);display:flex;align-items:baseline;gap:14px}
+.stepno h2 .n{font:800 46px/1 var(--num);color:var(--accent);min-width:.8em}
+.goals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.goal{min-height:78px;border-radius:2px;border:2px solid var(--edge);background:var(--card);color:var(--text);font:800 32px/1.05 var(--num);font-variant-numeric:tabular-nums;
+  box-shadow:inset 0 0 0 3px var(--card),inset 0 0 0 4px var(--edge)}
+.goal[aria-pressed="true"]{background:var(--text);color:var(--card);box-shadow:inset 0 0 0 3px var(--text),inset 0 0 0 4px var(--card)}
+.goal small{display:block;font:700 16px var(--font)}
+.goals{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media (max-width:520px){.goals{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.goalcustom{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.gstep{min-width:72px;min-height:72px;font:800 40px/1 var(--num);border-radius:2px;border:2px solid var(--edge);background:var(--card);color:var(--text);cursor:pointer}
+.goalnum{width:4.2em;min-height:72px;font:800 40px var(--num);text-align:center;font-variant-numeric:tabular-nums;border:3px solid var(--edge);border-radius:0;background:var(--card);color:var(--text);box-sizing:border-box}
+.goalunit{font:700 22px var(--font)}
+.goalhint{margin:8px 0 0;font-size:18px;color:var(--text-2)}
+.safety{margin:0;background:var(--note-bg);border:4px double var(--edge);padding:14px 18px;font-size:20px;line-height:1.55}
+.safety b{display:block;font-size:22px}
+.sensor{display:flex;flex-direction:column;gap:10px;border-top:2px solid var(--soft);padding-top:18px}
+.sensor h3{margin:0;font:800 22px var(--num)}
+.state{margin:0;font-size:19px;color:var(--text-2)}
+.state b{color:var(--good)}
+.extra summary{font-size:19px;font-weight:700;color:var(--text-2);list-style:none;display:flex;align-items:center;gap:10px;min-height:48px}
+.extra summary::-webkit-details-marker{display:none}
+.extra summary::before{content:"+";width:30px;height:30px;border:2px solid var(--text-2);display:grid;place-items:center;font-weight:800;line-height:1}
+.extra[open] summary::before{content:"−"}
+.extra-body{display:flex;flex-direction:column;gap:12px;padding-top:10px}
+.extra-body h3{margin:6px 0 0;font:800 19px var(--num)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg button{font:700 17px var(--font);min-height:46px;padding:4px 14px;border-radius:2px;border:2px solid var(--edge);background:var(--card);color:var(--text)}
+.seg button[aria-pressed="true"]{background:var(--text);color:var(--card)}
+.file{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.file select{font:700 18px var(--font);min-height:60px;border-radius:2px;border:2px solid var(--edge);padding:0 12px;background:var(--card);color:var(--text)}
+
+/* 휴대폰 연결 창 */
+.modal{position:fixed;inset:0;background:var(--veil);display:grid;place-items:center;padding:16px;z-index:20;overflow-y:auto}
+.modal .box{max-width:720px;width:100%}
+.modal h2{margin:0;font:800 32px/1.25 var(--num)}
+.pair{display:grid;grid-template-columns:auto minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:620px){.pair{grid-template-columns:minmax(0,1fr)}}
+#qr{width:200px;height:200px;background:#fff;color:#1d1d1a;padding:10px;border:2px solid var(--edge);display:grid;place-items:center;overflow:hidden;font-size:14px;word-break:break-all;text-align:center}
+#qr img,#qr canvas{width:180px!important;height:180px!important}
+.code{font:800 56px/1 var(--num);letter-spacing:.12em;font-variant-numeric:tabular-nums}
+.addr{font-size:16px;word-break:break-all;background:var(--chip);padding:8px 10px;user-select:all}
+.how{margin:0;padding-left:1.4em;display:flex;flex-direction:column;gap:6px}
+.chk{display:flex;gap:10px;align-items:flex-start;font-size:19px}
+.chk input{width:28px;height:28px;flex:0 0 auto;margin-top:2px}
+
+/* 게임 화면 */
+.game{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;background:var(--bg);z-index:5}
+.info{background:var(--card);border-bottom:3px solid var(--edge);padding-block:12px;display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px 32px;align-items:center}
+.info>*{min-width:0}
+@media (max-width:700px){.info{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px 16px}.prog{grid-column:1/-1;grid-row:2}.big .v{font-size:52px!important}.prog-t{font-size:18px}}
+.big .k{display:block;font-size:20px;font-weight:700;color:var(--text-2);line-height:1.2}
+.big .v{display:block;font:800 clamp(56px,7vw,86px)/1 var(--num);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.big .v small{font:700 .36em var(--num);color:var(--text-2);letter-spacing:0;margin-left:.15em}
+.big.right{text-align:right}
+.big.flash .v{color:var(--good)}
+.prog{display:flex;flex-direction:column;gap:8px}
+.bar{height:30px;border:3px solid var(--edge);background:var(--bar-bg);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--bar);transition:width .4s}
+.prog-t{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;font-size:20px;font-weight:800;font-variant-numeric:tabular-nums}
+.prog-s{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;font-size:18px;color:var(--text-2);font-weight:700}
+.pill{border:2px solid var(--text-2);padding:0 10px;white-space:nowrap}
+.pill.bad{border-color:var(--warn);color:var(--warn)}
+.snd{font:700 17px var(--font);min-height:44px;padding:2px 14px;border-radius:2px;border:2px solid var(--text-2);background:transparent;color:var(--text)}
+.stage{position:relative;min-height:0;overflow:hidden;background:var(--stage)}
+#river{position:absolute;inset:0;width:100%;height:100%;display:block}
+.notice{position:absolute;left:50%;top:16px;transform:translateX(-50%);max-width:calc(100% - 32px);background:var(--card);color:var(--text);border:4px double var(--edge);padding:12px 26px;font:700 clamp(26px,3.4vw,36px)/1.3 var(--num);text-align:center}
+.notice small{display:block;font:700 19px var(--font);color:var(--text-2)}
+.guide{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);width:min(760px,calc(100% - 32px));background:var(--text);color:var(--card);padding:14px 22px;font-size:22px;font-weight:700;line-height:1.45;text-align:center}
+.overlay{position:absolute;inset:0;background:var(--veil);display:grid;place-items:center;padding:16px;z-index:5}
+.overlay .box{max-width:540px;text-align:center}
+.overlay h2{margin:0;font:800 36px/1.2 var(--num);color:var(--warn)}
+.replay{padding-block:6px;background:var(--card);border-top:3px solid var(--edge);display:flex;flex-direction:column;gap:8px}
+.rtop{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px}
+.rinfo{flex:1 1 280px;min-width:0;font-size:16px;font-weight:700;font-variant-numeric:tabular-nums}
+.rctl{font:700 16px var(--font);min-height:38px;padding:2px 14px;border-radius:2px;border:2px solid var(--edge);background:var(--card);color:var(--text)}
+#sig{width:100%;height:46px;display:block;border:1px solid var(--soft)}
+.controls{background:var(--card);border-top:3px solid var(--edge);padding-block:14px 16px;display:flex;gap:16px}
+.foot{flex:1 1 0;min-width:0;min-height:118px;flex-direction:column;gap:2px;font-size:clamp(32px,4.6vw,44px)}
+.foot small{font-size:16px;font-weight:700}
+.foot.l{background:var(--l-bg);color:var(--l-t);border-color:var(--l-t);box-shadow:inset 0 0 0 4px var(--l-bg),inset 0 0 0 5.5px var(--l-t)}
+.foot.l:active,.foot.l.hit{background:var(--l-bg-down)}
+.foot.r{background:var(--r-bg);color:var(--r-t);border-color:var(--r-t);box-shadow:inset 0 0 0 4px var(--r-bg),inset 0 0 0 5.5px var(--r-t)}
+.foot.r:active,.foot.r.hit{background:var(--r-bg-down)}
+.foot.hit{outline:6px solid #ff7a00;outline-offset:-12px}
+.foot.cue{box-shadow:inset 0 0 0 4px var(--accent),inset 0 0 0 10px var(--accent)}
+.controls .end{flex:0 0 auto;min-height:118px;font-size:25px}
+@media (max-width:560px){.controls{gap:10px}.controls .end{padding:8px 12px;font-size:20px}.foot small{display:none}}
+
+/* 결과 */
+.result{overflow-y:auto;z-index:6}
+.result-in{max-width:900px;margin:0 auto;padding-block:32px 48px;display:flex;flex-direction:column;gap:22px}
+.done-tag{margin:0;align-self:flex-start;font-size:20px;font-weight:800;color:var(--good);border:3px solid var(--good);padding:2px 14px}
+.result h2{margin:0;font:800 clamp(38px,5.6vw,58px)/1.2 var(--num);text-wrap:balance}
+.lede{margin:0;font-size:22px;line-height:1.55}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.tile{background:var(--card);border:2px solid var(--edge);padding:14px 18px;display:flex;flex-direction:column}
+.tile .k{font-size:19px;font-weight:700;color:var(--text-2)}
+.tile .v{font:800 44px/1.15 var(--num);font-variant-numeric:tabular-nums}
+.tile .v small{font:700 .42em var(--num);color:var(--text-2)}
+.tile .n{font-size:17px;color:var(--text-2)}
+.cmprow{display:grid;grid-template-columns:84px minmax(0,1fr) auto;align-items:center;gap:14px;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.cbar{height:28px;border:2px solid var(--edge);background:var(--bar-bg);overflow:hidden}
+.cbar i{display:block;height:100%}
+.note{margin:0;font-size:19px;color:var(--text-2)}
+
+/* 기록·공유 */
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:22px}
+.chart{border:2px solid var(--edge);background:var(--card);padding:14px;margin-bottom:22px;overflow-x:auto}
+.chart svg{display:block;width:100%;min-width:520px;height:auto}
+.tbl{overflow-x:auto;border:2px solid var(--edge);background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:18px;font-variant-numeric:tabular-nums}
+th,td{padding:10px 12px;text-align:right;border-bottom:1px solid var(--soft);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:16px;color:var(--text-2);border-bottom:2px solid var(--edge)}
+tr.ex td{color:var(--text-2)}
+.empty{padding:28px;text-align:center;color:var(--text-2)}
+.cols{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:24px;align-items:start}
+@media (max-width:900px){.cols{grid-template-columns:minmax(0,1fr)}}
+.metric{display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:14px 0;border-bottom:1px solid var(--soft)}
+.metric:last-child{border-bottom:0}
+.metric b{font:800 21px var(--num)}
+.metric p{margin:0;font-size:18px}
+.linkout{display:flex;flex-direction:column;gap:10px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:18px;font-weight:700}
+.field input{font:700 20px var(--font);min-height:54px;border:2px solid var(--edge);border-radius:2px;padding:0 12px;background:var(--card);color:var(--text)}
+.report{background:#fff;color:#1d1d1a;border:2px solid #1d1d1a;padding:22px;display:flex;flex-direction:column;gap:14px}
+.report h3{margin:0;font:800 26px/1.2 var(--num)}
+.report .meta{font-size:16px;color:#4a4a40}
+.report table{min-width:560px;font-size:16px}
+.report th,.report td{border-color:#d6d3c8}
+.report thead th{color:#4a4a40;border-color:#1d1d1a}
+.report .rs{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.report .rs div{border:1px solid #1d1d1a;padding:8px 10px}
+.report .rs span{display:block;font-size:14px;color:#4a4a40}
+.report .rs b{font:800 26px var(--num)}
+
+/* 줍깅·환경 */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
+.card{background:var(--card);border:2px solid var(--edge);padding:20px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card h3{margin:0;font:800 24px/1.3 var(--num)}
+.card dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;font-size:18px}
+.card dt{font-weight:800;color:var(--text-2)}
+.card dd{margin:0}
+.card .btn{margin-top:auto;align-self:flex-start}
+.card details summary{font-weight:800;font-size:19px;min-height:44px;display:flex;align-items:center;gap:10px;list-style:none}
+.card details summary::-webkit-details-marker{display:none}
+.card details summary::before{content:"+";width:26px;height:26px;border:2px solid var(--text-2);display:grid;place-items:center;line-height:1}
+.card details[open] summary::before{content:"−"}
+.src{font-size:17px;color:var(--text-2)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-bottom:24px}
+.fact{border-top:4px double var(--edge);padding-top:14px;display:flex;flex-direction:column;gap:6px}
+.fact .big2{font:800 54px/1 var(--num);color:var(--accent);font-variant-numeric:tabular-nums}
+.fact p{margin:0}
+.calc{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+
+/* 휴대폰 센서 화면 */
+.sensorpage{overflow-y:auto}
+.sp-in{max-width:560px;margin:0 auto;padding-block:24px 40px;display:flex;flex-direction:column;gap:18px}
+.sp-in h1{margin:0;font:800 34px/1.2 var(--num)}
+.feet{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.feet button{min-height:90px;font:800 30px var(--font);border-radius:2px;border:3px solid var(--edge);background:var(--card);color:var(--text)}
+.feet button[aria-pressed="true"]{background:var(--text);color:var(--card)}
+.live{font:800 96px/1 var(--num);text-align:center;font-variant-numeric:tabular-nums}
+.live small{display:block;font:700 20px var(--font);color:var(--text-2)}
+/* 쓰레기를 주웠을 때 오른쪽 위 작은 알림 */
+.side{position:absolute;right:16px;top:16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;pointer-events:none;max-width:min(360px,62%);z-index:3}
+.side div{background:var(--card);color:var(--text);border:4px double var(--edge);padding:8px 16px;font:800 22px/1.3 var(--num);animation:sidein .25s ease-out;transition:opacity .45s}
+.side div.out{opacity:0}
+#voiceBox{display:flex;flex-direction:column;gap:10px}
+#voiceBox .small{margin:0}
+.sel{font:700 19px var(--font);min-height:48px;padding:4px 10px;border:2px solid var(--edge);border-radius:0;background:var(--card);color:var(--text);max-width:100%;flex:1 1 220px}
+.stage.ar .side{right:auto;left:16px;align-items:flex-start}
+.side small{display:block;font:700 16px var(--font);color:var(--text-2)}
+@keyframes sidein{from{transform:translateX(24px);opacity:0}}
+html.tv .side div{font-size:34px} html.tv .side small{font-size:24px}
+.eco h3{margin:0;font:800 24px var(--num)}
+.decay{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+/* 치료사 연동 */
+.sync{margin-top:28px}
+.sync h2{margin:0;font:800 28px/1.25 var(--num)}
+.sync h3{margin:0;font:800 22px var(--num)}
+.plist{display:flex;flex-direction:column;gap:8px}
+.pbtn{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left;min-height:64px;padding:10px 16px;border-radius:2px;border:2px solid var(--edge);background:var(--card);color:var(--text);font:700 19px var(--font)}
+.pbtn[aria-pressed="true"]{background:var(--text);color:var(--card)}
+.pbtn small{font-size:15px;font-weight:700;opacity:.8}
+.notes{display:flex;flex-direction:column;gap:8px}
+.note-item{border-left:0;border:2px solid var(--soft);padding:10px 14px;background:var(--card)}
+.note-item time{display:block;font-size:14px;color:var(--text-2)}
+.note-item p{margin:2px 0 0;white-space:pre-wrap}
+textarea{font:700 19px/1.5 var(--font);min-height:96px;border:2px solid var(--edge);border-radius:2px;padding:10px 12px;background:var(--card);color:var(--text);resize:vertical;width:100%;box-sizing:border-box}
+/* 웹캠 거울형 AR */
+#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);background:#000}
+.camnote{position:absolute;left:12px;bottom:12px;margin:0;font-size:15px;font-weight:700;background:rgba(0,0,0,.6);color:#fff;padding:4px 10px}
+/* TV 모드: 멀리서 보이게 크게, 화면 가장자리 여백, 버튼 대신 클리커·리모컨 */
+.tvhint{display:none;flex:1 1 auto;align-items:center;font-size:20px;font-weight:700;color:var(--text-2)}
+.tvhint b{color:var(--text);margin:0 .3em}
+html.tv .screen{inset:2.5vh 2.5vw}
+html.tv #scrSite,html.tv #scrResult{zoom:1.3}
+html.tv .info{padding-block:8px}
+html.tv .big .k{font-size:20px}
+html.tv .big .v{font-size:clamp(56px,5.4vw,84px)}
+html.tv .prog-t{font-size:24px}
+html.tv .prog-s{display:none}
+html.tv .bar{height:26px}
+html.tv .controls{padding-block:8px;align-items:center}
+html.tv .controls .end{min-height:0;padding:8px 22px;font-size:20px}
+html.tv .notice{font-size:clamp(40px,4.4vw,60px)}
+html.tv .notice small{font-size:28px}
+html.tv .guide{font-size:32px;width:min(1100px,calc(100% - 32px))}
+html.tv .controls .foot{display:none}
+html.tv .tvhint{display:flex}
+html.tv :focus-visible{outline-width:8px;outline-offset:4px}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}.side div{animation:none}}
+</style>
+
+<!-- 사이트(걷기·기록·공유·줍깅·환경) -->
+<section class="screen site" id="scrSite">
+  <header class="top gut">
+    <a class="brand" href="#walk" data-v="walk" aria-label="RiverStep 처음 화면"><img id="logoImg" alt="RiverStep" hidden><b id="logoText">RiverStep</b></a>
+    <nav class="nav" aria-label="메뉴">
+      <a href="#walk" data-v="walk">걷기</a>
+      <a href="#records" data-v="records">내 기록</a>
+      <a href="#therapist" data-v="therapist">치료사와 공유</a>
+      <a href="#plogging" data-v="plogging">함께 줍깅</a>
+      <a href="#walk-eco" data-v="walk-eco">걷기와 환경</a>
+    </nav>
+  </header>
+
+  <!-- 걷기 -->
+  <main class="view gut" id="v-walk">
+    <div class="walk">
+      <div class="intro">
+        <p class="say" id="say"><b>내가 한 걸음 걸으면<br>남생이도 한 걸음.</b><span>걸을수록 쓰레기를 건져서 하천이 맑아져요.</span></p>
+        <canvas id="pic" aria-label="하천을 헤엄치는 남생이와 떠 있는 쓰레기 그림"></canvas>
+        <p class="today" id="todayLine">오늘은 아직 걷지 않았어요.</p>
+        <div class="story" id="namStory">
+          <h2>남생이 이야기</h2>
+          <p>남생이는 우리 하천에 사는 <b>토종 민물거북</b>이에요. 천연기념물이자 멸종위기 야생생물 Ⅱ급이에요. 외래종인 붉은귀거북이 늘면서 살 곳을 위협받고 있어요. 바다거북과 달리 지느러미 대신 <b>발톱 달린 네 발</b>로 물가를 걸어요.</p>
+          <p class="src">출처: <a href="https://www.hankyung.com/article/202606231713h" target="_blank" rel="noopener">한국경제, 울산 못산늪서 멸종위기야생생물 남생이 관찰(2026.6.23)</a></p>
+        </div>
+        <div class="story give">
+          <h2>내 걸음 기부 <span class="tag">시안 · 예시</span></h2>
+          <p id="giveLine">걸음을 모아 하천 정화 기금으로 바꾸는 구조의 예시예요.</p>
+          <div class="givebar"><i id="giveFill"></i></div>
+          <p class="src" id="giveNote"></p>
+        </div>
+      </div>
+      <div class="box">
+        <div class="stepno">
+          <h2><span class="n">1</span>함께 걸을 <span id="spWord">남생이</span> 이름</h2>
+          <label class="sr" for="tName" id="spWordSr">남생이 이름</label><input id="tName" class="namein" maxlength="8" placeholder="예: 순돌이" autocomplete="off">
+        </div>
+        <div class="stepno">
+          <h2><span class="n">2</span>오늘 몇 걸음 걸을까요?</h2>
+          <div class="goals" role="group" aria-label="오늘 목표 걸음" id="goalChips">
+            <button class="goal" data-goal="20" aria-pressed="false">20<small>걸음</small></button>
+            <button class="goal" data-goal="30" aria-pressed="true">30<small>걸음</small></button>
+            <button class="goal" data-goal="50" aria-pressed="false">50<small>걸음</small></button>
+            <button class="goal" data-goal="100" aria-pressed="false">100<small>걸음</small></button>
+            <button class="goal" id="goalCustomBtn" data-goal="custom" aria-pressed="false" aria-controls="goalCustom">직접<small>정하기</small></button>
+          </div>
+          <div id="goalCustom" hidden>
+            <div class="goalcustom">
+              <button type="button" class="gstep" id="goalMinus" aria-label="5걸음 줄이기">−</button>
+              <label class="sr" for="goalNum">직접 정한 걸음 수</label><input id="goalNum" class="goalnum" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" value="40">
+              <span class="goalunit">걸음</span>
+              <button type="button" class="gstep" id="goalPlus" aria-label="5걸음 늘리기">+</button>
+            </div>
+            <p class="goalhint" id="goalHint" aria-live="polite">−, + 버튼으로 5걸음씩 바뀌어요. 5걸음에서 300걸음까지 정할 수 있어요.</p>
+          </div>
+        </div>
+        <div class="stepno">
+          <h2><span class="n">3</span>걸을 때 들을 소리</h2>
+          <div class="seg" role="group" aria-label="걸을 때 나오는 소리" id="musicSeg">
+            <button data-music="melody" aria-pressed="true">걸음 가락</button>
+            <button data-music="beat" aria-pressed="false">박자 맞춰 걷기</button>
+            <button data-music="song" aria-pressed="false">내 노래</button>
+            <button data-music="off" aria-pressed="false">끄기</button>
+          </div>
+          <p class="small" id="musicHelp"></p>
+          <div class="seg" role="group" aria-label="박자 빠르기" id="tempoSeg" hidden>
+            <button data-bpm="16" aria-pressed="false">아주 느리게 · 1분 16걸음</button>
+            <button data-bpm="20" aria-pressed="false">느리게 · 1분 20걸음</button>
+            <button data-bpm="24" aria-pressed="true">보통 · 1분 24걸음</button>
+            <button data-bpm="30" aria-pressed="false">빠르게 · 1분 30걸음</button>
+          </div>
+          <div class="file" id="songBox" hidden>
+            <label class="btn sm" for="songFile">노래 파일 고르기</label>
+            <input class="sr" type="file" id="songFile" accept="audio/*">
+            <span class="small" id="songName">아직 고른 노래가 없어요.</span>
+          </div>
+          <p class="small" id="songSrc" hidden>내가 가진 노래 파일(MP3 등)을 고르세요. 무료로 쓸 수 있는 민요·국악 음원은 <a href="https://gongu.copyright.or.kr/gongu/main/main.do" target="_blank" rel="noopener">공유마당(한국저작권위원회)</a>에서 찾을 수 있어요. 음원마다 이용 조건을 확인하세요.</p>
+        </div>
+        <p class="safety"><b>걷기 전에 확인하세요</b>손잡이를 잡거나 벽·의자 옆에서 걸으세요. 어지럽거나 아프면 바로 멈추세요.</p>
+        <div class="stepno">
+          <h2><span class="n">4</span>준비되면 누르세요</h2>
+          <button class="btn go" id="btnStart">시작하기</button>
+        </div>
+        <div class="more">
+          <h3>그 밖의 설정</h3>
+          <details class="row"><summary><span class="k">칭찬 목소리</span><span class="v">켜기·끄기 · 목소리 고르기 · 말하는 속도</span><span class="ch">설정하기</span></summary>
+            <div class="body">
+              <p class="lab">목소리 켜기·끄기</p>
+              <input type="checkbox" id="voiceChk" class="sr" checked tabindex="-1" aria-hidden="true">
+              <div class="seg" role="group" aria-label="목소리 켜기·끄기" id="voiceOnSeg"><button data-on="1" aria-pressed="true">켜기</button><button data-on="0" aria-pressed="false">끄기</button></div>
+              <div id="voiceBox" class="vbox">
+                <label class="lab" for="voiceSel">목소리 고르기</label>
+                <select id="voiceSel" class="sel"></select>
+                <p class="lab">말하는 속도</p>
+                <div class="seg" role="group" aria-label="말하는 속도" id="rateSeg">
+                  <button data-rate="0.5" aria-pressed="false">아주 천천히</button>
+                  <button data-rate="0.6" aria-pressed="true">천천히</button>
+                  <button data-rate="0.72" aria-pressed="false">보통</button>
+                </div>
+                <button class="btn sm" id="btnVoiceTry" type="button">들어 보기</button>
+              </div>
+              <p class="small" id="voiceMsg" hidden></p>
+            </div></details>
+          <details class="row"><summary><span class="k">걸음 세는 방법</span><span class="v">발목 커프 연결 · 화면 버튼</span><span class="ch">설정하기</span></summary>
+            <div class="body">
+              <p class="state" id="sensorState">발목 커프를 연결하면 걸음을 저절로 세요. 커프가 없으면 화면의 왼발·오른발 버튼으로 걸어요.</p>
+              <button class="btn sm" id="btnCuff">발목 커프 연결</button>
+              <p class="msg" id="cuffMsg" hidden></p>
+            </div></details>
+          <details class="row"><summary><span class="k">화면</span><span class="v">낮·저녁 그림 · 거북이 종류 · 배경 · TV 모드</span><span class="ch">설정하기</span></summary>
+            <div class="body">
+              <p class="lab">낮·저녁 그림</p>
+              <div class="seg" role="group" aria-label="낮·저녁 그림" id="moodSeg">
+                <button data-mood="auto" aria-pressed="true">시간대에 맞춤</button>
+                <button data-mood="day" aria-pressed="false">낮</button>
+                <button data-mood="dawn" aria-pressed="false">새벽·저녁</button>
+              </div>
+              <p class="small">시간대에 맞춤은 오전 7시~오후 5시에 낮 그림, 그 밖에는 새벽·저녁 그림이에요.</p>
+              <p class="lab">거북이 종류</p>
+              <div class="seg" role="group" aria-label="거북이 종류" id="spSeg">
+                <button data-sp="nam" aria-pressed="true">남생이</button>
+                <button data-sp="sea" aria-pressed="false">바다거북</button>
+              </div>
+              <p class="small">남생이는 우리 하천에 사는 토종 민물거북이에요. 바다거북은 이전 디자인이에요.</p>
+              <p class="lab">배경</p>
+              <div class="seg" role="group" aria-label="배경" id="bgSeg">
+                <button data-bg="art" aria-pressed="true">그림 하천</button>
+                <button data-bg="cam" aria-pressed="false">웹캠 거울(AR)</button>
+              </div>
+              <p class="small">웹캠 거울은 카메라에 비친 내 모습 옆으로 하천이 흘러요. 화면에서 2~3걸음 떨어져 서세요. 영상은 저장하거나 보내지 않아요.</p>
+              <p class="lab">TV 모드</p>
+              <div class="seg" role="group" aria-label="TV 모드" id="tvSeg">
+                <button data-tv="0" aria-pressed="true">끄기</button>
+                <button data-tv="1" aria-pressed="false">켜기</button>
+                <button id="btnFull" type="button">전체 화면</button>
+              </div>
+              <p class="small">TV 모드는 글자를 키우고 화면 가장자리에 여백을 둬요. 리모컨 '뒤로' 버튼으로 걷기를 마쳐요.</p>
+              <p class="msg" id="tvMsg" hidden></p>
+            </div></details>
+          <details class="row"><summary><span class="k">발표 시연</span><span class="v">휴대폰 센서 연결 · 예시 데이터 · 측정 파일</span><span class="ch">설정하기</span></summary>
+            <div class="body">
+              <p class="lab">휴대폰을 커프 대신 쓰기</p>
+              <p class="small">커프가 없을 때 휴대폰을 발목에 차서 커프처럼 걸음을 세는 시연용 방법이에요.</p>
+              <button class="btn sm" id="btnPhone">휴대폰을 센서로 연결</button>
+              <p class="lab">측정 데이터 재생</p>
+              <div class="file">
+                <button class="btn sm" id="btnSample">예시 데이터 재생</button>
+                <label class="btn sm" for="csvFile">측정 파일(CSV) 불러오기</label>
+                <input class="sr" type="file" id="csvFile" accept=".csv,.txt,.tsv,text/csv,text/plain">
+                <label class="sr" for="csvFoot">이 데이터를 찬 발</label>
+                <select id="csvFoot"><option value="L">왼발에 찬 데이터</option><option value="R">오른발에 찬 데이터</option></select>
+              </div>
+              <p class="small">예시 데이터는 설명용으로 만든 합성 신호예요. CSV는 시간(초)과 x·y·z 가속도 열이 있으면 돼요(phyphox 형식 가능).</p>
+              <p class="msg" id="csvMsg" hidden></p>
+            </div></details>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 내 기록 -->
+  <main class="view gut" id="v-records" hidden>
+    <div class="vh"><h1>내 걸음 기록</h1><p>이 기기에 저장된 기록이에요. 서버로 보내지 않아요.</p></div>
+    <div class="sum" id="recSum"></div>
+    <div class="chart" id="recChart"></div>
+    <div class="tbl" id="recTable"></div>
+    <div class="row" style="margin-top:18px">
+      <button class="btn sm" id="btnSampleLog">발표용 예시 기록 넣기</button>
+      <button class="btn sm" id="btnClearSample" hidden>예시 기록 지우기</button>
+    </div>
+  </main>
+
+  <!-- 치료사와 공유 -->
+  <main class="view gut" id="v-therapist" hidden>
+    <div class="vh"><h1>치료사와 공유</h1><p>최근 걸음 기록을 보고서로 만들어 치료사에게 보낼 수 있어요. 아래 수치는 시제품의 측정값이며 진단이 아니에요.</p></div>
+    <div class="cols">
+      <div class="linkout">
+        <div class="seg" role="group" aria-label="보고서 기간" id="rangeSeg">
+          <button data-days="7" aria-pressed="true">최근 7일</button>
+          <button data-days="14" aria-pressed="false">최근 14일</button>
+          <button data-days="30" aria-pressed="false">최근 30일</button>
+        </div>
+        <label class="field" for="nick">보고서에 쓸 별칭 (실명 대신)<input id="nick" maxlength="20" placeholder="예: 논산 거북이"></label>
+        <div id="reportBox"></div>
+        <div class="row">
+          <button class="btn go sm" id="btnMakeLink">보고서 링크 만들기</button>
+          <button class="btn sm" id="btnCopyText">보고서 글로 복사</button>
+        </div>
+        <p class="addr" id="linkOut" hidden></p>
+        <p class="small" id="linkMsg"></p>
+      </div>
+      <div class="box">
+        <h2 style="margin:0;font:800 26px var(--num)">이 수치들은 무엇을 보여 주나요</h2>
+        <div class="metric"><b>걸음 수</b><p>하루에 얼마나 움직였는지 보여 줘요. 날마다 늘거나 줄어드는 흐름을 함께 보면 좋아요.</p></div>
+        <div class="metric"><b>분당 걸음</b><p>걸은 시간 1분 동안의 걸음 수예요. 걷는 속도와 리듬을 짐작하는 데 쓰여요.</p></div>
+        <div class="metric"><b>평균 보행 주기</b><p>같은 발이 다시 땅에 닿기까지 걸린 시간이에요. 너무 들쭉날쭉하면 리듬이 일정하지 않다는 뜻일 수 있어요.</p></div>
+        <div class="metric"><b>좌우 대칭</b><p>왼발과 오른발의 보행 주기가 얼마나 비슷한지예요. 두 발이 같을수록 100%에 가까워요. 한쪽이 불편한 경우 재활 과정에서 치료사가 자주 살피는 부분이에요.</p></div>
+        <p class="note">기준값과 해석은 사람마다 달라요. 숫자만 보고 판단하지 말고 치료사와 함께 보세요.</p>
+      </div>
+    </div>
+    <section class="box sync" aria-labelledby="syncT">
+      <h2 id="syncT">치료사 연동</h2>
+      <p class="small" id="syncAvail">연결을 확인하고 있어요.</p>
+      <div class="cols">
+        <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+          <h3>내 기록 보내기</h3>
+          <label class="chk"><input type="checkbox" id="syncConsent"><span>최근 30일의 걸음 수·운동 시간·보행 주기·좌우 대칭 기록을 이 사이트 저장소에 올리는 데 동의해요.<br><span class="small">실명은 올리지 않고 위의 별칭만 써요. 이 페이지에 초대된 사람(치료사·팀원)은 볼 수 있어요. 언제든 멈추고 지울 수 있어요.</span></span></label>
+          <div class="row"><button class="btn go sm" id="btnSyncOn">기록 보내기 시작</button><button class="btn sm" id="btnSyncOff" hidden>보내기 멈추고 올린 기록 지우기</button></div>
+          <p class="state" id="syncState"></p>
+          <h3>치료사가 남긴 메모</h3>
+          <div class="notes" id="myNotes"><p class="small">아직 받은 메모가 없어요.</p></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+          <h3>치료사 화면</h3>
+          <p class="small">기록을 보내 준 사람 목록이에요. 누르면 보고서와 메모 칸이 열리고, 새 기록이 오면 바로 바뀌어요.</p>
+          <div class="plist" id="patientList"><p class="small">불러오는 중이에요.</p></div>
+          <div id="patientView"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- 함께 줍깅 -->
+  <main class="view gut" id="v-plogging" hidden>
+    <div class="vh"><h1>함께 줍깅</h1><p>게임에서 하천을 맑게 했다면, 실제 동네에서도 해 볼 수 있어요. 걸으면서 쓰레기를 줍는 활동을 줍깅(플로깅)이라고 해요. 눌러 보면 자세한 내용과 사이트로 가는 버튼이 나와요.</p></div>
+    <div class="cards">
+      <article class="card">
+        <h3>1365 자원봉사포털</h3>
+        <p>행정안전부가 운영하는 전국 자원봉사 사이트예요. 사는 지역에서 열리는 하천·공원 환경정화 봉사를 찾아 신청할 수 있어요.</p>
+        <details><summary>자세히 보기</summary>
+          <dl><dt>누구나</dt><dd>개인·단체 모두 가능</dd><dt>찾는 법</dt><dd>봉사 찾기에서 지역을 고르고 '플로깅'이나 '환경정화'로 검색</dd><dt>좋은 점</dt><dd>봉사시간이 기록돼요</dd></dl>
+        </details>
+        <a class="btn sm" href="https://www.1365.go.kr" target="_blank" rel="noopener">사이트 열기</a>
+      </article>
+      <article class="card">
+        <h3>세계 쓰레기 줍기의 날</h3>
+        <p>World Cleanup Day. 매년 9월 세계 190여 개국에서 같은 날 쓰레기를 줍는 행사예요. 2026년에는 9월 19~20일에 열렸고, 다음은 2027년 9월이에요.</p>
+        <details><summary>자세히 보기</summary>
+          <dl><dt>참여</dt><dd>근처에서 열리는 정화 활동에 함께하거나 직접 모임을 열 수 있어요</dd><dt>규모</dt><dd>해마다 수백만 명이 참여해요</dd></dl>
+        </details>
+        <a class="btn sm" href="https://www.worldcleanupday.org" target="_blank" rel="noopener">사이트 열기</a>
+      </article>
+      <article class="card">
+        <h3>반려해변</h3>
+        <p>해양수산부 사업으로, 학교·단체·기업이 해변 한 곳을 2년 동안 맡아 돌보는 활동이에요. 동아리나 학과 단위로 참여하기 좋아요.</p>
+        <details><summary>자세히 보기</summary>
+          <dl><dt>조건</dt><dd>연 3회 이상 정화 활동, 연 1회 이상 해양환경 캠페인</dd><dt>기간</dt><dd>2년, 기준을 채우면 연장</dd><dt>문의</dt><dd>해양수산부·해양환경공단 (아래 링크는 지금 입양된 해변 목록)</dd></dl>
+        </details>
+        <a class="btn sm" href="https://www.data.go.kr/data/15128245/fileData.do" target="_blank" rel="noopener">해변 목록 보기</a>
+      </article>
+      <article class="card">
+        <h3>제주 플로깅 활동 지원</h3>
+        <p>제주도와 제주관광공사가 10명 이상 단체의 플로깅에 식비·물품비를 지원해요. 2026년 11월 30일까지예요.</p>
+        <details><summary>자세히 보기</summary>
+          <dl><dt>조건</dt><dd>'제주플로깅' 앱으로 1시간 이상 활동</dd><dt>지원</dt><dd>1인 최대 1만 원, 단체 최대 30만 원</dd><dt>신청</dt><dd>활동 2일 전까지 계획서 제출, 1365 회원번호를 등록하면 봉사시간 인정</dd></dl>
+        </details>
+        <a class="btn sm" href="https://view.asiae.co.kr/en/article/2026060817130549586" target="_blank" rel="noopener">안내 기사 보기</a>
+      </article>
+      <article class="card">
+        <h3>혼자 또는 가족과 시작하기</h3>
+        <p>행사가 없어도 집 근처 산책길에서 시작할 수 있어요.</p>
+        <details open><summary>어르신 안전 수칙</summary>
+          <dl><dt>준비물</dt><dd>장갑, 집게, 봉투</dd><dt>자세</dt><dd>허리를 숙이지 말고 집게로 줍기</dd><dt>함께</dt><dd>보호자와 함께, 평평하고 밝은 길에서</dd><dt>멈추기</dt><dd>숨차거나 어지러우면 바로 쉬기</dd></dl>
+        </details>
+      </article>
+    </div>
+    <p class="src" style="margin-top:20px">출처: 해양수산부 반려해변 현황(공공데이터포털), 더나은미래 반려해변 기사, 아시아경제 제주 플로깅 지원 기사, River Cleanup·National CleanUp Day의 World Cleanup Day 안내. 일정과 조건은 바뀔 수 있으니 참여 전에 각 사이트에서 확인하세요.</p>
+  </main>
+
+  <!-- 걷기와 환경 -->
+  <main class="view gut" id="v-walk-eco" hidden>
+    <div class="vh"><h1>걷기가 환경에 도움이 되는 이유</h1><p>제자리 걷기 자체가 공기를 깨끗하게 하지는 않아요. 하지만 걷는 힘이 돌아오면 가까운 거리를 차 대신 걸어서 다닐 수 있고, 그만큼 배기가스가 줄어요.</p></div>
+    <div class="facts">
+      <div class="fact"><span class="big2">49%</span><p>영국 카디프 연구에서 자동차 이동의 절반가량이 3마일(약 4.8km) 미만의 짧은 이동이었어요.</p></div>
+      <div class="fact"><span class="big2">41%</span><p>그 짧은 차 이동 중 41%는 현실적으로 걷기나 자전거로 바꿀 수 있다고 봤어요.</p></div>
+      <div class="fact"><span class="big2">약 5%</span><p>그렇게 바꾸면 자동차에서 나오는 온실가스를 약 5% 줄일 수 있다고 계산했어요.</p></div>
+    </div>
+    <div class="box">
+      <h2 style="margin:0;font:800 26px var(--num)">내 걸음을 차 대신 걸었다면</h2>
+      <p class="small" id="ecoCalcNote">이 기기에 기록된 걸음으로 계산했어요. 보폭은 0.5m로 가정했어요.</p>
+      <div class="calc" id="ecoCalc"></div>
+      <p class="note">자동차 배출량은 수도권대기환경청이 발표한 2013년 국산 신차 평균 187.3g/km를 썼어요. 요즘 차는 이보다 적게 나올 수 있어서 대략적인 예시로만 봐 주세요.</p>
+    </div>
+    <div class="box" style="margin-top:24px">
+      <h2 style="margin:0;font:800 26px var(--num)">하천에 버려진 쓰레기는 얼마나 남을까</h2>
+      <p class="small">게임에서 남생이가 줍는 네 가지 쓰레기가 바다에서 분해되기까지 걸리는 추정 시간이에요.</p>
+      <div class="decay" id="decayList"></div>
+      <p class="note">미국 해양대기청(NOAA)·우즈홀 시그랜트의 추정치예요. 측정값이 아니라 대략적인 값이고, 다 분해되기 전까지 잘게 부서진 미세플라스틱으로 남아요.</p>
+    </div>
+    <p class="src" style="margin-top:20px">출처: NOAA·Woods Hole Sea Grant 추정치(세계경제포럼 2018 정리, 텍사스 토지관리청 해양쓰레기 연표). Neves & Brand(2018), Transportation Research Part A — UKERC 요약 및 TravelWest 요약 자료. 오토뷰 기사(수도권대기환경청 2014년 발표).</p>
+  </main>
+</section>
+
+<!-- 휴대폰 연결 창 -->
+<div class="modal" id="pairModal" hidden role="dialog" aria-modal="true" aria-labelledby="pairT">
+  <div class="box">
+    <h2 id="pairT">휴대폰을 걸음 센서로 연결</h2>
+    <div class="pair">
+      <div id="qr" aria-label="휴대폰으로 찍을 QR 코드">불러오는 중</div>
+      <div style="display:flex;flex-direction:column;gap:10px;min-width:0">
+        <span class="small">연결 번호</span>
+        <span class="code" id="pairCode">----</span>
+        <ol class="how">
+          <li>휴대폰 카메라로 QR을 찍거나 아래 주소를 열어요.</li>
+          <li>휴대폰에서 찬 발을 고르고 '센서 시작'을 눌러요.</li>
+          <li>휴대폰을 화면이 켜진 채로 발목 바깥쪽에 밴드로 고정해요.</li>
+        </ol>
+      </div>
+    </div>
+    <p class="addr" id="pairAddr"></p>
+    <p class="state" id="pairState">연결을 준비하고 있어요.</p>
+    <label class="chk"><input type="checkbox" id="estChk" checked><span>휴대폰이 한 대뿐이면 한 번 검출할 때 2걸음(양발)으로 세기<br><span class="small">좌우 비교는 휴대폰을 찬 발만 기록돼요.</span></span></label>
+    <div class="row"><button class="btn" id="btnPairClose">닫기</button></div>
+  </div>
+</div>
+
+<!-- 게임 화면 -->
+<section class="screen game" id="scrGame" hidden>
+  <header class="info gut">
+    <div class="big"><span class="k">걸음 수</span><span class="v"><span id="hSteps">0</span><small>/ <span id="hGoal">30</span></small></span></div>
+    <div class="prog">
+      <div class="bar" role="progressbar" aria-label="오늘 목표까지" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="track"><i id="trackFill"></i></div>
+      <div class="prog-t"><span>목표까지 <span id="hLeft">300</span>걸음</span><span>운동 시간 <span id="hTime">0:00</span></span></div>
+      <div class="prog-s"><span>왼발 <span id="hL">0</span> · 오른발 <span id="hR">0</span></span><span class="pill" id="hConn">버튼으로 걷기</span><button class="snd" id="btnSound" aria-pressed="true">소리 끄기</button></div>
+    </div>
+    <div class="big right" id="hBottleBox"><span class="k">주운 쓰레기</span><span class="v"><span id="hBottles">0</span><small>개</small></span></div>
+  </header>
+  <div class="stage">
+    <video id="cam" playsinline muted hidden></video>
+    <canvas id="river" aria-label="남생이가 하천을 따라 헤엄치며 쓰레기를 줍는 화면"></canvas>
+    <p class="camnote" id="camNote" hidden>카메라 영상은 저장하거나 보내지 않아요</p>
+    <div class="notice" id="notice" hidden role="status" aria-live="polite"></div>
+    <div class="side" id="side" role="status" aria-live="polite"></div>
+    <div class="overlay" id="lost" hidden role="alertdialog" aria-labelledby="lostT">
+      <div class="box">
+        <h2 id="lostT">연결이 끊겼어요</h2>
+        <p style="margin:0" id="lostSub">남생이는 그대로 기다리고 있어요.</p>
+        <p class="msg" id="lostMsg" hidden></p>
+        <div class="row">
+          <button class="btn go" id="btnReconnect">다시 연결</button>
+          <button class="btn" id="btnLostKeys">버튼으로 계속</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="replay gut" id="replayBox" hidden>
+    <div class="rtop">
+      <div class="rinfo" id="rInfo"></div>
+      <div class="seg" role="group" aria-label="재생 속도" id="speedSeg">
+        <button data-speed="1" aria-pressed="true">1배</button>
+        <button data-speed="2" aria-pressed="false">2배</button>
+        <button data-speed="4" aria-pressed="false">4배</button>
+      </div>
+      <button class="rctl" id="btnPause">일시정지</button>
+    </div>
+    <canvas id="sig" aria-label="발목 가속도 신호와 걸음 검출 기준선"></canvas>
+  </div>
+  <div class="controls gut">
+    <button class="btn foot l" id="btnL">왼발</button>
+    <button class="btn foot r" id="btnR">오른발</button>
+    <div class="tvhint" aria-hidden="true">리모컨 <b>뒤로</b> 버튼을 누르면 오늘 걷기를 마쳐요</div>
+    <button class="btn end" id="btnEnd">마치기</button>
+  </div>
+</section>
+
+<!-- 결과 화면 -->
+<section class="screen result gut" id="scrResult" hidden>
+  <div class="result-in">
+    <p class="done-tag" id="rTag">목표 달성</p>
+    <h2 id="rTitle"></h2>
+    <p class="lede" id="rLede"></p>
+    <div class="tiles" id="rTiles"></div>
+    <div class="box">
+      <h3 style="margin:0;font:800 24px var(--num)">왼발과 오른발</h3>
+      <div class="cmprow"><span>왼발</span><div class="cbar"><i id="rBarL" style="background:var(--l-bg)"></i></div><span id="rValL"></span></div>
+      <div class="cmprow"><span>오른발</span><div class="cbar"><i id="rBarR" style="background:var(--r-bg)"></i></div><span id="rValR"></span></div>
+      <p class="note" id="rSym"></p>
+    </div>
+    <section class="box eco" aria-labelledby="rEcoT">
+      <h3 id="rEcoT">내 걸음이 모여 환경에 주는 의미</h3>
+      <div class="tiles" id="rEco"></div>
+      <p class="note" id="rEcoNote"></p>
+      <div class="row"><button class="btn sm" id="btnPlog">실제로 줍깅하러 가기</button></div>
+    </section>
+    <p class="note" id="rNote"></p>
+    <div class="row">
+      <button class="btn go" id="btnMore">계속 걷기</button>
+      <button class="btn" id="btnHome">처음 화면으로</button>
+    </div>
+  </div>
+</section>
+
+<!-- 휴대폰 센서 화면 (주소에 ?sensor=번호 가 있을 때) -->
+<section class="screen sensorpage gut" id="scrSensor" hidden>
+  <div class="sp-in">
+    <h1>RiverStep 걸음 센서</h1>
+    <label class="field" for="spCode">연결 번호<input id="spCode" inputmode="numeric" maxlength="4" placeholder="노트북 화면의 4자리"></label>
+    <div><p class="small" style="margin-bottom:8px">휴대폰을 찬 발</p>
+      <div class="feet" role="group" aria-label="휴대폰을 찬 발"><button data-foot="L" aria-pressed="true">왼발</button><button data-foot="R" aria-pressed="false">오른발</button></div></div>
+    <button class="btn go" id="spStart">센서 시작</button>
+    <p class="state" id="spState">노트북에서 '휴대폰을 센서로 연결'을 누른 뒤 시작하세요.</p>
+    <div class="live" id="spLive">0<small>이 발로 검출한 걸음</small></div>
+    <p class="small">화면이 꺼지면 센서도 멈춰요. 화면을 켠 채로 발목 바깥쪽에 밴드로 단단히 고정하세요.</p>
+    <button class="btn sm" id="spStop" hidden>멈추기</button>
+  </div>
+</section>
+
+<!-- 치료사용 보고서 화면 (주소에 ?report= 가 있을 때) -->
+<section class="screen site" id="scrReport" hidden>
+  <main class="view gut"><div id="reportView"></div><p class="note" style="margin-top:16px">RiverStep 시제품이 만든 기록이에요. 측정값이며 진단이 아니에요.</p></main>
+</section>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+
+// ── 설정 ────────────────────────────────────────────
+const STEP_PX = 52;              // 걸음 1회에 거북이가 가는 거리(장면 높이 300 기준)
+const BOTTLE_EVERY = 5;          // 5걸음마다 쓰레기 1개
+const MILE = 10;                 // 10걸음마다 칭찬·표지판
+const BREAK_EVERY_SEC = 300;     // 5분마다 쉬어 가기 안내
+const DAY_FROM = 7, DAY_TO = 17; // 낮 그림 시간(시)
+const LOGO_SRC = '';             // 로고 이미지(data URI 또는 파일 경로)를 넣으면 글자 대신 표시
+// 휴대폰 연결: PeerJS(WebRTC). 페이지가 HTTPS 주소에 올라가 있어야 휴대폰 센서와 연결이 열려요.
+const PEERJS_URL = 'https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js';
+const QR_URL = 'https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js';
+const PEER_PREFIX = 'riverstep-cdp-';
+// 발목 커프(실물 제작 시): 팀이 정한 UUID로 바꾸기
+const SERVICE_UUID = '7a1e0001-0000-4c3a-9b5e-526976657253';
+const CHAR_UUID    = '7a1e0002-0000-4c3a-9b5e-526976657253';
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const params = new URLSearchParams(location.search);
+
+// ── 상태 ────────────────────────────────────────────
+const S = {screen:'site', goal:30, source:'keys', steps:0, left:0, right:0, bottles:0, est:0,
+  nextFoot:'L', times:{L:[],R:[]}, activeSec:0, lastT:null, completed:false, breaks:0, sid:0};
+const turtle = {x:0, target:0, phase:0};
+let clarityShown = 0, lifts = [];
+let replay = {active:false};
+const cuffs = [];
+
+// ── 공통 도구 ───────────────────────────────────────
+const fmt = sec => { sec=Math.max(0,Math.round(sec)); return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0'); };
+const fmtKo = sec => { sec=Math.max(0,Math.round(sec)); const m=Math.floor(sec/60), s=sec%60; return m?`${m}분 ${s}초`:`${s}초`; };
+const dayStr = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const esc = s => String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function loadScript(src){ return new Promise((ok,no)=>{ if(document.querySelector(`script[src="${src}"]`)){ ok(); return; } const s=document.createElement('script'); s.src=src; s.onload=ok; s.onerror=()=>no(new Error('load')); document.head.appendChild(s); }); }
+async function copyText(t){ try{ await navigator.clipboard.writeText(t); return true; }catch(e){ return false; } }
+
+// ── 화면 분위기 ─────────────────────────────────────
+let bgPref='art', tvOn=false;
+try{ if(localStorage.getItem('riverstep:bg')==='cam') bgPref='cam'; tvOn=localStorage.getItem('riverstep:tv')==='1'; }catch(e){}
+let moodPref='auto';
+try{ const v=localStorage.getItem('riverstep:mood'); if(v==='day'||v==='dawn'||v==='auto') moodPref=v; }catch(e){}
+function mood(){ if(moodPref!=='auto') return moodPref; const h=new Date().getHours(); return (h>=DAY_FROM&&h<DAY_TO)?'day':'dawn'; }
+function applyMood(){ document.documentElement.dataset.mood=mood(); $$('#moodSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.mood===moodPref)); }
+function setMood(p){ moodPref=p; try{ localStorage.setItem('riverstep:mood',p); }catch(e){} applyMood(); }
+setInterval(applyMood,60000);
+
+// ── 기록 저장(이 기기 안에만) ────────────────────────
+const LOG_KEY='riverstep:log';
+function loadLog(){
+  try{ const v=JSON.parse(localStorage.getItem(LOG_KEY)||'null'); if(v&&v.days) return v; }catch(e){}
+  const log={days:{}};
+  try{ for(let i=0;i<localStorage.length;i++){ const k=localStorage.key(i); const m=/^riverstep:(\d{4}-\d\d-\d\d)$/.exec(k||''); if(!m) continue;
+      const o=JSON.parse(localStorage.getItem(k)); if(o&&o.steps>0) log.days[m[1]]={sessions:{old:{at:0,steps:o.steps,sec:o.sec||0,bottles:o.bottles||0,left:0,right:0,cL:null,cR:null}}}; } }catch(e){}
+  return log;
+}
+let LOG=loadLog();
+function saveLog(){ try{ localStorage.setItem(LOG_KEY,JSON.stringify(LOG)); }catch(e){} }
+function cycle(f){ const ts=S.times[f], iv=[]; for(let i=1;i<ts.length;i++){ const d=ts[i]-ts[i-1]; if(d>.3&&d<12) iv.push(d); } return iv.length?iv.reduce((a,b)=>a+b,0)/iv.length:null; }
+function saveSession(){
+  if(S.source==='replay'||!S.sid||S.steps===0) return;
+  const d=dayStr(new Date(S.sid)); (LOG.days[d]=LOG.days[d]||{sessions:{}});
+  LOG.days[d].sessions[S.sid]={at:S.sid,steps:S.steps,sec:Math.round(S.activeSec),bottles:S.bottles,kinds:Object.assign({},S.kinds),left:S.left,right:S.right,cL:cycle('L'),cR:cycle('R'),est:S.est};
+  saveLog(); queuePush();
+}
+let saveTimer=null; function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveSession,800); }
+function dayTotals(d){
+  const day=LOG.days[d]; if(!day) return null;
+  const t={date:d,steps:0,sec:0,bottles:0,left:0,right:0,cLw:0,cLn:0,cRw:0,cRn:0,sample:false};
+  for(const s of Object.values(day.sessions)){ t.steps+=s.steps; t.sec+=s.sec; t.bottles+=s.bottles; t.left+=s.left||0; t.right+=s.right||0;
+    if(s.cL!=null){ t.cLw+=s.cL*(s.left||1); t.cLn+=(s.left||1); } if(s.cR!=null){ t.cRw+=s.cR*(s.right||1); t.cRn+=(s.right||1); } if(s.sample) t.sample=true; }
+  t.cL=t.cLn?t.cLw/t.cLn:null; t.cR=t.cRn?t.cRw/t.cRn:null;
+  t.sym=(t.cL!=null&&t.cR!=null)?Math.min(t.cL,t.cR)/Math.max(t.cL,t.cR)*100:null;
+  t.cad=t.sec>=60?t.steps/(t.sec/60):null;
+  return t;
+}
+function lastDays(n){ const out=[]; const now=new Date(); for(let i=n-1;i>=0;i--){ const d=new Date(now); d.setDate(now.getDate()-i); out.push(dayStr(d)); } return out; }
+function renderToday(){ const t=dayTotals(dayStr(new Date())); $('#todayLine').textContent = t&&t.steps>0 ? `오늘 지금까지 ${t.steps}걸음, 쓰레기 ${t.bottles}개를 주웠어요.` : '오늘은 아직 걷지 않았어요.'; }
+
+// ── 소리 (낮고 또렷한 음역) ──────────────────────────
+let ac=null, soundOn=true;
+function audio(){ if(!ac){ try{ ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; } } if(ac.state==='suspended') ac.resume().catch(()=>{}); return ac; }
+function tone(f,dur,type='sine',vol=.16,when=0,slide){ if(!soundOn) return; const a=audio(); if(!a) return; const t=a.currentTime+when; const o=a.createOscillator(), g=a.createGain(); o.type=type; o.frequency.setValueAtTime(f,t); if(slide) o.frequency.exponentialRampToValueAtTime(slide,t+dur); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+.012); g.gain.exponentialRampToValueAtTime(.0001,t+dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t+dur+.03); }
+const sfx = {
+  step:f=>tone(f==='L'?392:494,.16,'sine',.16,0,f==='L'?330:415),
+  pick:()=>{ tone(523,.2,'triangle',.18); tone(784,.3,'triangle',.16,.14); },
+  mile:()=>[523,659,784].forEach((f,i)=>tone(f,.28,'triangle',.14,i*.12)),
+  done:()=>[392,523,659,784].forEach((f,i)=>tone(f,.45,'triangle',.15,i*.18)),
+  rest:()=>{ tone(392,.5,'sine',.12); tone(330,.7,'sine',.1,.35); }
+};
+
+// ── 거북이 이름 ─────────────────────────────────────
+function hasBatchim(w){ const c=(w||'').charCodeAt((w||'').length-1); if(!(c>=0xAC00&&c<=0xD7A3)) return false; return (c-0xAC00)%28!==0; }
+function tname(){ const v=($('#tName').value||'').trim(); return v||(species==='sea'?'거북이':'남생이'); }
+const tSubj=()=>tname()+(hasBatchim(tname())?'이':'가');
+const tWith=()=>tname()+(hasBatchim(tname())?'과':'와');
+function renderName(){ const n=tname().replace(/[<>&"']/g,''); $('#say').innerHTML=`<b>내가 한 걸음 걸으면<br>${n}도 한 걸음.</b><span>걸을수록 쓰레기를 건져서 하천이 맑아져요.</span>`; }
+
+// ── 노래와 함께 걷기 ────────────────────────────────
+// melody: 걸음마다 음 하나씩 이어지는 가락 / beat: 일정한 박자 + 발 버튼 깜박임 / song: 내 노래 파일(걸으면 나오고 50초 넘게 쉬면 멈춤) / off
+let musicMode='melody', bpm=24, voiceOn=true;
+try{ const m=localStorage.getItem('riverstep:music'); if(['melody','beat','song','off'].includes(m)) musicMode=m; const b=Number(localStorage.getItem('riverstep:bpm')); if([16,20,24,30].includes(b)) bpm=b; voiceOn=localStorage.getItem('riverstep:voice')!=='0'; }catch(e){}
+const MUSIC_HELP={melody:'걸을 때마다 음이 하나씩 이어져서 가락이 돼요.',
+  beat:'일정한 박자 소리에 맞춰 왼발·오른발 버튼이 번갈아 깜박여요. 박자에 맞춰 걷는 연습은 뇌졸중 재활에서도 쓰이는 방법이에요. 박자를 놓쳐도 괜찮으니 내 발걸음이 편한 속도를 먼저 지키세요. 박자가 부담스러우면 ‘걸음 가락’을 고르세요. 내가 걷는 만큼만 소리가 나요.',
+  song:'걸으면 노래가 흘러나와요. 중간에 쉬어도 노래는 계속 나오고, 50초 넘게 쉬면 그때 노래도 쉬어요.',
+  off:'걸음 소리와 쓰레기 줍는 소리만 나요.'};
+// 5음계로 만든 짧은 가락(새로 지은 것). 낮은 음역이라 잘 들림
+const PHRASE=[0,2,4,7,9,7,4,2, 4,7,9,12,9,7,4,7, 9,7,4,2,0,2,4,0, 2,4,7,4,2,0,-3,0];
+let phraseI=0;
+function melodyNote(){ const semi=PHRASE[phraseI++%PHRASE.length]; const f=330*Math.pow(2,semi/12); const k=voice.speaking?.25:1; tone(f,.42,'triangle',.17*k); tone(f*2,.25,'sine',.04*k); } // 목소리가 나오는 동안은 가락을 작게
+const beat={timer:null,next:'L'};
+function beatTick(){
+  if(!soundOn) return;
+  const f=beat.next==='L'?150:190; tone(f,.16,'sine',.22,0,f*.6); tone(f*4,.05,'triangle',.05);
+  const el=beat.next==='L'?$('#btnL'):$('#btnR'); el.classList.add('cue'); setTimeout(()=>el.classList.remove('cue'),Math.min(300,30000/bpm));
+  beat.next=beat.next==='L'?'R':'L';
+}
+function startBeat(){ stopBeat(); if(musicMode!=='beat'||S.source==='replay') return; beat.next='L'; beat.timer=setInterval(beatTick,60000/bpm); }
+function stopBeat(){ if(beat.timer){ clearInterval(beat.timer); beat.timer=null; } $$('.foot').forEach(b=>b.classList.remove('cue')); }
+const song={audio:null,url:null,name:'',last:0};
+function pickSong(file){
+  if(!file) return;
+  if(song.audio){ song.audio.pause(); } if(song.url) URL.revokeObjectURL(song.url);
+  song.url=URL.createObjectURL(file); song.audio=new Audio(song.url); song.audio.loop=true; song.audio.volume=0; song.name=file.name;
+  $('#songName').textContent='고른 노래: '+file.name;
+}
+function songTouch(){ if(musicMode!=='song'||!song.audio||S.source==='replay') return; song.last=performance.now(); if(song.audio.paused){ song.audio.play().catch(()=>{}); } }
+function updateSong(dt){
+  if(!song.audio) return;
+  const walking=S.screen==='game'&&musicMode==='song'&&soundOn&&performance.now()-song.last<50000;
+  const target=walking?(voice.speaking?.3:.85):0, v=song.audio.volume;
+  song.audio.volume=Math.max(0,Math.min(1,v+(target-v)*Math.min(1,dt*3)));
+  if(!walking&&song.audio.volume<.03&&!song.audio.paused) song.audio.pause();
+}
+function stopSong(){ if(song.audio){ song.audio.pause(); song.audio.volume=0; } }
+function stepSound(foot){
+  if(musicMode==='melody') melodyNote();
+  else if(musicMode==='beat') tone(foot==='L'?392:494,.1,'sine',.08);
+  else if(musicMode==='song') { if(!song.audio) sfx.step(foot); }
+  else sfx.step(foot);
+  songTouch();
+}
+function renderMusicUI(){
+  $$('#musicSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.music===musicMode)));
+  $$('#tempoSeg button').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.bpm)===bpm)));
+  $('#musicHelp').textContent=MUSIC_HELP[musicMode];
+  $('#tempoSeg').hidden=musicMode!=='beat'; $('#songBox').hidden=musicMode!=='song'; $('#songSrc').hidden=musicMode!=='song';
+  $('#voiceChk').checked=voiceOn; renderVoiceUI();
+}
+
+// ── 목소리 칭찬 (브라우저에 들어 있는 한국어 음성) ────
+const voice={ko:null,list:[],speaking:false,rate:.6,pref:''};
+try{ const r=Number(localStorage.getItem('riverstep:rate')); if([.5,.6,.72].includes(r)) voice.rate=r; voice.pref=localStorage.getItem('riverstep:vname')||''; }catch(e){}
+// 덜 기계적인 목소리부터: 엣지의 자연스러운(온라인) 음성 > 애플 유나 > 구글 > 그 밖
+function voiceScore(v){ const n=v.name; let s=0;
+  if(/natural|online|neural|premium|enhanced|향상/i.test(n)) s+=40;
+  if(/sunhi|선희/i.test(n)) s+=30; if(/yuna|유나/i.test(n)) s+=26; if(/google/i.test(n)) s+=18; if(/seoyeon|서연|jimin|지민|yujin|유진/i.test(n)) s+=20;
+  if(/heami|해미/i.test(n)) s-=10; if(v.localService===false) s+=4; return s; }
+function voiceLabel(v){ const n=v.name;
+  const who=/sunhi|선희/i.test(n)?'선희':/injoon|인준/i.test(n)?'인준':/yuna|유나/i.test(n)?'유나':/heami|해미/i.test(n)?'해미':/google/i.test(n)?'구글':n.replace(/microsoft|apple|\(.*?\)|-.*$/gi,'').trim()||n;
+  const nat=/natural|online|neural|premium|enhanced|향상/i.test(n)?' · 자연스러운 목소리':'';
+  return who+nat; }
+function pickVoice(){ try{ const vs=speechSynthesis.getVoices().filter(v=>/^ko/i.test(v.lang)).sort((a,b)=>voiceScore(b)-voiceScore(a));
+  voice.list=vs; voice.ko=vs.find(v=>v.name===voice.pref)||vs[0]||null; renderVoiceUI(); }catch(e){} }
+function renderVoiceUI(){ const sel=$('#voiceSel'); if(!sel) return;
+  sel.innerHTML=voice.list.length?voice.list.map((v,i)=>`<option value="${i}"${v===voice.ko?' selected':''}>${voiceLabel(v)}${i===0?' (추천)':''}</option>`).join(''):'<option>한국어 목소리를 찾는 중…</option>';
+  $$('#rateSeg button').forEach(b=>b.setAttribute('aria-pressed',Number(b.dataset.rate)===voice.rate));
+  $('#voiceBox').hidden=!voiceOn; $$('#voiceOnSeg button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.on==='1')===voiceOn)));
+  const m=$('#voiceMsg'); if(voiceOn&&voice.list.length&&!voice.list.some(v=>voiceScore(v)>=30)){ m.hidden=false; m.textContent='지금 브라우저에는 기본 목소리만 있어요. 이 파일을 마이크로소프트 엣지(Edge)로 열면 더 자연스러운 \'선희\' 목소리를 고를 수 있어요.'; } else if(voiceOn&&voice.list.length) m.hidden=true; }
+if('speechSynthesis' in window){ pickVoice(); try{ speechSynthesis.addEventListener('voiceschanged',pickVoice); }catch(e){} }
+function speak(text,force){
+  if(window.RiverStepNative&&RiverStepNative.speak){ if((!voiceOn&&!force)||!soundOn) return; try{ RiverStepNative.speak(String(text),voice.rate); }catch(e){} return; } // TV 앱: 안드로이드 한국어 음성
+  if((!voiceOn&&!force)||!soundOn||!('speechSynthesis' in window)) return;
+  try{
+    if(speechSynthesis.pending) return;
+    const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(voice.ko) u.voice=voice.ko; u.rate=voice.rate; u.pitch=1.04; u.volume=1;
+    u.onstart=()=>{ voice.speaking=true; }; u.onend=u.onerror=()=>{ voice.speaking=false; };
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+// 쉼표에서 숨을 고르게 해서 천천히, 다정하게 들리도록
+const PRAISE=['정말, 잘하고 계세요.','좋아요. 지금처럼, 천천히 가요.','하천이, 조금씩 맑아지고 있어요.','발걸음이, 아주 든든해요.','힘드시면, 잠깐 쉬어 가도 괜찮아요.','오늘도, 함께 걸어 주셔서 고마워요.'];
+let praiseI=0; const praise=()=>PRAISE[praiseI++%PRAISE.length];
+
+// ── 화면 전환 ───────────────────────────────────────
+const VIEWS=['walk','records','therapist','plogging','walk-eco'];
+// 메뉴는 주소(#)에만 기대지 않고 직접 칸을 바꿈. 주소 표시줄도 가능하면 맞춰 둠
+let curView='walk';
+function openView(v){
+  if(!VIEWS.includes(v)) v='walk'; curView=v;
+  try{ if(location.hash!=='#'+v) history.replaceState(null,'','#'+v); }catch(e){}
+  if(S.screen!=='site') show('site'); else route();
+}
+function route(){
+  let v=curView; if(!VIEWS.includes(v)) v='walk';
+  VIEWS.forEach(n=>{ $('#v-'+n).hidden = n!==v; });
+  $$('.nav a').forEach(a=>{ if(a.dataset.v===v) a.setAttribute('aria-current','page'); else a.removeAttribute('aria-current'); });
+  if(v==='records') renderRecords(); if(v==='therapist') renderShare(); if(v==='walk-eco') renderEco(); if(v==='walk'){ renderToday(); requestAnimationFrame(resizeAll); }
+  $('#scrSite').scrollTop=0;
+}
+addEventListener('hashchange',()=>{ const h=(location.hash||'').slice(1); if(VIEWS.includes(h)&&h!==curView){ curView=h; if(S.screen==='site') route(); } });
+$$('.nav a, .brand').forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); openView(a.dataset.v); }));
+{ const h=(location.hash||'').slice(1); if(VIEWS.includes(h)) curView=h; }
+function show(name){
+  S.screen=name;
+  $('#scrSite').hidden = name!=='site';
+  $('#scrGame').hidden = name!=='game';
+  $('#scrResult').hidden = name!=='result';
+  if(document.activeElement && document.activeElement.blur) document.activeElement.blur();
+  if(name==='game'){ requestAnimationFrame(resizeAll); startCam(); startBeat(); try{ navigator.wakeLock && navigator.wakeLock.request('screen').catch(()=>{}); }catch(e){} } else { stopCam(); stopBeat(); stopSong(); try{ speechSynthesis.cancel(); }catch(e){} }
+  if(name==='site'){ route(); renderGive(); }
+}
+function resetSession(source){
+  Object.assign(S,{source, steps:0, left:0, right:0, bottles:0, kinds:{}, est:0, nextFoot:'L', times:{L:[],R:[]}, activeSec:0, lastT:null, completed:false, breaks:0, sid:Date.now()});
+  turtle.x=0; turtle.target=0; clarityShown=0; lifts=[];
+  $('#notice').hidden=true; $('#lost').hidden=true; $('#side').innerHTML='';
+  $('#hGoal').textContent=S.goal;
+  updateHud(); setConn();
+}
+function phonesOn(){ return phone.conns.filter(c=>c.open).length; }
+function setConn(){
+  const p=$('#hConn'); p.classList.remove('bad');
+  if(S.source==='replay') p.textContent=replay.label+' 재생 중';
+  else if(S.source==='phone'){ const n=phonesOn(); p.textContent=n?`휴대폰 ${n}대 연결됨`:'휴대폰 연결 끊김'; if(!n) p.classList.add('bad'); }
+  else if(S.source==='cuff'){ const n=cuffs.filter(c=>c.on).length; p.textContent=n?`커프 ${n}개 연결됨`:'커프 연결 끊김'; if(!n) p.classList.add('bad'); }
+  else p.textContent='버튼으로 걷기';
+}
+function sideToast(main,sub){
+  const box=$('#side'), d=document.createElement('div'), m=document.createElement('span'), s2=document.createElement('small');
+  m.textContent=main; s2.textContent=sub; d.append(m,s2); box.prepend(d);
+  while(box.children.length>2) box.lastChild.remove();
+  setTimeout(()=>d.classList.add('out'),2200); setTimeout(()=>d.remove(),2700);
+}
+let noticeTimer=null;
+function notify(main,sub='',good=false,ms=2600){
+  const n=$('#notice'); n.innerHTML=main+(sub?`<small>${sub}</small>`:''); n.hidden=false;
+  clearTimeout(noticeTimer); noticeTimer=setTimeout(()=>n.hidden=true,ms);
+}
+
+// ── 걸음 1회 (버튼·스페이스바·휴대폰·커프·재생이 모두 이 함수를 부름) ──
+// est=true: 휴대폰 한 대일 때 반대 발을 추정해 더하는 걸음(좌우 기록에는 넣지 않음)
+function step(foot, tData, est){
+  if(S.screen!=='game') return;
+  if(est){ S.steps++; S.est++; turtle.target=S.steps*STEP_PX; afterStep(); return; }
+  if(foot!=='L'&&foot!=='R') foot=S.nextFoot;
+  S.nextFoot = foot==='L'?'R':'L';
+  const t = typeof tData==='number' ? tData : (replay.active ? replay.playhead : performance.now()/1000);
+  if(S.lastT!==null){ const d=t-S.lastT; if(d>0&&d<30) S.activeSec+=d; }
+  S.lastT=t;
+  S.steps++; if(foot==='L') S.left++; else S.right++;
+  S.times[foot].push(t);
+  turtle.target = S.steps*STEP_PX;
+  stepSound(foot); flashFoot(foot);
+  if(S.steps===1) speak(`좋아요. 그럼, ${tWith()} 천천히 출발해 볼까요.`);
+  afterStep();
+}
+function afterStep(){
+  if(S.steps%MILE===0 && S.steps<S.goal){ notify(`${S.steps}걸음 걸었어요`,`목표까지 ${S.goal-S.steps}걸음 남았어요`,true); if(musicMode!=='melody') sfx.mile(); speak(`와, 벌써 ${S.steps}걸음이에요. 목표까지, ${S.goal-S.steps}걸음 남았어요.`); }
+  const b=Math.floor(S.activeSec/BREAK_EVERY_SEC);
+  if(b>S.breaks){ S.breaks=b; notify('잠시 쉬어 가세요',`${Math.round(S.activeSec/60)}분 걸었어요. ${tSubj()} 기다려 줘요.`,false,9000); if(musicMode!=='melody') sfx.rest(); speak(`조금, 쉬어 가셔도 괜찮아요. ${tSubj()} 여기서, 기다리고 있을게요.`); }
+  updateHud(); scheduleSave();
+}
+function flashFoot(f){ const el=f==='L'?$('#btnL'):$('#btnR'); el.classList.add('hit'); setTimeout(()=>el.classList.remove('hit'),180); }
+function updateHud(){
+  $('#hSteps').textContent=S.steps; $('#hBottles').textContent=S.bottles;
+  $('#hL').textContent=S.left; $('#hR').textContent=S.right; $('#hTime').textContent=fmt(S.activeSec);
+  $('#hLeft').textContent=Math.max(0,S.goal-S.steps);
+  const p=Math.min(1,S.steps/S.goal);
+  $('#trackFill').style.width=(p*100)+'%'; $('#track').setAttribute('aria-valuenow',Math.round(p*100));
+}
+
+// ── 키보드 ──────────────────────────────────────────
+addEventListener('keydown',e=>{
+  if(S.screen==='site'||S.screen==='result'){
+    if(tvOn && /^Arrow/.test(e.key)){ const tag=(e.target&&e.target.tagName)||''; if((tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT')&&(e.key==='ArrowLeft'||e.key==='ArrowRight')) return; e.preventDefault(); spatial(e.key); }
+    return;
+  }
+  if(S.screen!=='game') return;
+  if(e.target && e.target.tagName==='SELECT') return;
+  const k=e.key;
+  if(k===' '||k==='Spacebar'){ e.preventDefault(); if(!e.repeat) step(); }
+  else if(k==='f'||k==='F'||k==='ArrowLeft'||k==='ㄹ'){ e.preventDefault(); if(!e.repeat) step('L'); }
+  else if(k==='j'||k==='J'||k==='ArrowRight'||k==='ㅓ'){ e.preventDefault(); if(!e.repeat) step('R'); }
+  else if(k==='t'||k==='T'||k==='ㅅ'){ if(!e.repeat) setMood(mood()==='day'?'dawn':'day'); }
+  else if(k==='PageDown'||k==='PageUp'||k==='ArrowDown'||k==='ArrowUp'||k==='Enter'){ e.preventDefault(); if(!e.repeat) step(); }
+  else if((k==='Escape'||k==='Backspace'||k==='BrowserBack'||k==='GoBack')&&$('#pairModal').hidden){ e.preventDefault(); showResult(); }
+});
+addEventListener('keyup',e=>{ if(S.screen==='game'&&(e.key===' '||e.key==='Spacebar')) e.preventDefault(); });
+
+// ── 그림 도구 ───────────────────────────────────────
+const hash=(i,s)=>{ const x=Math.sin(i*12.9898+s*78.233)*43758.5453; return x-Math.floor(x); };
+const lerp=(a,b,t)=>a+(b-a)*t;
+const mix=(c1,c2,t)=>`rgb(${Math.round(lerp(c1[0],c2[0],t))},${Math.round(lerp(c1[1],c2[1],t))},${Math.round(lerp(c1[2],c2[2],t))})`;
+function rr(g,x,y,w,h,r){ g.beginPath(); g.moveTo(x+r,y); g.arcTo(x+w,y,x+w,y+h,r); g.arcTo(x+w,y+h,x,y+h,r); g.arcTo(x,y+h,x,y,r); g.arcTo(x,y,x+w,y,r); g.closePath(); }
+function makeGrain(){ const c=document.createElement('canvas'); c.width=c.height=160; const g=c.getContext('2d'); const d=g.createImageData(160,160);
+  for(let i=0;i<d.data.length;i+=4){ const v=165+Math.random()*90; d.data[i]=d.data[i+1]=d.data[i+2]=v; d.data[i+3]=255; } g.putImageData(d,0,0); return c; }
+const GRAIN=makeGrain();
+function grain(g,VW,alpha){ g.save(); g.globalAlpha=alpha; g.globalCompositeOperation='multiply'; g.fillStyle=g.createPattern(GRAIN,'repeat'); g.fillRect(0,0,VW,300); g.restore(); }
+function blob(g,cx,cy,rx,ry,color,seed,passes=3){
+  g.save(); g.fillStyle=color;
+  for(let p=0;p<passes;p++){ g.globalAlpha=p===0?.95:.45; g.beginPath(); const n=18;
+    for(let i=0;i<=n;i++){ const a=i/n*Math.PI*2, j=1+(hash(seed*7+i,p+1)-.5)*.18; const x=cx+Math.cos(a)*rx*j+(p-1)*1.2, y=cy+Math.sin(a)*ry*j+(p-1)*.8; i?g.lineTo(x,y):g.moveTo(x,y); }
+    g.closePath(); g.fill(); }
+  g.restore();
+}
+
+function drawSeaSide(g,x,y,s,phase,P){
+  const sw=Math.sin(phase);
+  g.save(); g.translate(x,y); g.scale(s,s); g.lineJoin='round';
+  const edge=()=>{ if(P.line){ g.strokeStyle=P.line; g.lineWidth=P.lw; g.stroke(); } };
+  const fl=(px,py,rot,len,w,fill)=>{ g.save(); g.translate(px,py); g.rotate(rot); g.beginPath(); g.moveTo(0,-w*.5); g.quadraticCurveTo(len*.6,-w*.75,len,0); g.quadraticCurveTo(len*.6,w*.45,0,w*.5); g.closePath(); g.fillStyle=fill; g.fill(); edge(); g.restore(); };
+  fl(24,6,2.15-sw*.4,44,13,P.far);
+  fl(-36,6,2.95+sw*.2,24,10,P.far);
+  g.beginPath(); g.ellipse(0,9,44,9,0,0,Math.PI*2); g.fillStyle=P.belly; g.fill(); edge();
+  g.beginPath(); g.ellipse(0,6,48,36,0,Math.PI,0); g.closePath(); g.fillStyle=P.shell; g.fill(); edge();
+  g.strokeStyle=P.scute; g.lineWidth=2;
+  g.beginPath(); g.moveTo(-31,-12); g.lineTo(-12,-24); g.lineTo(12,-24); g.lineTo(31,-12); g.stroke();
+  [-24,-8,8,24].forEach(px=>{ g.beginPath(); g.moveTo(px,-10-(Math.abs(px)<10?14:6)); g.lineTo(px+(px<0?-4:4),5); g.stroke(); });
+  if(P.shine){ g.fillStyle=P.shine; g.beginPath(); g.ellipse(-10,-21,18,5,-.2,0,Math.PI*2); g.fill(); }
+  g.beginPath(); g.ellipse(40,1,12,9,-.1,0,Math.PI*2); g.ellipse(54,-3,14,11,-.05,0,Math.PI*2); g.fillStyle=P.skin; g.fill();
+  g.beginPath(); g.ellipse(54,-3,14,11,-.05,0,Math.PI*2); edge();
+  g.fillStyle=P.eye; g.beginPath(); g.arc(59,-5,2.5,0,Math.PI*2); g.fill();
+  if(P.rim){ g.strokeStyle=P.rim; g.lineWidth=2.4; g.beginPath(); g.ellipse(0,6,47,35,0,Math.PI*1.08,Math.PI*1.7); g.stroke(); g.beginPath(); g.ellipse(54,-3,13,10,0,Math.PI*1.1,Math.PI*1.6); g.stroke(); }
+  fl(16,12,2.3+sw*.5,50,15,P.near);
+  fl(-32,10,2.8-sw*.25,26,11,P.near);
+  g.restore();
+}
+function drawSeaTop(g,x,y,s,phase,P){ // 뒤에서 조금 위로 내려다본 거북이(화면 안쪽으로 헤엄침)
+  const sw=Math.sin(phase);
+  g.save(); g.translate(x,y); g.scale(s,s); g.lineJoin='round'; g.lineCap='round';
+  const edge=()=>{ if(P.line){ g.strokeStyle=P.line; g.lineWidth=P.lw; g.stroke(); } };
+  const fl=(px,py,rot,len,w,fill)=>{ g.save(); g.translate(px,py); g.rotate(rot); g.beginPath(); g.moveTo(0,-w*.5); g.quadraticCurveTo(len*.6,-w*.8,len,0); g.quadraticCurveTo(len*.6,w*.5,0,w*.5); g.closePath(); g.fillStyle=fill; g.fill(); edge(); g.restore(); };
+  // 앞지느러미(멀리 있어 등딱지 뒤로 살짝 가려짐): 왼발·오른발에 맞춰 번갈아 젓기
+  fl(-22,-8,Math.PI+.28+sw*.45,46,13,P.far);
+  fl(22,-8,-.28+sw*.45,46,13,P.far);
+  // 머리: 등딱지 너머로 뒤통수만 보임
+  g.beginPath(); g.ellipse(0,-25,10,8,0,0,Math.PI*2); g.fillStyle=P.skin; g.fill(); edge();
+  // 등딱지 아래 배 테두리
+  g.beginPath(); g.ellipse(0,9,34,15,0,0,Math.PI*2); g.fillStyle=P.belly; g.fill(); edge();
+  // 등딱지(뒤쪽 경사면)
+  g.beginPath(); g.ellipse(0,0,34,25,0,0,Math.PI*2); g.fillStyle=P.shell; g.fill(); edge();
+  g.strokeStyle=P.scute; g.lineWidth=2;
+  g.beginPath(); g.moveTo(0,-23); g.lineTo(0,23);
+  g.moveTo(-26,-9); g.quadraticCurveTo(0,-15,26,-9);
+  g.moveTo(-31,6); g.quadraticCurveTo(0,1,31,6);
+  g.moveTo(-14,-21); g.lineTo(-17,22); g.moveTo(14,-21); g.lineTo(17,22);
+  for(let i=-3;i<=3;i++){ const ex=i*9.5, ey=Math.sqrt(Math.max(0,1-(ex/34)**2))*25; g.moveTo(ex*.9,ey*.82); g.lineTo(ex,ey); }
+  g.stroke();
+  if(P.shine){ g.fillStyle=P.shine; g.beginPath(); g.ellipse(-10,-12,13,6,-.15,0,Math.PI*2); g.fill(); }
+  if(P.rim){ g.strokeStyle=P.rim; g.lineWidth=2.4; g.beginPath(); g.ellipse(0,0,33,24,0,Math.PI*1.08,Math.PI*1.92); g.stroke(); g.beginPath(); g.ellipse(0,-25,9,7,0,Math.PI*1.1,Math.PI*1.9); g.stroke(); }
+  // 뒷지느러미(가까워서 크게 보임)·꼬리
+  fl(-18,19,Math.PI-.75-sw*.3,24,13,P.near);
+  fl(18,19,.75-sw*.3,24,13,P.near);
+  g.beginPath(); g.moveTo(-5,22); g.lineTo(0,31); g.lineTo(5,22); g.closePath(); g.fillStyle=P.skin; g.fill(); edge();
+  g.restore();
+}
+
+// ── 거북이 종류: 남생이(설명용) / 바다거북 ─────────────
+let species='nam'; try{ if(localStorage.getItem('riverstep:species')==='sea') species='sea'; }catch(e){}
+function drawTurtle(g,x,y,s,phase,P){ species==='sea'?drawSeaSide(g,x,y,s,phase,LOOK[mood()].turtleSea):drawNamSide(g,x,y,s,phase,P); }
+function drawTurtleTop(g,x,y,s,phase,P){ species==='sea'?drawSeaTop(g,x,y,s,phase,LOOK[mood()].turtleSea):drawNamTop(g,x,y,s,phase,P); }
+function drawNamSide(g,x,y,s,phase,P){ // 남생이 옆모습: 발톱 달린 네 발, 세 줄 융기가 있는 갈색 등딱지, 노란 줄무늬 머리
+  const sw=Math.sin(phase);
+  g.save(); g.translate(x,y); g.scale(s,s); g.lineJoin='round'; g.lineCap='round';
+  const edge=()=>{ if(P.line){ g.strokeStyle=P.line; g.lineWidth=P.lw; g.stroke(); } };
+  const leg=(px,py,rot,fill)=>{ g.save(); g.translate(px,py); g.rotate(rot);
+    g.beginPath(); g.moveTo(-6,0); g.quadraticCurveTo(-7,14,-4,20); g.lineTo(6,20); g.quadraticCurveTo(7,10,6,0); g.closePath(); g.fillStyle=fill; g.fill(); edge();
+    if(P.claw){ g.strokeStyle=P.claw; g.lineWidth=1.6; g.beginPath(); for(const cx of [-3,1,5]){ g.moveTo(cx,20); g.lineTo(cx+1.5,24); } g.stroke(); }
+    g.restore(); };
+  // 먼 쪽 다리(걸음에 맞춰 앞뒤로)
+  leg(24,6,-0.25-sw*.45,P.far); leg(-28,6,0.25+sw*.35,P.far);
+  // 꼬리
+  g.beginPath(); g.moveTo(-42,6); g.quadraticCurveTo(-54,8,-58,13); g.quadraticCurveTo(-50,12,-40,11); g.closePath(); g.fillStyle=P.skin; g.fill(); edge();
+  // 배딱지
+  g.beginPath(); g.ellipse(0,9,43,8,0,0,Math.PI*2); g.fillStyle=P.belly; g.fill(); edge();
+  // 머리·목
+  g.beginPath(); g.moveTo(34,2); g.quadraticCurveTo(44,-6,52,-6); g.quadraticCurveTo(64,-6,65,1); g.quadraticCurveTo(64,7,54,8); g.quadraticCurveTo(44,9,36,10); g.closePath(); g.fillStyle=P.skin; g.fill(); edge();
+  if(P.stripe){ g.strokeStyle=P.stripe; g.lineWidth=1.8; g.beginPath(); g.moveTo(38,3); g.quadraticCurveTo(48,-2,60,-3); g.moveTo(39,7); g.quadraticCurveTo(50,4,61,3); g.stroke(); }
+  g.fillStyle=P.eye; g.beginPath(); g.arc(58,-2,2.3,0,Math.PI*2); g.fill();
+  // 등딱지(조금 납작한 돔)
+  g.beginPath(); g.moveTo(-46,8); g.quadraticCurveTo(-44,-26,0,-28); g.quadraticCurveTo(44,-26,46,8); g.closePath(); g.fillStyle=P.shell; g.fill(); edge();
+  g.strokeStyle=P.scute; g.lineWidth=2;
+  g.beginPath(); g.moveTo(-30,-17); g.lineTo(-11,-23); g.lineTo(11,-23); g.lineTo(30,-17); g.stroke();   // 등의 세 줄 융기 중 가운데
+  [-24,-8,8,24].forEach(px=>{ g.beginPath(); g.moveTo(px,-10-(Math.abs(px)<10?13:6)); g.lineTo(px+(px<0?-3:3),7); g.stroke(); });
+  if(P.keel){ g.strokeStyle=P.keel; g.lineWidth=2.2; g.beginPath(); g.moveTo(-34,-6); g.quadraticCurveTo(0,-16,34,-6); g.stroke(); }
+  if(P.shine){ g.fillStyle=P.shine; g.beginPath(); g.ellipse(-10,-20,16,4,-.15,0,Math.PI*2); g.fill(); }
+  if(P.rim){ g.strokeStyle=P.rim; g.lineWidth=2.4; g.beginPath(); g.moveTo(-44,0); g.quadraticCurveTo(-42,-25,0,-27); g.quadraticCurveTo(30,-26,40,-12); g.stroke(); g.beginPath(); g.moveTo(46,-5); g.quadraticCurveTo(58,-7,64,-1); g.stroke(); }
+  // 가까운 쪽 다리
+  leg(20,10,0.2+sw*.45,P.near); leg(-30,10,-0.2-sw*.35,P.near);
+  g.restore();
+}
+function drawBottle(g,x,y,rot,s,P){
+  g.save(); g.translate(x,y); g.rotate(rot); g.scale(s,s); g.lineJoin='round';
+  const body=()=>rr(g,-28,-12,42,24,8);
+  const neck=()=>{ g.beginPath(); g.moveTo(14,-8); g.lineTo(23,-4); g.lineTo(23,4); g.lineTo(14,8); g.closePath(); };
+  if(P.glow){ g.shadowColor=P.glow; g.shadowBlur=22; }
+  g.fillStyle=P.body; body(); g.fill(); neck(); g.fill(); g.shadowBlur=0;
+  g.fillStyle=P.label; g.fillRect(-15,-10.5,16,21);
+  g.fillStyle=P.cap; rr(g,23,-5.5,8,11,2); g.fill();
+  if(P.line){ g.strokeStyle=P.line; g.lineWidth=P.lw; body(); g.stroke(); neck(); g.stroke(); rr(g,23,-5.5,8,11,2); g.stroke(); }
+  g.restore();
+}
+function fish(g,x,y,s,col,a,line){ g.save(); g.translate(x,y); g.scale(s,s); g.fillStyle=col;
+  g.beginPath(); g.moveTo(-12,0); g.lineTo(-22,-7+Math.sin(a)*1.5); g.lineTo(-22,7+Math.sin(a)*1.5); g.closePath(); g.fill();
+  g.beginPath(); g.ellipse(0,0,15,6.5,0,0,Math.PI*2); g.fill(); if(line){ g.strokeStyle=line; g.lineWidth=1.6; g.stroke(); }
+  g.restore(); }
+
+const SY={water:112, front:255}, TY=190, BY=184;
+// 거북이가 줍는 쓰레기: 분해 기간은 NOAA·Woods Hole Sea Grant 추정(바다 기준)
+const ITEM={
+  bottle:{name:'페트병',obj:'페트병을',decay:'약 450년'},
+  can:{name:'캔',obj:'캔을',decay:'약 200년'},
+  bag:{name:'비닐봉지',obj:'비닐봉지를',decay:'최대 20년'},
+  cup:{name:'스티로폼 컵',obj:'스티로폼 컵을',decay:'약 50년'}
+};
+const ORDER=['bottle','can','bag','bottle','cup','can','bag','bottle','cup','can'];
+const itemAt=k=>ORDER[(Math.max(1,k)-1)%ORDER.length];
+function drawItem(g,type,x,y,s,P,ph){
+  if(type==='bottle'){ drawBottle(g,x,y,-.12,s,P); return; }
+  g.save(); g.translate(x,y); g.scale(s,s); g.lineJoin='round';
+  const glow=()=>{ if(P.glow){ g.shadowColor=P.glow; g.shadowBlur=22; } };
+  const edge=(lw)=>{ if(P.line){ g.strokeStyle=P.line; g.lineWidth=lw||P.lw; g.stroke(); } };
+  if(type==='can'){
+    g.rotate(.28+Math.sin(ph)*.05);
+    glow(); g.fillStyle=P.glow?'#ffffff':'#cfd4d8'; rr(g,-19,-10,38,20,3); g.fill(); g.shadowBlur=0; edge();
+    g.fillStyle='#c8402f'; g.fillRect(-7,-9,14,18);
+    g.fillStyle=P.glow?'#e9edf1':'#a9b1b7'; g.beginPath(); g.ellipse(19,0,3.5,10,0,0,Math.PI*2); g.fill(); edge(1.6);
+    g.fillStyle='rgba(255,255,255,.7)'; g.fillRect(-15,-7,26,2.5);
+  } else if(type==='bag'){
+    g.rotate(-.1+Math.sin(ph*.8)*.08);
+    glow(); g.fillStyle=P.glow?'rgba(255,255,255,.95)':'rgba(250,250,246,.92)';
+    g.beginPath(); g.moveTo(-20,-6); g.quadraticCurveTo(-24,10,-8,13); g.quadraticCurveTo(6,16,18,10); g.quadraticCurveTo(24,0,16,-8);
+    g.quadraticCurveTo(10,-12,4,-7); g.quadraticCurveTo(0,-11,-6,-7); g.quadraticCurveTo(-12,-12,-20,-6); g.closePath(); g.fill(); g.shadowBlur=0; edge();
+    g.strokeStyle=P.line||'rgba(120,120,110,.6)'; g.lineWidth=1.6;
+    g.beginPath(); g.arc(-10,-11,5,Math.PI,0); g.stroke(); g.beginPath(); g.arc(9,-11,5,Math.PI,0); g.stroke();
+    g.strokeStyle='rgba(150,150,140,.45)'; g.beginPath(); g.moveTo(-10,0); g.lineTo(-2,6); g.moveTo(4,-2); g.lineTo(12,5); g.stroke();
+  } else if(type==='cup'){
+    g.rotate(-.18);
+    glow(); g.fillStyle=P.glow?'#ffffff':'#f5f2e8';
+    g.beginPath(); g.moveTo(-20,-7); g.lineTo(16,-12); g.lineTo(16,12); g.lineTo(-20,7); g.closePath(); g.fill(); g.shadowBlur=0; edge();
+    g.fillStyle=P.glow?'#e9edf1':'#e3dccb'; g.beginPath(); g.ellipse(16,0,3.5,12,0,0,Math.PI*2); g.fill(); edge(1.6);
+    g.strokeStyle='rgba(160,150,130,.5)'; g.lineWidth=1.2; g.beginPath(); g.moveTo(-14,-3); g.lineTo(10,-6); g.moveTo(-14,3); g.lineTo(10,6); g.stroke();
+  }
+  g.restore();
+}
+const LOOK={
+  day:{ turtleSea:{far:'#5f6c3c',near:'#7e8a52',belly:'#e1d39c',shell:'#6e7d3f',scute:'rgba(50,58,26,.55)',shine:'rgba(255,248,220,.22)',skin:'#93a062',eye:'#2a2a1e',line:'#36352f',lw:2}, turtle:{far:'#4d4a36',near:'#6a6748',belly:'#d6c48a',shell:'#6b5636',scute:'rgba(40,30,18,.5)',keel:'rgba(214,190,140,.55)',shine:'rgba(255,240,210,.18)',skin:'#6f6d4c',stripe:'#d8c25a',claw:'#3a3526',eye:'#1f1d14',line:'#36352f',lw:2},
+    bottle:{body:'#fdfcf7',label:'#5f8a55',cap:'#d8643a',line:'#36352f',lw:2.2}, ring:'#d9a038', sign:'#fdfcf7', signInk:'#36352f', post:'#7b5a3a', flag:'#f0c25a' },
+  dawn:{ turtleSea:{far:'#101820',near:'#17222b',belly:'#17222b',shell:'#17222b',skin:'#17222b',eye:'#f4cfa2',scute:'rgba(244,207,162,.18)',rim:'rgba(255,214,160,.85)'}, turtle:{far:'#101820',near:'#17222b',belly:'#17222b',shell:'#17222b',skin:'#17222b',eye:'#f4cfa2',scute:'rgba(244,207,162,.18)',rim:'rgba(255,214,160,.85)',stripe:'rgba(244,207,162,.45)'},
+    bottle:{body:'#ffffff',label:'#7fb8a0',cap:'#f08a4b',glow:'rgba(255,226,170,.95)'}, ring:'#f3c27e', sign:'#1d2833', signInk:'#f3d7b0', post:'#0d141b', flag:'#f3c27e' }
+};
+// 낮: 하늘은 맑은 하늘색, 먼 산은 푸른 회색으로 물러나게
+function skyDay(g,VW,cam){
+  let gr=g.createLinearGradient(0,0,0,SY.water); gr.addColorStop(0,'#8fcbe6'); gr.addColorStop(.7,'#cfe9f3'); gr.addColorStop(1,'#eef6f6');
+  g.fillStyle=gr; g.fillRect(0,0,VW,SY.water);
+  blob(g,VW*.8,38,19,19,'#fbe3a3',3);
+  for(let i=0;i<4;i++){ const x=((hash(i,60)*VW*1.4 - cam*.05)%(VW+160)+VW+160)%(VW+160)-80; blob(g,x,22+hash(i,61)*26,26+hash(i,62)*16,7,'#ffffff',i+500,2); }
+  let p=.15, i0=Math.floor(cam*p/120)-1;
+  for(let i=i0;i<i0+VW/120+3;i++) blob(g,i*120+hash(i,1)*40-cam*p,90,90,24+hash(i,2)*10,'#aac7cf',i+10);
+  p=.4; i0=Math.floor(cam*p/46)-1;
+  for(let i=i0;i<i0+VW/46+3;i++){ if(hash(i,5)<.3) continue; const x=i*46+hash(i,3)*24-cam*p, h=22+hash(i,4)*16;
+    g.fillStyle='#7b5a3a'; g.fillRect(x-1.5,96-h*.3,3,h*.35); blob(g,x,96-h*.55,11+hash(i,6)*5,h*.45,hash(i,7)<.5?'#6f9161':'#5f8255',i+40); }
+  g.fillStyle='#8fab72'; g.fillRect(0,99,VW,13);
+  p=.6; i0=Math.floor(cam*p/200)-1;
+  for(let i=i0;i<i0+VW/200+3;i++) blob(g,i*200-cam*p,103,130,8,'#8fab72',i+300,2);
+}
+function waterDay(g,VW,cam,c,a){
+  const top=mix([166,158,112],[142,200,222],c), bot=mix([122,118,84],[58,126,162],c);
+  const gr=g.createLinearGradient(0,SY.water,0,SY.front); gr.addColorStop(0,top); gr.addColorStop(1,bot);
+  g.fillStyle=gr; g.fillRect(0,SY.water,VW,SY.front-SY.water);
+  g.save(); g.globalAlpha=.35+.2*c; g.strokeStyle='#fbfaf2'; g.lineCap='round';
+  const i0=Math.floor(cam/70)-1;
+  for(let i=i0;i<i0+VW/70+3;i++){ for(let j=0;j<2;j++){ const x=i*70+hash(i,8+j)*40-cam, y=128+hash(i,10+j)*115, len=18+hash(i,12+j)*30; g.lineWidth=2+hash(i,14)*2; g.beginPath(); g.moveTo(x,y); g.quadraticCurveTo(x+len/2,y-2,x+len,y+1); g.stroke(); } }
+  g.restore();
+  const l0=Math.floor(cam/110)-1;
+  for(let i=l0;i<l0+VW/110+3;i++){ if(hash(i,20)>(1-c)*.9) continue; blob(g,i*110+hash(i,21)*60-cam,140+hash(i,22)*100,8,4,'#8a8471',i+90,2); }
+  const nf=Math.round(c*5); for(let i=0;i<nf;i++) fish(g,((hash(i,30)*VW+a*(10+i*3))%(VW+60))-30,135+hash(i,31)*110,.9,'#e39a52',a*4+i,'#5d4430');
+}
+function frontDay(g,VW,cam){
+  g.fillStyle='#d9c9a0'; g.fillRect(0,SY.front,VW,45);
+  let i0=Math.floor(cam/180)-1;
+  for(let i=i0;i<i0+VW/180+3;i++) blob(g,i*180-cam,SY.front+2,120,6,'#cdbb8f',i+55,2);
+  i0=Math.floor(cam/60)-1;
+  for(let i=i0;i<i0+VW/60+3;i++) blob(g,i*60+hash(i,40)*30-cam,274+hash(i,41)*16,5+hash(i,42)*6,3+hash(i,43)*3,'#b5a37a',i+120,2);
+}
+function skyDawn(g,VW,cam){
+  let gr=g.createLinearGradient(0,0,0,SY.water); gr.addColorStop(0,'#3a5577'); gr.addColorStop(.55,'#c4908a'); gr.addColorStop(1,'#f4cfa2');
+  g.fillStyle=gr; g.fillRect(0,0,VW,SY.water);
+  const sx=VW*.74; gr=g.createRadialGradient(sx,86,4,sx,86,70); gr.addColorStop(0,'rgba(255,236,196,.9)'); gr.addColorStop(1,'rgba(255,236,196,0)');
+  g.fillStyle=gr; g.fillRect(0,0,VW,SY.water); g.fillStyle='#fff1d6'; g.beginPath(); g.arc(sx,86,15,0,Math.PI*2); g.fill();
+  [['#a593a1',64,10,.006,.05],['#7f7c95',74,9,.009,.1],['#5b6380',84,7,.013,.18],['#3b4862',94,5,.02,.28]].forEach(([col,y0,amp,f,p],li)=>{
+    g.fillStyle=col; g.beginPath(); g.moveTo(0,SY.water);
+    for(let x=0;x<=VW+8;x+=8){ const wx=x+cam*p; g.lineTo(x,y0-amp*Math.sin(wx*f+li*2)-amp*.5*Math.sin(wx*f*2.3+li)); }
+    g.lineTo(VW,SY.water); g.closePath(); g.fill(); });
+  g.fillStyle='#1d2833'; g.fillRect(0,100,VW,13);
+  g.strokeStyle='#1d2833'; g.lineWidth=1.6; g.lineCap='round';
+  const p=.6, i0=Math.floor(cam*p/9)-1;
+  for(let i=i0;i<i0+VW/9+3;i++){ const x=i*9+hash(i,1)*6-cam*p, h=6+hash(i,2)*14; g.beginPath(); g.moveTo(x,102); g.quadraticCurveTo(x+1,102-h*.6,x+2+hash(i,3)*3,102-h); g.stroke(); }
+}
+function waterDawn(g,VW,cam,c,a){
+  let gr=g.createLinearGradient(0,SY.water,0,SY.front); gr.addColorStop(0,'#e7b993'); gr.addColorStop(.35,'#9a8197'); gr.addColorStop(1,'#2f425a');
+  g.fillStyle=gr; g.fillRect(0,SY.water,VW,SY.front-SY.water);
+  g.fillStyle=`rgba(104,92,58,${(1-c)*.6})`; g.fillRect(0,SY.water,VW,SY.front-SY.water);
+  const sx=VW*.74; g.strokeStyle=`rgba(255,226,180,${.25+.5*c})`; g.lineCap='round';
+  for(let i=0;i<16;i++){ const y=118+i*7.5, w=(60-i*3)*(1+hash(i,5)*.6); g.lineWidth=2.4-i*.08; g.beginPath(); g.moveTo(sx-w/2+hash(i,6)*10,y); g.lineTo(sx+w/2,y); g.stroke(); }
+  g.strokeStyle=`rgba(255,240,220,${.12+.2*c})`; g.lineWidth=1.4;
+  let i0=Math.floor(cam/80)-1;
+  for(let i=i0;i<i0+VW/80+3;i++){ const x=i*80+hash(i,7)*40-cam, y=150+hash(i,8)*95; g.beginPath(); g.moveTo(x,y); g.lineTo(x+20+hash(i,9)*20,y); g.stroke(); }
+  i0=Math.floor(cam/120)-1;
+  for(let i=i0;i<i0+VW/120+3;i++){ if(hash(i,20)>(1-c)*.9) continue; g.fillStyle='rgba(30,36,40,.55)'; g.beginPath(); g.ellipse(i*120+hash(i,21)*70-cam,150+hash(i,22)*90,8,3,0,0,Math.PI*2); g.fill(); }
+  const nf=Math.round(c*5); for(let i=0;i<nf;i++) fish(g,((hash(i,30)*VW+a*(10+i*3))%(VW+60))-30,140+hash(i,31)*100,.85,'rgba(255,224,186,.85)',a*4+i);
+}
+function frontDawn(g,VW,cam){
+  g.fillStyle='#121b23'; g.beginPath(); g.moveTo(0,300);
+  for(let x=0;x<=VW+8;x+=8) g.lineTo(x,SY.front+3*Math.sin((x+cam)*.04)); g.lineTo(VW,300); g.closePath(); g.fill();
+  g.strokeStyle='#121b23'; g.lineWidth=1.8;
+  const i0=Math.floor(cam/14)-1;
+  for(let i=i0;i<i0+VW/14+3;i++){ const x=i*14+hash(i,50)*8-cam, h=5+hash(i,51)*10; g.beginPath(); g.moveTo(x,SY.front+2); g.lineTo(x+2,SY.front-h); g.stroke(); }
+}
+function drawScene(g,W,H,dpr,st){
+  const k=H/300, VW=W/k, m=mood(), L=LOOK[m];
+  g.setTransform(dpr*k,0,0,dpr*k,0,0);
+  const a=reduceMotion?0:st.t, cam=st.cam, c=st.clarity;
+  if(m==='day'){ skyDay(g,VW,cam); waterDay(g,VW,cam,c,a); } else { skyDawn(g,VW,cam); waterDawn(g,VW,cam,c,a); }
+  if(st.goal){ const fx=st.goal*STEP_PX+30-cam;
+    if(fx>-60&&fx<VW+60){
+      g.strokeStyle=m==='day'?'rgba(251,250,242,.85)':'rgba(255,226,180,.7)'; g.lineWidth=3; g.setLineDash([9,8]); g.beginPath(); g.moveTo(fx,SY.water+4); g.lineTo(fx,SY.front-4); g.stroke(); g.setLineDash([]);
+      g.fillStyle=L.post; g.fillRect(fx-2.5,48,5,64);
+      g.fillStyle=L.flag; g.beginPath(); g.moveTo(fx+2.5,50); g.lineTo(fx+50,50); g.lineTo(fx+50,76); g.lineTo(fx+2.5,76); g.closePath(); g.fill();
+      if(m==='day'){ g.strokeStyle=L.signInk; g.lineWidth=2; g.stroke(); }
+      g.fillStyle=m==='day'?'#2a2a25':'#16202b'; g.font='700 15px "Nanum Gothic", sans-serif'; g.fillText('목표',fx+11,69); } }
+  if(st.bottles){ for(let kb=st.picked+1;;kb++){ const bx=kb*BOTTLE_EVERY*STEP_PX-cam; if(bx>VW+60) break; if(bx<-60) continue;
+    const by=BY+Math.sin(a*1.2+kb)*2;
+    if(kb===st.picked+1){ g.save(); g.strokeStyle=L.ring; g.lineWidth=3.5; g.setLineDash([7,6]); g.beginPath(); g.ellipse(bx,by,40,24,0,0,Math.PI*2); g.stroke(); g.restore(); }
+    drawItem(g,itemAt(kb),bx,by,1.15,L.bottle,a*1.3+kb); } }
+  const tx=Math.max(80,VW*st.tx), ty=TY+Math.sin(a*1.3)*2;
+  if(m==='day'){ g.fillStyle='rgba(40,70,80,.15)'; g.beginPath(); g.ellipse(tx,ty+34,46,6,0,0,Math.PI*2); g.fill(); }
+  if(st.moving){ g.strokeStyle=m==='day'?'rgba(251,250,242,.7)':'rgba(255,226,180,.6)'; g.lineWidth=2.2; for(let i=0;i<2;i++){ g.beginPath(); g.arc(tx-62-i*14,ty+4,7+i*5,-.8,.8); g.stroke(); } }
+  drawTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,L.turtle);
+  if(st.name){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62;
+    g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,24); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,24);
+    g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.textAlign='center'; g.fillText(st.name,tx+18,ny+17); g.textAlign='left'; }
+  if(m==='day') frontDay(g,VW,cam); else frontDawn(g,VW,cam);
+  if(st.goal){ const m0=Math.max(1,Math.floor(cam/(MILE*STEP_PX)));
+    for(let n=m0;;n++){ const mx=n*MILE*STEP_PX-cam; if(mx>VW+70) break; if(mx<-70) continue;
+      g.fillStyle=L.post; g.fillRect(mx-2.5,262,5,34);
+      g.fillStyle=L.sign; g.fillRect(mx-38,262,76,26); g.strokeStyle=L.signInk; g.lineWidth=2; g.strokeRect(mx-38,262,76,26);
+      g.fillStyle=L.signInk; g.font='700 15px "Nanum Gothic", sans-serif'; g.textAlign='center'; g.fillText(n*MILE+'걸음',mx,280); g.textAlign='left'; } }
+  if(st.lifts){ const now=performance.now()/1000;
+    lifts=lifts.filter(p=>{ const u=(now-p.t0)/1.2; if(u>=1) return false; g.globalAlpha=1-u; drawItem(g,p.type||'bottle',p.x,p.y-u*70,1.15,L.bottle,0); g.globalAlpha=1; return true; }); }
+  if(m==='day') grain(g,VW,.16);
+}
+
+// ── 웹캠 거울형 AR ──────────────────────────────────
+// 카메라 영상은 화면에만 띄우고 저장·전송하지 않음. 그 위 아래쪽에만 반투명 하천 띠를 그림
+const cam={stream:null,on:false};
+async function startCam(){
+  if(bgPref!=='cam'||cam.on) return;
+  const v=$('#cam');
+  try{
+    if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia) throw new Error('none');
+    cam.stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user',width:{ideal:1280},height:{ideal:720}},audio:false});
+    if(S.screen!=='game'){ stopCam(); return; }
+    v.srcObject=cam.stream; try{ await v.play(); }catch(e){}
+    v.hidden=false; $('#camNote').hidden=false; cam.on=true; $('.stage').classList.add('ar');
+  }catch(e){ stopCam(); notify('카메라를 쓸 수 없어요','그림 하천으로 보여 드릴게요. 미리보기 페이지에서는 카메라가 막혀 있어요.',false,4500); }
+}
+function stopCam(){ if(cam.stream){ cam.stream.getTracks().forEach(t=>t.stop()); cam.stream=null; } cam.on=false; $('.stage').classList.remove('ar'); const v=$('#cam'); v.srcObject=null; v.hidden=true; $('#camNote').hidden=true; }
+// ── 웹캠 AR: 화면 오른쪽에 앞으로 뻗은 물길, 거북이는 사람과 같은 방향(화면 안쪽)으로 헤엄침 ──
+function drawNamTop(g,x,y,s,phase,P){ // 남생이 뒷모습
+  const sw=Math.sin(phase);
+  g.save(); g.translate(x,y); g.scale(s,s); g.lineJoin='round'; g.lineCap='round';
+  const edge=()=>{ if(P.line){ g.strokeStyle=P.line; g.lineWidth=P.lw; g.stroke(); } };
+  const leg=(px,py,rot,len,w,fill)=>{ g.save(); g.translate(px,py); g.rotate(rot); g.beginPath(); g.moveTo(0,-w/2); g.quadraticCurveTo(len*.7,-w*.6,len,-w*.25); g.lineTo(len,w*.35); g.quadraticCurveTo(len*.6,w*.6,0,w/2); g.closePath(); g.fillStyle=fill; g.fill(); edge();
+    if(P.claw){ g.strokeStyle=P.claw; g.lineWidth=1.4; g.beginPath(); for(const cy of [-w*.2,0,w*.2]){ g.moveTo(len,cy); g.lineTo(len+3,cy); } g.stroke(); } g.restore(); };
+  leg(-24,-6,Math.PI+.35+sw*.4,22,11,P.far); leg(24,-6,-.35+sw*.4,22,11,P.far);
+  g.beginPath(); g.ellipse(0,-25,9,8,0,0,Math.PI*2); g.fillStyle=P.skin; g.fill(); edge();
+  if(P.stripe){ g.strokeStyle=P.stripe; g.lineWidth=1.6; g.beginPath(); g.moveTo(-5,-29); g.lineTo(-4,-21); g.moveTo(5,-29); g.lineTo(4,-21); g.stroke(); }
+  g.beginPath(); g.ellipse(0,9,34,15,0,0,Math.PI*2); g.fillStyle=P.belly; g.fill(); edge();
+  g.beginPath(); g.ellipse(0,0,34,25,0,0,Math.PI*2); g.fillStyle=P.shell; g.fill(); edge();
+  g.strokeStyle=P.scute; g.lineWidth=2; g.beginPath();
+  g.moveTo(-26,-9); g.quadraticCurveTo(0,-15,26,-9); g.moveTo(-31,6); g.quadraticCurveTo(0,1,31,6); g.stroke();
+  if(P.keel){ g.strokeStyle=P.keel; g.lineWidth=2.4; g.beginPath(); g.moveTo(0,-23); g.lineTo(0,23); g.moveTo(-15,-20); g.quadraticCurveTo(-19,0,-17,21); g.moveTo(15,-20); g.quadraticCurveTo(19,0,17,21); g.stroke(); }
+  if(P.shine){ g.fillStyle=P.shine; g.beginPath(); g.ellipse(-10,-12,12,5,-.15,0,Math.PI*2); g.fill(); }
+  if(P.rim){ g.strokeStyle=P.rim; g.lineWidth=2.4; g.beginPath(); g.ellipse(0,0,33,24,0,Math.PI*1.08,Math.PI*1.92); g.stroke(); }
+  leg(-20,18,Math.PI-.7-sw*.3,16,12,P.near); leg(20,18,.7-sw*.3,16,12,P.near);
+  g.beginPath(); g.moveTo(-4,23); g.lineTo(0,30); g.lineTo(4,23); g.closePath(); g.fillStyle=P.skin; g.fill(); edge();
+  g.restore();
+}
+function rgba(c,a){ return c.replace('rgb(','rgba(').replace(')',','+a+')'); }
+const AR={HZ:34, YT:248, DEPTH:300};
+function arLane(VW){ const WB=Math.min(VW*.36,250), cxB=VW-WB/2-6, WT=WB*.2, cxT=cxB-WB*.18; return {WB,WT,cxB,cxT}; }
+function arAt(Ln,y){ const t=(y-AR.HZ)/(300-AR.HZ); return {cx:Ln.cxT+(Ln.cxB-Ln.cxT)*t, w:Ln.WT+(Ln.WB-Ln.WT)*t}; }
+function arProj(d){ return AR.HZ+(AR.YT-AR.HZ)*AR.DEPTH/(AR.DEPTH+Math.max(d,-AR.DEPTH*.6)); } // 앞으로 d만큼 떨어진 곳의 화면 y
+let arLifts=[];
+function drawSceneAR(g,W,H,dpr,st){
+  const k=H/300, VW=W/k, m=mood(), L=LOOK[m];
+  g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
+  g.setTransform(dpr*k,0,0,dpr*k,0,0);
+  const a=reduceMotion?0:st.t, c=st.clarity, Ln=arLane(VW), tw=st.cam+Math.max(80,VW*st.tx);
+  const col=m==='day'?mix([150,146,104],[84,176,214],c):mix([150,118,90],[236,176,132],c);
+  const top=arAt(Ln,AR.HZ), bot=arAt(Ln,300);
+  const lane=()=>{ g.beginPath(); g.moveTo(top.cx-top.w/2,AR.HZ); g.lineTo(top.cx+top.w/2,AR.HZ); g.lineTo(bot.cx+bot.w/2,300); g.lineTo(bot.cx-bot.w/2,300); g.closePath(); };
+  const gr=g.createLinearGradient(0,AR.HZ,0,300); gr.addColorStop(0,rgba(col,.12)); gr.addColorStop(.35,rgba(col,.55)); gr.addColorStop(1,rgba(col,.8));
+  lane(); g.fillStyle=gr; g.fill();
+  g.save(); lane(); g.clip();
+  // 물결: 걸을수록 앞에서 다가와 아래로 흘러감
+  const step=36, d0=Math.floor((tw-AR.DEPTH*.6)/step), d1=Math.floor((tw+AR.DEPTH*12)/step);
+  g.strokeStyle=`rgba(255,255,255,${.35+.3*c})`; g.lineCap='round';
+  for(let i=d0;i<=d1;i++){ const d=i*step-tw, y=arProj(d), A=arAt(Ln,y), sc=A.w/Ln.WB;
+    if(sc<.36) continue; const x=A.cx+(hash(i,8)-.5)*A.w*.8, len=(14+hash(i,12)*22)*sc; g.lineWidth=2.4*sc+.6;
+    g.beginPath(); g.moveTo(x-len/2,y); g.quadraticCurveTo(x,y-2*sc,x+len/2,y); g.stroke();
+    if(sc>.45&&hash(i,20)<=(1-c)*.6){ g.fillStyle='rgba(70,66,52,.65)'; g.beginPath(); g.ellipse(A.cx+(hash(i,21)-.5)*A.w*.7,y+6*sc,7*sc,3*sc,0,0,Math.PI*2); g.fill(); } }
+  const nf=Math.round(c*4); for(let i=0;i<nf;i++){ const y=AR.HZ+40+((hash(i,31)*200+a*(12+i*4))%200), A=arAt(Ln,y); fish(g,A.cx+(hash(i,30)-.5)*A.w*.7,y,.7*A.w/Ln.WB,m==='day'?'#f0a35a':'#fff1d6',a*4+i,m==='day'?'#5d4430':null); }
+  g.restore();
+  // 강둑 선
+  g.strokeStyle=m==='day'?'rgba(250,247,236,.9)':'rgba(255,214,160,.8)'; g.lineWidth=3;
+  g.beginPath(); g.moveTo(top.cx-top.w/2,AR.HZ); g.lineTo(bot.cx-bot.w/2,300); g.moveTo(top.cx+top.w/2,AR.HZ); g.lineTo(bot.cx+bot.w/2,300); g.stroke();
+  // 50걸음마다 가로줄, 목표 깃발
+  const lab=(d,txt,fill,bar)=>{ const y=arProj(d), A=arAt(Ln,y), sc=A.w/Ln.WB; if(y<AR.HZ+4||y>300) return;
+    g.fillStyle=bar; g.fillRect(A.cx-A.w/2,y-2*sc,A.w,4*sc);
+    g.font=`800 ${Math.max(9,15*sc)}px "Nanum Gothic", sans-serif`; const tw2=g.measureText(txt).width+12*sc, bx=A.cx-A.w/2-tw2-4;
+    g.fillStyle=fill; g.fillRect(bx,y-11*sc,tw2,22*sc); g.fillStyle='#2a2a25'; g.fillText(txt,bx+6*sc,y+5*sc); };
+  if(st.goal){ const mk=MILE*STEP_PX; for(let n=Math.max(1,Math.floor((tw-AR.DEPTH*.6)/mk));n*MILE<st.goal;n++){ const d=n*mk-tw; if(d>AR.DEPTH*6) break; lab(d,`${n*MILE}`,'rgba(252,251,247,.9)','rgba(255,255,255,.55)'); }
+    if(st.goal*STEP_PX-tw<AR.DEPTH*6) lab(st.goal*STEP_PX-tw,'목표',L.flag,L.flag); }
+  // 쓰레기: 멀리서 작게 → 가까워질수록 크게
+  const items=[];
+  if(st.bottles){ for(let kb=st.picked+1;kb<st.picked+4;kb++){ const d=kb*BOTTLE_EVERY*STEP_PX-tw; if(d>AR.DEPTH*6) break; items.push([kb,d]); } }
+  for(let n=items.length-1;n>=0;n--){ const [kb,d]=items[n], y=arProj(d)+Math.sin(a*1.2+kb)*1.5, A=arAt(Ln,y), sc=A.w/Ln.WB, x=A.cx+(hash(kb,3)-.5)*A.w*.35;
+    if(n===0){ g.save(); g.strokeStyle=L.ring; g.lineWidth=3; g.setLineDash([6,5]); g.beginPath(); g.ellipse(x,y,38*sc,20*sc,0,0,Math.PI*2); g.stroke(); g.restore(); }
+    drawItem(g,itemAt(kb),x,y,1.2*sc,L.bottle,a*1.3+kb); }
+  // 거북이
+  const T=arAt(Ln,AR.YT), ts=Math.min(1.2,T.w/120), ty=AR.YT+Math.sin(a*1.3)*1.5;
+  drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
+  if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
+    g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,26); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,26);
+    g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.fillText(st.name,nx+8,ny+19); }
+  if(st.lifts){ const now=performance.now()/1000; if(lifts.length){ lifts.forEach(p=>arLifts.push({t0:p.t0,type:p.type})); lifts=[]; }
+    arLifts=arLifts.filter(p=>{ const u=(now-p.t0)/1.2; if(u>=1) return false; g.globalAlpha=1-u; drawItem(g,p.type||'bottle',T.cx,ty-38*ts-u*50,(1-u*.4)*ts,L.bottle,0); g.globalAlpha=1; return true; }); }
+}
+
+// ── TV 모드 ─────────────────────────────────────────
+function applyTV(){ document.documentElement.classList.toggle('tv',tvOn); $$('#tvSeg button[data-tv]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.tv==='1')===tvOn))); requestAnimationFrame(resizeAll); }
+function spatial(dir){
+  const els=$$('a[href],button,input,select,summary,textarea').filter(e=>e.offsetParent!==null&&!e.disabled);
+  const cur=document.activeElement;
+  if(!cur||cur===document.body||!els.includes(cur)){ if(els[0]) els[0].focus(); return; }
+  const r=cur.getBoundingClientRect(), cx=r.left+r.width/2, cy=r.top+r.height/2, hz=dir==='ArrowLeft'||dir==='ArrowRight';
+  let best=null, bs=1e9;
+  for(const el of els){ if(el===cur) continue; const q=el.getBoundingClientRect(); if(!q.width&&!q.height) continue;
+    const dx=q.left+q.width/2-cx, dy=q.top+q.height/2-cy;
+    const ok=dir==='ArrowRight'?dx>4:dir==='ArrowLeft'?dx<-4:dir==='ArrowDown'?dy>4:dy<-4; if(!ok) continue;
+    const sc=(hz?Math.abs(dx):Math.abs(dy))+(hz?Math.abs(dy):Math.abs(dx))*2.5; if(sc<bs){ bs=sc; best=el; } }
+  if(best){ best.focus(); best.scrollIntoView({block:'nearest'}); }
+}
+
+// ── 캔버스 크기 ─────────────────────────────────────
+const cv=$('#river'), ctx=cv.getContext('2d'), pic=$('#pic'), pctx=pic.getContext('2d');
+let Wr=1,Hr=1,Wp=1,Hp=1,DPR=1;
+function resizeAll(){ DPR=Math.min(2,devicePixelRatio||1);
+  let r=cv.getBoundingClientRect(); Wr=Math.max(1,r.width); Hr=Math.max(1,r.height); cv.width=Math.round(Wr*DPR); cv.height=Math.round(Hr*DPR);
+  r=pic.getBoundingClientRect(); Wp=Math.max(1,r.width); Hp=Math.max(1,r.height); pic.width=Math.round(Wp*DPR); pic.height=Math.round(Hp*DPR); }
+new ResizeObserver(resizeAll).observe(cv); new ResizeObserver(resizeAll).observe(pic);
+function turtleX(){ return Math.max(80,(Wr/(Hr/300))*.3); }
+function clarityTarget(){ return Math.min(1,S.bottles/Math.max(1,Math.floor(S.goal/BOTTLE_EVERY))); }
+function pickBottle(){
+  S.bottles++;
+  const type=itemAt(S.bottles); S.kinds[type]=(S.kinds[type]||0)+1;
+  lifts.push({x:S.bottles*BOTTLE_EVERY*STEP_PX-(turtle.x-turtleX()),y:BY,t0:performance.now()/1000,type});
+  const quiet=musicMode==='melody'; // 걸음 가락과 겹치지 않게 효과음(줍기·10걸음·쉬기·목표)과 줍기 말은 모두 생략
+  if(!quiet) sfx.pick();
+  sideToast(`${tSubj()} ${ITEM[type].obj} 주웠어요`,`지금까지 쓰레기 ${S.bottles}개`);
+  if(!quiet&&!(S.steps%MILE===0&&S.steps<S.goal)) speak(`${ITEM[type].obj} 주웠어요. ${praise()}`);
+  const box=$('#hBottleBox'); box.classList.add('flash'); setTimeout(()=>box.classList.remove('flash'),900);
+  updateHud(); scheduleSave();
+}
+function updateGame(dt){
+  turtle.x += (turtle.target-turtle.x)*Math.min(1,dt*4);
+  if(Math.abs(turtle.target-turtle.x)<.5) turtle.x=turtle.target;
+  const moving=Math.abs(turtle.target-turtle.x)>1;
+  turtle.phase += dt*(moving?6:1.5);
+  while((S.bottles+1)*BOTTLE_EVERY<=S.steps && turtle.x+30>=(S.bottles+1)*BOTTLE_EVERY*STEP_PX) pickBottle();
+  clarityShown += (clarityTarget()-clarityShown)*Math.min(1,dt*1.2);
+  if(!S.completed && S.steps>=S.goal && turtle.x>=S.goal*STEP_PX-4){
+    S.completed=true; if(musicMode!=='melody') sfx.done(); notify('목표를 다 걸었어요','하천이 깨끗해졌어요',true,3000); speak(`오늘 목표를, 다 걸으셨어요. ${tWith()} 함께, 하천을 깨끗하게 만들었어요. 정말, 수고 많으셨어요.`);
+    setTimeout(()=>{ if(S.screen==='game') showResult(); },2200);
+  }
+}
+
+// ── 실시간 걸음 검출 (계획서 3.4) ─────────────────────
+// |a| → 느린 기준선 제거 → 짧은 이동평균 → 최근 3초 최댓값의 절반을 기준선으로 →
+// 기준선을 넘었다 내려오면 1걸음, 이후 0.8초는 다시 세지 않음(이중 충격 방지)
+class Detector{
+  constructor(unit,onStep){ this.unit=unit; this.minThr=.12*unit; this.onStep=onStep; this.base=null; this.lastT=null; this.ma=[]; this.hist=[]; this.above=false; this.lastStep=-1e9; this.trace=[]; this.steps=[]; }
+  push(t,mag){
+    if(this.base===null){ this.base=mag; this.lastT=t; }
+    const dt=Math.max(1e-3,t-this.lastT); this.lastT=t;
+    this.base += (mag-this.base)*(1-Math.exp(-dt/1.0));
+    const hp=mag-this.base;
+    this.ma.push([t,hp]); while(this.ma.length&&this.ma[0][0]<t-.08) this.ma.shift();
+    const sm=this.ma.reduce((s,p)=>s+p[1],0)/this.ma.length;
+    this.hist.push([t,sm]); while(this.hist.length&&this.hist[0][0]<t-3) this.hist.shift();
+    let peak=0; for(const p of this.hist) if(p[1]>peak) peak=p[1];
+    const thr=Math.max(this.minThr,.5*peak);
+    if(!this.above && sm>thr) this.above=true;
+    else if(this.above && sm<thr*.7){ this.above=false; if(t-this.lastStep>=.8){ this.lastStep=t; this.steps.push(t); this.onStep(t); } }
+    this.trace.push([t,sm,thr]); while(this.trace.length&&this.trace[0][0]<t-6.5) this.trace.shift();
+  }
+}
+
+// ── 재생 모드 (계획서 7장) ───────────────────────────
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0; let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; }; }
+function makeSample(){
+  const rnd=mulberry32(20261103), fs=50, dur=46, n=dur*fs;
+  const gauss=()=>{ let u=0; while(!u) u=rnd(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*rnd()); };
+  const L=[]; let t=3; while(t<42){ L.push(t); t+=1.6+(rnd()-.5)*.16; }
+  const R=L.map(x=>x+.8+(rnd()-.5)*.08);
+  const build=(hits,A)=>{ const s=[]; for(let i=0;i<n;i++){ const tt=i/fs; let v=1+gauss()*.025;
+      for(const h of hits){ const d=tt-h; if(d<-.8||d>.6) continue;
+        v+=.22*(A/1.2+.3)*Math.exp(-(((d+.45)/.12)**2));
+        v+=A*Math.exp(-((d/.03)**2));
+        v+=.45*A*Math.exp(-(((d-.14)/.03)**2));
+        v-=.18*A*Math.exp(-(((d-.26)/.07)**2)); }
+      s.push([tt,v]); } return s; };
+  return {label:'예시 데이터', end:dur, truth:{L:L.length,R:R.length},
+    tracks:[{foot:'L',unit:1,samples:build(L,1.2)},{foot:'R',unit:1,samples:build(R,.6)}]};
+}
+function parseCSV(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim());
+  if(lines.length<20) throw new Error('데이터 줄이 너무 적어요. 측정 파일을 다시 확인해 주세요.');
+  const first=lines[0];
+  const delim=first.includes('\t')?'\t':(first.split(';').length>first.split(',').length?';':',');
+  const split=l=>l.split(delim).map(s=>s.trim().replace(/^"|"$/g,''));
+  const isNum=s=>s!==''&&!isNaN(Number(s));
+  let head=split(first), start=1;
+  if(head.every(isNum)){ start=0; head = head.length===2?['time','abs'] : head.length>=4?['time','x','y','z'] : null; if(!head) throw new Error('열 이름이 없어 어떤 값인지 알 수 없어요. 첫 줄에 time, x, y, z를 적어 주세요.'); }
+  const low=head.map(h=>h.toLowerCase());
+  const find=re=>low.findIndex(h=>re.test(h));
+  const ti=find(/time|^t$|^t[ _(]|sec|시간/);
+  const ax=a=>find(new RegExp('(^|[^a-z])(a|acc(el(eration)?)?)?[ _]?'+a+'([^a-z]|$)'));
+  const xi=ax('x'), yi=ax('y'), zi=ax('z'), mi=find(/abs|magnitude|norm|\|a\|/);
+  if(ti<0) throw new Error('시간 열을 찾지 못했어요. 열 이름에 time을 넣어 주세요.');
+  const useXYZ=xi>=0&&yi>=0&&zi>=0;
+  if(!useXYZ&&mi<0) throw new Error('가속도 x·y·z 열을 찾지 못했어요.');
+  const s=[];
+  for(let i=start;i<lines.length;i++){ const c=split(lines[i]); const t=Number(c[ti]); let m;
+    if(useXYZ){ const x=Number(c[xi]),y=Number(c[yi]),z=Number(c[zi]); if([x,y,z].some(isNaN)) continue; m=Math.hypot(x,y,z); }
+    else { m=Math.abs(Number(c[mi])); if(isNaN(m)) continue; }
+    if(isNaN(t)) continue; s.push([t,m]); }
+  if(s.length<20) throw new Error('숫자로 읽을 수 있는 줄이 너무 적어요.');
+  const dts=[]; for(let i=1;i<Math.min(s.length,200);i++) dts.push(s[i][0]-s[i-1][0]); dts.sort((a,b)=>a-b);
+  const tScale = dts[dts.length>>1]>2 ? 1/1000 : 1;
+  const t0=s[0][0]; for(const p of s) p[0]=(p[0]-t0)*tScale;
+  const mags=s.map(p=>p[1]).sort((a,b)=>a-b); const p95=mags[Math.floor(mags.length*.95)];
+  const unit = p95>4 ? 9.81 : 1;
+  return {samples:s, unit, end:s[s.length-1][0]};
+}
+function startReplay(ds){
+  replay={active:true, label:ds.label, end:ds.end, truth:ds.truth||null, playhead:0, speed:1, paused:false, done:false,
+    tracks:ds.tracks.map(tr=>({foot:tr.foot, s:tr.samples, i:0, det:new Detector(tr.unit,t=>step(tr.foot,t))}))};
+  resetSession('replay');
+  $('#replayBox').hidden=false; $('#btnPause').textContent='일시정지';
+  $$('#speedSeg button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.speed==='1'));
+  show('game'); updateReplayInfo();
+}
+function stopReplay(){ replay={active:false}; $('#replayBox').hidden=true; }
+function updateReplay(dt){
+  if(!replay.active) return;
+  if(!replay.paused&&!replay.done){
+    replay.playhead+=dt*replay.speed;
+    for(const tr of replay.tracks){ while(tr.i<tr.s.length&&tr.s[tr.i][0]<=replay.playhead){ tr.det.push(tr.s[tr.i][0],tr.s[tr.i][1]); tr.i++; } }
+    if(replay.playhead>=replay.end){ replay.done=true; $('#btnPause').textContent='처음부터'; }
+  }
+  updateReplayInfo(); drawSignal();
+}
+function updateReplayInfo(){
+  if(!replay.active) return;
+  const p2=replay.tracks.map(tr=>{ const n=tr.det.steps.length, tru=replay.truth&&replay.truth[tr.foot];
+    return `${tr.foot==='L'?'왼발':'오른발'} 검출 ${n}${tru!=null?` (실제 ${tru})`:''}`; });
+  $('#rInfo').textContent=`${replay.label} · ${p2.join(' · ')} · ${fmt(Math.min(replay.playhead,replay.end))} / ${fmt(replay.end)}${replay.done?' · 재생 끝':''}`;
+}
+const sig=$('#sig'), sctx=sig.getContext('2d');
+function drawSignal(){
+  const r=sig.getBoundingClientRect(); if(!r.width) return;
+  const d=Math.min(2,devicePixelRatio||1);
+  if(sig.width!==Math.round(r.width*d)||sig.height!==Math.round(r.height*d)){ sig.width=Math.round(r.width*d); sig.height=Math.round(r.height*d); }
+  const dark=mood()==='dawn', g=sctx, w=r.width, h=r.height; g.setTransform(d,0,0,d,0,0); g.fillStyle=dark?'#121b24':'#fcfbf7'; g.fillRect(0,0,w,h);
+  const win=6, tEnd=Math.max(win,replay.playhead), tS=tEnd-win;
+  let ymax=.2*(replay.tracks[0]?replay.tracks[0].det.unit:1);
+  for(const tr of replay.tracks) for(const p of tr.det.trace) if(p[0]>=tS) ymax=Math.max(ymax,p[1],p[2]*1.3);
+  const base=h-5, X=t=>(t-tS)/win*w, Y=v=>base-v/ymax*(base-10);
+  g.strokeStyle=dark?'#2f3c4b':'#d8d2c2'; g.lineWidth=1; g.beginPath(); g.moveTo(0,base); g.lineTo(w,base); g.stroke();
+  for(const tr of replay.tracks){ const col=tr.foot==='L'?(dark?'#e9edf1':'#3f4a3c'):(dark?'#f3c27e':'#c9922a');
+    g.strokeStyle=col; g.lineWidth=2; g.beginPath(); let st=false;
+    for(const p of tr.det.trace){ if(p[0]<tS) continue; const x=X(p[0]), y=Math.min(h-2,Y(p[1])); st?g.lineTo(x,y):(g.moveTo(x,y),st=true); } g.stroke();
+    g.setLineDash([5,4]); g.lineWidth=1.2; g.globalAlpha=.7; g.beginPath(); st=false;
+    for(const p of tr.det.trace){ if(p[0]<tS) continue; const x=X(p[0]), y=Y(p[2]); st?g.lineTo(x,y):(g.moveTo(x,y),st=true); } g.stroke(); g.setLineDash([]); g.globalAlpha=1;
+    g.fillStyle=col; for(const ts of tr.det.steps){ if(ts<tS) continue; g.beginPath(); g.arc(X(ts),6,3.5,0,Math.PI*2); g.fill(); } }
+}
+
+// ── 휴대폰 센서 연동 (노트북 쪽) ─────────────────────
+// 휴대폰이 스스로 걸음을 판단하고 "이 발의 누적 걸음 수"만 보냄(커프와 같은 방식)
+const phone={peer:null, code:null, conns:[], ready:false};
+function inPreview(){ try{ return window.top!==window.self; }catch(e){ return true; } }
+function phoneUrl(code){ return location.origin+location.pathname+'?sensor='+code; }
+function newCode(){ return String(Math.floor(1000+Math.random()*9000)); }
+function setPairState(t,bad){ const el=$('#pairState'); el.innerHTML=t; el.style.color=bad?'var(--warn)':''; }
+function renderSensorState(){
+  const n=phonesOn(), feet=phone.conns.filter(c=>c.open).map(c=>c.foot==='R'?'오른발':'왼발');
+  $('#sensorState').innerHTML = n ? `<b>휴대폰 ${n}대 연결됨</b> (${feet.join(', ')})` : (cuffs.some(c=>c.on)?'<b>커프 연결됨</b>':'발목 커프를 연결하면 걸음을 저절로 세요. 커프가 없으면 화면의 왼발·오른발 버튼으로 걸어요.');
+  $('#btnPhone').textContent = n ? '휴대폰 연결 보기' : '휴대폰을 센서로 연결';
+}
+async function openPhoneLink(){
+  $('#pairModal').hidden=false;
+  if(phone.ready){ showPair(); return; }
+  setPairState('연결을 준비하고 있어요.');
+  try{ await loadScript(PEERJS_URL); }
+  catch(e){ setPairState('연결 프로그램을 불러오지 못했어요. 인터넷 연결을 확인하거나, 게임을 GitHub Pages 같은 HTTPS 주소에 올려 노트북 크롬으로 열어 주세요.'+(inPreview()?' 지금 보고 있는 미리보기 페이지에서는 휴대폰 연결이 막혀 있어요.':''),true); return; }
+  startPeer();
+}
+function startPeer(){
+  phone.code=newCode();
+  let p;
+  try{ p=new window.Peer(PEER_PREFIX+phone.code, window.RS_PEER||{}); }catch(e){ setPairState('연결을 시작하지 못했어요.',true); return; }
+  phone.peer=p;
+  p.on('open',()=>{ phone.ready=true; showPair(); });
+  p.on('connection',conn=>{
+    const c={conn,foot:'L',last:null,open:false,off:null};
+    phone.conns.push(c);
+    conn.on('open',()=>{ c.open=true; });
+    conn.on('data',m=>onPhoneData(c,m));
+    conn.on('close',()=>{ c.open=false; phone.conns=phone.conns.filter(x=>x!==c); onPhoneLost(); });
+    conn.on('error',()=>{});
+  });
+  p.on('disconnected',()=>{ try{ p.reconnect(); }catch(e){} });
+  p.on('error',err=>{
+    if(err&&err.type==='unavailable-id'){ try{ p.destroy(); }catch(e){} startPeer(); return; }
+    if(!phone.ready) setPairState('연결 서버에 닿지 못했어요. 인터넷 연결을 확인해 주세요.'+(inPreview()?' 미리보기 페이지에서는 막혀 있으니 GitHub Pages 주소로 열어 주세요.':''),true);
+  });
+}
+async function showPair(){
+  const url=phoneUrl(phone.code);
+  $('#pairCode').textContent=phone.code; $('#pairAddr').textContent=url;
+  const n=phonesOn();
+  setPairState(n?`<b>휴대폰 ${n}대 연결됨.</b> 닫고 시작하기를 누르세요.`:'휴대폰을 기다리고 있어요.');
+  const box=$('#qr');
+  if(!box.dataset.code||box.dataset.code!==phone.code){
+    try{ await loadScript(QR_URL); box.innerHTML=''; new window.QRCode(box,{text:url,width:180,height:180,correctLevel:window.QRCode.CorrectLevel.M}); box.dataset.code=phone.code; }
+    catch(e){ box.textContent='QR을 만들지 못했어요. 아래 주소를 휴대폰에 입력하세요.'; }
+  }
+}
+function onPhoneData(c,m){
+  if(!m||typeof m!=='object') return;
+  if(m.type==='hello'){ c.foot=m.foot==='R'?'R':'L'; c.last=typeof m.count==='number'?m.count:null; c.open=true;
+    renderSensorState(); if(!$('#pairModal').hidden) showPair();
+    if(S.screen==='game'&&S.source!=='replay'){ S.source='phone'; setConn(); $('#lost').hidden=true; }
+    return; }
+  if(m.type==='step'&&typeof m.count==='number'){
+    if(m.foot) c.foot=m.foot==='R'?'R':'L';
+    const d = c.last===null ? 1 : m.count-c.last; c.last=m.count;
+    if(d<=0||d>20) return;
+    // 휴대폰 시계를 노트북 시계로 옮겨서 걸음 간격(보행 주기)을 정확히 유지
+    let tl; if(typeof m.t==='number'){ if(c.off==null) c.off=performance.now()/1000-m.t; tl=m.t+c.off; }
+    for(let i=0;i<d;i++){ step(c.foot,tl); if($('#estChk').checked && phonesOn()===1) step(c.foot==='L'?'R':'L',undefined,true); }
+  }
+}
+function onPhoneLost(){
+  renderSensorState();
+  if(S.screen==='game'&&S.source==='phone'){ setConn(); if(phonesOn()===0) showLost('phone'); }
+}
+function showLost(kind){
+  $('#lostT').textContent = kind==='phone'?'휴대폰 연결이 끊겼어요':'커프 연결이 끊겼어요';
+  { const w=species==='sea'?'거북이':'남생이'; $('#lostSub').textContent = kind==='phone'?"휴대폰에서 '센서 시작'을 다시 누르면 이어져요. "+w+"는 그대로 기다리고 있어요.":w+'는 그대로 기다리고 있어요.'; }
+  $('#btnReconnect').hidden = kind==='phone';
+  $('#lostMsg').hidden=true; $('#lost').hidden=false;
+}
+
+// ── 휴대폰 센서 화면 (휴대폰 쪽) ─────────────────────
+const sp={foot:'L', peer:null, conn:null, det:null, count:0, running:false, retry:null};
+function spState(t,bad){ const el=$('#spState'); el.textContent=t; el.style.color=bad?'var(--warn)':''; }
+function spSend(m){ try{ if(sp.conn&&sp.conn.open) sp.conn.send(m); }catch(e){} }
+function spConnect(){
+  const code=$('#spCode').value.trim();
+  if(!/^\d{4}$/.test(code)){ spState('연결 번호 4자리를 넣어 주세요.',true); return; }
+  if(!sp.peer){ sp.peer=new window.Peer(undefined, window.RS_PEER||{}); sp.peer.on('error',()=>{ spState('노트북을 찾지 못했어요. 번호를 확인하고 노트북의 연결 창이 열려 있는지 보세요. 다시 시도하는 중이에요.',true); }); }
+  const go=()=>{
+    const conn=sp.peer.connect(PEER_PREFIX+code,{reliable:true}); sp.conn=conn;
+    conn.on('open',()=>{ spState('노트북과 연결됐어요. 걸으면 남생이가 움직여요.'); spSend({type:'hello',foot:sp.foot,count:sp.count}); });
+    conn.on('close',()=>{ if(sp.running){ spState('연결이 끊겼어요. 다시 잇는 중이에요.',true); clearTimeout(sp.retry); sp.retry=setTimeout(go,3000); } });
+  };
+  if(sp.peer.open) go(); else sp.peer.on('open',go);
+}
+function onMotion(e){
+  const a=e.accelerationIncludingGravity; if(!a||a.x==null) return;
+  sp.det.push(e.timeStamp/1000, Math.hypot(a.x,a.y,a.z));
+}
+async function spStart(){
+  spState('준비하고 있어요.');
+  try{ if(typeof DeviceMotionEvent!=='undefined' && typeof DeviceMotionEvent.requestPermission==='function'){ const r=await DeviceMotionEvent.requestPermission(); if(r!=='granted'){ spState('움직임 센서 사용을 허용해야 해요. 다시 눌러 허용을 선택하세요.',true); return; } } }
+  catch(e){ spState('움직임 센서 권한을 받지 못했어요. 다시 눌러 주세요.',true); return; }
+  if(!window.isSecureContext){ spState('https:// 로 시작하는 주소에서만 휴대폰 센서를 쓸 수 있어요.',true); return; }
+  try{ await loadScript(PEERJS_URL); }catch(e){ spState('연결 프로그램을 불러오지 못했어요. 인터넷을 확인해 주세요.',true); return; }
+  sp.det=new Detector(9.81,t=>{ sp.count++; $('#spLive').firstChild.nodeValue=String(sp.count); spSend({type:'step',foot:sp.foot,count:sp.count,t}); try{ navigator.vibrate&&navigator.vibrate(30); }catch(e){} });
+  window.addEventListener('devicemotion',onMotion);
+  sp.running=true; $('#spStart').hidden=true; $('#spStop').hidden=false;
+  try{ navigator.wakeLock && navigator.wakeLock.request('screen').catch(()=>{}); }catch(e){}
+  let got=false; const chk=e=>{ got=true; window.removeEventListener('devicemotion',chk); }; window.addEventListener('devicemotion',chk);
+  setTimeout(()=>{ if(!got) spState('이 휴대폰에서 움직임 센서 값이 들어오지 않아요. 다른 브라우저(크롬·사파리)로 열어 보세요.',true); },2500);
+  spConnect();
+}
+function spStop(){ sp.running=false; window.removeEventListener('devicemotion',onMotion); try{ sp.conn&&sp.conn.close(); }catch(e){} $('#spStart').hidden=false; $('#spStop').hidden=true; spState('멈췄어요. 다시 시작하려면 센서 시작을 누르세요.'); }
+
+// ── 커프 연결 (실물 제작 시, Web Bluetooth) ───────────
+function parseCount(dv){ if(dv.byteLength>=5) return {foot:dv.getUint8(0)===1?'R':'L', count:dv.getUint32(1,true)};
+  if(dv.byteLength>=4) return {count:dv.getUint32(0,true)}; if(dv.byteLength>=2) return {count:dv.getUint16(0,true)}; return null; }
+function onCuffValue(cuff,dv){
+  const v=parseCount(dv); if(!v) return; if(v.foot) cuff.foot=v.foot;
+  if(cuff.last===null){ cuff.last=v.count; return; }
+  const d=v.count-cuff.last; cuff.last=v.count;
+  if(d<=0||d>20) return;
+  for(let i=0;i<d;i++) step(cuff.foot);
+}
+async function attach(cuff){
+  const server=await cuff.device.gatt.connect();
+  const svc=await server.getPrimaryService(SERVICE_UUID);
+  const ch=await svc.getCharacteristic(CHAR_UUID);
+  if(!cuff.listening){ ch.addEventListener('characteristicvaluechanged',e=>onCuffValue(cuff,e.target.value)); cuff.listening=true; }
+  try{ const v=parseCount(await ch.readValue()); if(v){ cuff.last=v.count; if(v.foot) cuff.foot=v.foot; } }catch(e){}
+  await ch.startNotifications();
+  cuff.on=true; renderSensorState(); setConn();
+}
+async function connectCuff(){
+  const msg=$('#cuffMsg'); msg.hidden=true;
+  const blocked=()=>{ msg.hidden=false; msg.textContent='이 화면에서는 블루투스 연결이 막혀 있어요. 게임을 HTTPS 주소에 올려 노트북 크롬·엣지로 열어 주세요.'; };
+  if(!navigator.bluetooth){ blocked(); return; }
+  let device;
+  try{ device=await navigator.bluetooth.requestDevice({filters:[{namePrefix:'RiverStep'}],optionalServices:[SERVICE_UUID]}); }
+  catch(e){ if(e&&e.name==='NotFoundError'){ msg.hidden=false; msg.textContent='기기를 고르지 않았어요.'; } else blocked(); return; }
+  let cuff=cuffs.find(c=>c.device===device);
+  if(!cuff){ cuff={device,foot:cuffs.some(c=>c.foot==='L')?'R':'L',last:null,on:false,listening:false}; cuffs.push(cuff);
+    device.addEventListener('gattserverdisconnected',()=>{ cuff.on=false; renderSensorState(); setConn(); if(S.screen==='game'&&S.source==='cuff') showLost('cuff'); }); }
+  try{ await attach(cuff); }catch(e){ msg.hidden=false; msg.textContent='커프와 연결하지 못했어요. 서비스 UUID가 보드 코드와 같은지 확인해 주세요.'; }
+}
+async function reconnect(){
+  const msg=$('#lostMsg'); msg.hidden=true;
+  if(window.RiverStepNative&&RiverStepNative.reconnect){ try{ RiverStepNative.reconnect(); }catch(e){} }
+  for(const c of cuffs.filter(c=>!c.on&&!c.app)){ try{ await attach(c); }catch(e){} }
+  if(cuffs.some(c=>c.on)) $('#lost').hidden=true;
+  else { msg.hidden=false; msg.textContent='아직 연결되지 않았어요. 커프 전원과 거리를 확인하고 다시 눌러 주세요.'; }
+}
+
+
+// ── TV 앱(안드로이드 TV) 연결부 ─────────────────────
+// 앱이 커프를 블루투스로 자동 연결하고, 걸음이 오면 RiverStepApp.cuff(…)를 불러 줌. 브라우저에서는 쓰이지 않음
+const IN_APP=!!window.RiverStepNative || /[?&]app=tv\b/.test(location.search);
+const appCuffs={};
+function startFromCuff(){ if(S.screen!=='site') return false; openView('walk'); $('#btnStart').click(); return S.screen==='game'; }
+window.RiverStepApp={
+  cuff(id,foot,count){ // id: 커프 주소, foot: 'L'|'R', count: 그 발의 누적 걸음 수
+    let c=appCuffs[id];
+    if(!c){ c=appCuffs[id]={device:null,app:true,id,foot:foot==='R'?'R':'L',last:null,on:true,listening:true}; cuffs.push(c); }
+    c.on=true; if(foot==='L'||foot==='R') c.foot=foot;
+    if(c.last===null){ c.last=count; renderSensorState(); setConn(); if(S.screen==='game') $('#lost').hidden=true; return; }
+    const d=count-c.last; c.last=count; if(d<=0||d>20) return;
+    if(S.screen==='site'&&!startFromCuff()) return; // 시작 화면에서 첫 걸음을 디디면 게임 시작
+    if(S.screen==='result') return;
+    for(let i=0;i<d;i++) step(c.foot);
+  },
+  state(id,connected){ const c=appCuffs[id]; if(!c) return; c.on=!!connected; renderSensorState(); setConn();
+    if(!connected&&S.screen==='game'&&S.source==='cuff'&&!cuffs.some(x=>x.on)) showLost('cuff');
+    if(connected&&S.screen==='game') $('#lost').hidden=true; },
+  speaking(on){ voice.speaking=!!on; },
+  back(){ // 리모컨 '뒤로' 버튼
+    if(S.screen==='game'){ showResult(); return true; }
+    if(S.screen==='result'){ goHome(); return true; }
+    if(curView!=='walk'){ openView('walk'); return true; }
+    return false; }
+};
+if(IN_APP){
+  tvOn=true; bgPref='art'; document.documentElement.classList.add('app');
+  // TV 앱에는 카메라·휴대폰 연동·브라우저 목소리 고르기가 없음
+  ['#bgSeg','#btnPhone','#voiceSel','#btnCuff'].forEach(s=>{ const el=$(s); if(!el) return; el.hidden=true;
+    const prev=el.previousElementSibling, next=el.nextElementSibling;
+    if(prev&&prev.classList.contains('lab')) prev.hidden=true;
+    if(next&&next.classList.contains('small')&&s!=='#btnCuff') next.hidden=true; });
+  const ss=$('#sensorState'); if(ss) ss.textContent='발목 커프를 차고 움직이면 저절로 연결돼요. 첫 걸음을 디디면 게임이 시작돼요.';
+  setTimeout(()=>{ try{ $('#btnStart').focus(); }catch(e){} },400); // 리모컨 확인 버튼으로 바로 시작
+}
+
+// ── 결과 화면 ───────────────────────────────────────
+function showResult(){
+  const cL=cycle('L'), cR=cycle('R'), done=S.steps>=S.goal;
+  $('#rTag').textContent = S.source==='replay' ? replay.label+' 재생 결과' : (done?'목표 달성':'오늘의 기록');
+  $('#rTitle').textContent = done?`오늘 ${S.steps}걸음, ${tWith()} 하천 정화 완료`:`오늘 ${tWith()} ${S.steps}걸음 걸었어요`;
+  $('#rLede').textContent = done ? `쓰레기 ${S.bottles}개를 주워 하천이 맑아졌어요. 수고하셨어요.`
+    : `쓰레기 ${S.bottles}개를 주웠어요. 목표 ${S.goal}걸음까지 ${Math.max(0,S.goal-S.steps)}걸음 남았어요. 다음에 이어서 걸어요.`;
+  const both=[cL,cR].filter(v=>v!=null), avg=both.length?both.reduce((a,c)=>a+c,0)/both.length:null;
+  const tile=(k,v,u,n='')=>`<div class="tile"><span class="k">${k}</span><span class="v">${v}<small>${u}</small></span>${n?`<span class="n">${n}</span>`:''}</div>`;
+  $('#rTiles').innerHTML= tile('걸음 수',S.steps,'걸음',S.est?`그중 ${S.est}걸음은 반대 발 추정`:`목표 ${S.goal}걸음`)+
+    tile('운동 시간',fmtKo(S.activeSec),'','30초 넘게 멈춘 시간은 빼고 셈')+
+    tile('평균 보행 주기',avg!=null?avg.toFixed(2):'—',avg!=null?'초':'','같은 발이 다시 닿기까지')+ tile('주운 쓰레기',S.bottles,'개',Object.keys(ITEM).filter(k=>S.kinds[k]).map(k=>`${ITEM[k].name} ${S.kinds[k]}`).join(' · '));
+  renderResultEco(tile);
+  const mx=Math.max(1,S.left,S.right);
+  $('#rBarL').style.width=(S.left/mx*100)+'%'; $('#rBarR').style.width=(S.right/mx*100)+'%';
+  $('#rValL').textContent=`${S.left}걸음 · ${cL!=null?cL.toFixed(2)+'초':'—'}`;
+  $('#rValR').textContent=`${S.right}걸음 · ${cR!=null?cR.toFixed(2)+'초':'—'}`;
+  if(cL!=null&&cR!=null){ const r=Math.min(cL,cR)/Math.max(cL,cR)*100, st=Math.min(S.left,S.right)/Math.max(1,S.left,S.right)*100;
+    $('#rSym').textContent=`좌우 대칭: 보행 주기 ${r.toFixed(0)}% · 걸음 수 ${st.toFixed(0)}% (두 발이 같을수록 100%)`; }
+  else $('#rSym').textContent='한쪽 발만 측정했거나 걸음 간격이 짧아 좌우 보행 주기를 비교할 수 없어요.';
+  if(S.source==='replay'){
+    const tr=replay.truth, det=replay.tracks?replay.tracks.map(t=>`${t.foot==='L'?'왼발':'오른발'} ${t.det.steps.length}${tr&&tr[t.foot]!=null?`/${tr[t.foot]}`:''}`).join(', '):'';
+    $('#rNote').textContent=`${replay.label} 재생 결과예요(검출${tr?'/실제':''}: ${det}). 내 기록에는 더하지 않았어요.`;
+  } else $('#rNote').textContent='기록은 이 기기의 "내 기록"에 저장되고 어디로도 보내지 않아요. 이 수치는 시제품 측정값이며 진단에 쓰지 않습니다.';
+  saveSession(); show('result');
+}
+// 누적: 지금까지 저장된 기록(예시 기록 제외) + 이번 걷기
+function allTotals(exceptSid){ let steps=0,bottles=0,sample=false; for(const d of Object.values(LOG.days)) for(const [k,s] of Object.entries(d.sessions||{})){ if(String(k)===String(exceptSid)) continue; if(s.sample) sample=true; steps+=s.steps||0; bottles+=s.bottles||0; } return {steps,bottles,sample}; } // 내 기록·보고서와 같은 기준(예시 기록도 포함, 표시로 구분)
+const fmtDist=km=>km<1?{v:Math.round(km*1000),u:'m'}:{v:km.toFixed(2),u:'km'};
+const fmtCO2=g=>g>=1000?{v:(g/1000).toFixed(2),u:'kg CO₂'}:{v:g<10?g.toFixed(1):Math.round(g),u:'g CO₂'};
+
+// ── 걸음 기부(시안·예시) ─────────────────────────────
+// 기준: 기업이 3억 걸음에 1,000만 원을 기부한 캠페인 사례(1걸음 ≈ 0.033원). 실제 기부는 일어나지 않음
+const GIVE_RATE=10000000/300000000, GIVE_GOAL=30000;   // 개인 1년 목표 예시: 3만 걸음
+function renderGive(){ const el=$('#giveLine'); if(!el) return; const T=allTotals(null), won=T.steps*GIVE_RATE;
+  el.innerHTML=`지금까지 <b>${T.steps.toLocaleString()}걸음</b> → 하천 정화 기금 약 <b>${won<10?won.toFixed(1):Math.round(won).toLocaleString()}원</b>`;
+  $('#giveFill').style.width=Math.min(100,T.steps/GIVE_GOAL*100)+'%';
+  $('#giveNote').innerHTML=`막대: 1년 목표 3만 걸음 예시. 금액은 <a href="https://news.mtn.co.kr/news-detail/2026100109101792080" target="_blank" rel="noopener">3억 걸음에 1,000만 원을 기부한 기업 캠페인</a> 기준(1걸음 약 0.033원)으로 계산한 예시이며, 실제 기부는 일어나지 않아요. 한 사람의 몫은 작지만 1,000명이 하루 100걸음씩 1년을 걸으면 약 120만 원이에요.`; }
+function renderResultEco(tile){
+  const rp=S.source==='replay', kmNow=S.steps*0.5/1000, dNow=fmtDist(kmNow), cNow=fmtCO2(kmNow*187.3);
+  let h;
+  if(rp){ // 재생은 누적에 넣지 않으므로 이번 값만 보여 줌
+    h=tile('이번 재생 거리',dNow.v,dNow.u,'보폭 0.5m 가정 · 누적에 넣지 않음')+tile('차 대신 걸었다면',cNow.v,cNow.u,'덜 내보내는 이산화탄소')+tile('이번에 건진 쓰레기',S.bottles,'개','예시 재생');
+  } else {
+    const T=allTotals(S.sid); T.steps+=S.steps; T.bottles+=S.bottles;
+    const km=T.steps*0.5/1000, d=fmtDist(km), c=fmtCO2(km*187.3), tag=T.sample?' · 예시 기록 포함':'';
+    h=tile('지금까지 걸은 거리',d.v,d.u,`이번에 +${dNow.v}${dNow.u}${tag}`)+
+      tile('지금까지 차 대신 걸었다면',c.v,c.u,`이번에 +${cNow.v}${cNow.u.replace(' CO₂','')} · 덜 내보내는 이산화탄소`)+
+      tile('지금까지 건진 쓰레기',T.bottles,'개',`이번에 +${S.bottles}개${tag}`);
+  }
+  h+=Object.keys(ITEM).filter(k=>S.kinds[k]).map(k=>tile(ITEM[k].name,S.kinds[k],'개',`바다에서 ${ITEM[k].decay} 남는 쓰레기`)).join('');
+  $('#rEco').innerHTML=h;
+  $('#rEcoNote').textContent=(S.bottles?'주운 쓰레기는 게임 속 하천 이야기예요. 실제 하천에서 같은 만큼 주우면 그 쓰레기가 수십~수백 년 동안 자연에 남지 않게 돼요. ':'')+'제자리 걷기 자체는 배출을 줄이지 않지만, 이 거리를 차 대신 걸으면 그만큼 이산화탄소가 줄어요. 분해 기간은 NOAA·우즈홀 시그랜트의 바다 기준 추정치, 이산화탄소는 2013년 국산 신차 평균 187.3g/km로 계산했어요.';
+}
+function goPlog(){ saveSession(); stopReplay(); resetSession('keys'); openView('plogging'); }
+function goHome(){ saveSession(); stopReplay(); resetSession('keys'); openView('walk'); }
+
+// ── 내 기록 ─────────────────────────────────────────
+function recRows(n){ return lastDays(n).map(d=>dayTotals(d)).filter(Boolean).filter(t=>t.steps>0); }
+function chartSVG(days){
+  const w=760,h=240,pl=44,pr=10,pt=16,pb=34, vals=days.map(d=>{ const t=dayTotals(d); return t?t.steps:0; });
+  const max=Math.max(100,...vals), nice=Math.ceil(max/100)*100, bw=(w-pl-pr)/days.length;
+  let s=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="최근 ${days.length}일 걸음 수 막대그래프" style="color:var(--text)">`;
+  for(let i=0;i<=4;i++){ const v=nice*i/4, y=pt+(h-pt-pb)*(1-i/4); s+=`<line x1="${pl}" x2="${w-pr}" y1="${y}" y2="${y}" stroke="var(--soft)" stroke-width="1"/><text x="${pl-6}" y="${y+5}" text-anchor="end" font-size="13" fill="var(--text-2)">${v}</text>`; }
+  days.forEach((d,i)=>{ const v=vals[i], bh=(h-pt-pb)*v/nice, x=pl+i*bw+bw*.18, y=h-pb-bh; const t=dayTotals(d);
+    s+=`<rect x="${x}" y="${y}" width="${bw*.64}" height="${Math.max(0,bh)}" fill="${t&&t.sample?'var(--soft)':'var(--bar)'}"/>`;
+    if(v) s+=`<text x="${x+bw*.32}" y="${y-5}" text-anchor="middle" font-size="12" fill="var(--text)">${v}</text>`;
+    s+=`<text x="${x+bw*.32}" y="${h-12}" text-anchor="middle" font-size="12" fill="var(--text-2)">${Number(d.slice(8))}일</text>`; });
+  return s+'</svg>';
+}
+function renderRecords(){
+  const rows=recRows(30), last7=recRows(7), today=dayTotals(dayStr(new Date()));
+  const sum7=last7.reduce((a,t)=>a+t.steps,0), avg7=last7.length?Math.round(sum7/last7.length):0;
+  const syms=last7.map(t=>t.sym).filter(v=>v!=null), symAvg=syms.length?syms.reduce((a,b)=>a+b,0)/syms.length:null;
+  const tile=(k,v,u,n='')=>`<div class="tile"><span class="k">${k}</span><span class="v">${v}<small>${u}</small></span>${n?`<span class="n">${n}</span>`:''}</div>`;
+  $('#recSum').innerHTML=tile('오늘',today?today.steps:0,'걸음')+tile('최근 7일 합계',sum7,'걸음')+tile('걸은 날 하루 평균',avg7,'걸음',`최근 7일 중 ${last7.length}일 걸음`)+tile('최근 7일 좌우 대칭',symAvg!=null?symAvg.toFixed(0):'—',symAvg!=null?'%':'','보행 주기 기준');
+  $('#recChart').innerHTML=chartSVG(lastDays(14));
+  const hasSample=Object.values(LOG.days).some(d=>Object.values(d.sessions).some(s=>s.sample));
+  $('#btnClearSample').hidden=!hasSample;
+  if(!rows.length){ $('#recTable').innerHTML='<p class="empty">아직 기록이 없어요. 걷기 화면에서 시작하기를 누르고 걸으면 여기에 날짜별로 쌓여요.</p>'; return; }
+  let t='<table><thead><tr><th>날짜</th><th>걸음</th><th>운동 시간</th><th>분당 걸음</th><th>보행 주기 왼/오(초)</th><th>좌우 대칭</th><th>주운 쓰레기</th></tr></thead><tbody>';
+  rows.slice().reverse().forEach(r=>{ t+=`<tr class="${r.sample?'ex':''}"><td>${Number(r.date.slice(5,7))}월 ${Number(r.date.slice(8))}일${r.sample?' <span class="tag">예시</span>':''}</td><td>${r.steps}</td><td>${fmtKo(r.sec)}</td><td>${r.cad!=null?r.cad.toFixed(0):'—'}</td><td>${r.cL!=null?r.cL.toFixed(2):'—'} / ${r.cR!=null?r.cR.toFixed(2):'—'}</td><td>${r.sym!=null?r.sym.toFixed(0)+'%':'—'}</td><td>${r.bottles}</td></tr>`; });
+  $('#recTable').innerHTML=t+'</tbody></table>';
+}
+function addSampleLog(){
+  const rnd=mulberry32(7); const days=lastDays(14);
+  days.forEach((d,i)=>{ if(i===days.length-1||rnd()<.2) return; const steps=Math.round(120+i*14+rnd()*80), sec=Math.round(steps*(1.3-i*.015+rnd()*.12)), cL=1.48+rnd()*.12, cR=cL*(1.12-i*.006+rnd()*.03);
+    (LOG.days[d]=LOG.days[d]||{sessions:{}}).sessions['ex'+i]={at:0,steps,sec,bottles:Math.floor(steps/10),left:Math.round(steps/2),right:steps-Math.round(steps/2),cL,cR,sample:true}; });
+  saveLog(); renderRecords();
+}
+function clearSampleLog(){ for(const d of Object.keys(LOG.days)){ for(const k of Object.keys(LOG.days[d].sessions)) if(LOG.days[d].sessions[k].sample) delete LOG.days[d].sessions[k]; if(!Object.keys(LOG.days[d].sessions).length) delete LOG.days[d]; } saveLog(); renderRecords(); }
+
+// ── 치료사와 공유 ───────────────────────────────────
+let shareDays=7;
+function buildReport(n){
+  const days=lastDays(n||shareDays), rows=days.map(d=>dayTotals(d)).filter(t=>t&&t.steps>0);
+  return {v:1, nick:($('#nick').value||'').trim().slice(0,20), from:days[0], to:days[days.length-1], made:dayStr(new Date()),
+    rows:rows.map(r=>[r.date,r.steps,r.sec,r.cL!=null?+r.cL.toFixed(2):null,r.cR!=null?+r.cR.toFixed(2):null,r.bottles,r.sample?1:0])};
+}
+function reportHTML(R){
+  const rows=R.rows||[], steps=rows.reduce((a,r)=>a+r[1],0), sec=rows.reduce((a,r)=>a+r[2],0);
+  const syms=rows.filter(r=>r[3]!=null&&r[4]!=null).map(r=>Math.min(r[3],r[4])/Math.max(r[3],r[4])*100);
+  const sym=syms.length?(syms.reduce((a,b)=>a+b,0)/syms.length).toFixed(0)+'%':'—';
+  const cad=sec>=60?(steps/(sec/60)).toFixed(0):'—';
+  let h=`<div class="report"><h3>RiverStep 보행 기록 보고서</h3><div class="meta">${R.nick?esc(R.nick)+' · ':''}${esc(R.from)} ~ ${esc(R.to)} · 만든 날 ${esc(R.made)}${rows.some(r=>r[6])?' · 예시 기록 포함':''}</div>`;
+  h+=`<div class="rs"><div><span>걸은 날</span><b>${rows.length}일</b></div><div><span>총 걸음</span><b>${steps}</b></div><div><span>하루 평균</span><b>${rows.length?Math.round(steps/rows.length):0}</b></div><div><span>분당 걸음</span><b>${cad}</b></div><div><span>평균 좌우 대칭</span><b>${sym}</b></div></div>`;
+  if(rows.length){ h+='<div style="overflow-x:auto"><table><thead><tr><th>날짜</th><th>걸음</th><th>운동 시간</th><th>보행 주기 왼/오(초)</th><th>좌우 대칭</th></tr></thead><tbody>';
+    rows.forEach(r=>{ const s=(r[3]!=null&&r[4]!=null)?(Math.min(r[3],r[4])/Math.max(r[3],r[4])*100).toFixed(0)+'%':'—'; h+=`<tr><td>${esc(r[0])}${r[6]?' (예시)':''}</td><td>${r[1]}</td><td>${fmtKo(r[2])}</td><td>${r[3]??'—'} / ${r[4]??'—'}</td><td>${s}</td></tr>`; });
+    h+='</tbody></table></div>'; } else h+='<p class="meta">이 기간에는 기록이 없어요.</p>';
+  return h+'<p class="meta">시제품 측정값이며 진단이 아니에요. 좌우 대칭은 두 발의 평균 보행 주기 비율이에요.</p></div>';
+}
+function renderShare(){ $('#reportBox').innerHTML=reportHTML(buildReport()); $('#linkOut').hidden=true; $('#linkMsg').textContent=''; }
+function b64e(o){ const bytes=new TextEncoder().encode(JSON.stringify(o)); let s=''; bytes.forEach(b=>s+=String.fromCharCode(b)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64d(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const bin=atob(s); return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))); }
+async function makeLink(){
+  const url=location.origin+location.pathname+'?report='+b64e(buildReport());
+  const out=$('#linkOut'); out.textContent=url; out.hidden=false;
+  const ok=await copyText(url);
+  $('#linkMsg').textContent=(ok?'링크를 복사했어요. ':'링크를 길게 눌러 복사하세요. ')+'링크에 기록이 그대로 담겨 있어서 링크를 가진 사람은 누구나 볼 수 있어요. 치료사에게만 보내세요.'+(inPreview()?' 이 미리보기 페이지의 링크는 열리지 않을 수 있어요. 게임을 GitHub Pages에 올리면 그 주소로 만들어져요.':'');
+}
+async function copyReportText(){
+  const R=buildReport(), rows=R.rows;
+  let t=`[RiverStep 보행 기록] ${R.nick?R.nick+' · ':''}${R.from} ~ ${R.to}\n`;
+  rows.forEach(r=>{ const s=(r[3]!=null&&r[4]!=null)?(Math.min(r[3],r[4])/Math.max(r[3],r[4])*100).toFixed(0)+'%':'-'; t+=`${r[0]}: ${r[1]}걸음, ${fmtKo(r[2])}, 보행주기 왼 ${r[3]??'-'}초/오 ${r[4]??'-'}초, 좌우대칭 ${s}${r[6]?' (예시)':''}\n`; });
+  if(!rows.length) t+='기간 내 기록 없음\n';
+  t+='※ 시제품 측정값이며 진단이 아님';
+  const ok=await copyText(t);
+  const out=$('#linkOut'); out.textContent=t; out.hidden=false; out.style.whiteSpace='pre-wrap';
+  $('#linkMsg').textContent=ok?'보고서 글을 복사했어요. 문자나 메신저에 붙여 넣으세요.':'아래 글을 길게 눌러 복사하세요.';
+}
+
+// ── 치료사 연동 (이 페이지의 공유 저장소) ─────────────
+// shares/<내 id>: 내가 보낸 최근 30일 기록(별칭만, 실명 없음). 각자 자기 문서만 쓸 수 있음
+// notes/<환자 id>/items/<메모>: 치료사 메모
+const SYNC={db:null,user:null,uid:null,ready:false,canWrite:null,patients:{},sel:null,selUnsub:null,lastSent:'',chain:Promise.resolve(),timer:null};
+let syncOn=false; try{ syncOn=localStorage.getItem('riverstep:syncOn')==='1'; }catch(e){}
+const fmtWhen=iso=>{ try{ const d=new Date(iso); return `${d.getMonth()+1}월 ${d.getDate()}일 ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`; }catch(e){ return ''; } };
+function syncMsg(t,bad){ const el=$('#syncState'); el.textContent=t; el.style.color=bad?'var(--warn)':''; }
+function renderSyncButtons(){
+  $('#syncConsent').checked=syncOn; $('#btnSyncOn').hidden=syncOn; $('#btnSyncOff').hidden=!syncOn;
+  if(syncOn&&SYNC.ready) syncMsg(SYNC.lastSent?'기록을 보내고 있어요. 걸음 기록이 바뀌면 자동으로 다시 보내요.':'기록을 보내는 중이에요.');
+}
+function syncUnavailable(){
+  $('#syncAvail').textContent='치료사 연동은 claude.ai에 올린 이 페이지에서 로그인한 상태로만 쓸 수 있어요. 파일이나 다른 주소로 연 경우에는 위의 보고서 링크나 글 복사를 써 주세요.';
+  ['#syncConsent','#btnSyncOn'].forEach(q=>$(q).disabled=true);
+  $('#patientList').innerHTML='<p class="small">이 화면에서는 공유 목록을 불러올 수 없어요.</p>';
+}
+async function initSync(){
+  const c=window.claude;
+  if(!c||typeof c.use!=='function'){ syncUnavailable(); return; }
+  let db=null,user=null; try{ [db,user]=await Promise.all([c.use('db'),c.use('user')]); }catch(e){}
+  if(!db){ syncUnavailable(); return; }
+  SYNC.db=db; SYNC.user=user; SYNC.uid=user?await user.id():null; SYNC.canWrite=user?await user.can('data.write'):null; SYNC.ready=true;
+  $('#syncAvail').textContent=SYNC.uid?'보낸 기록은 이 페이지를 볼 수 있는 치료사 화면에 바로 나타나요.':'로그인 정보를 받지 못해서 기록 보내기는 쓸 수 없어요. 치료사 화면은 볼 수 있어요.';
+  if(!SYNC.uid){ ['#syncConsent','#btnSyncOn'].forEach(q=>$(q).disabled=true); }
+  renderSyncButtons(); watchPatients(); if(SYNC.uid) watchMyNotes();
+  if(syncOn) pushShare();
+}
+function queuePush(){ if(!syncOn||!SYNC.ready) return; clearTimeout(SYNC.timer); SYNC.timer=setTimeout(pushShare,2500); }
+function pushShare(){
+  if(!SYNC.ready||!SYNC.uid) return;
+  const R=buildReport(30), body={nick:R.nick||'',from:R.from,to:R.to,rows:R.rows};
+  const key=JSON.stringify(body); if(key===SYNC.lastSent) { renderSyncButtons(); return; }
+  SYNC.chain=SYNC.chain.then(async()=>{
+    try{ await SYNC.db.doc('shares/'+SYNC.uid).set(Object.assign({updated:new Date().toISOString()},body)); SYNC.lastSent=key; syncMsg(`보냈어요 · ${fmtWhen(new Date().toISOString())}`); }
+    catch(e){ const code=e&&e.code; syncMsg(code==='invalid_argument'?'이 페이지에서 기록을 쓸 수 있는 권한이 없어요(보기 전용). 페이지 주인에게 참여자 권한을 요청하세요.':code==='quota_exceeded'?'저장 공간이 가득 찼어요.':'기록을 보내지 못했어요. 잠시 뒤 다시 시도할게요.',true);
+      if(code==='unavailable'){ setTimeout(pushShare,4000); } }
+  });
+}
+async function startSync(){
+  if(!$('#syncConsent').checked){ syncMsg('먼저 위의 동의에 체크해 주세요.',true); return; }
+  syncOn=true; try{ localStorage.setItem('riverstep:syncOn','1'); }catch(e){}
+  SYNC.lastSent=''; renderSyncButtons(); pushShare();
+}
+async function stopSync(){
+  syncOn=false; try{ localStorage.setItem('riverstep:syncOn','0'); }catch(e){}
+  renderSyncButtons();
+  if(SYNC.ready&&SYNC.uid){ SYNC.chain=SYNC.chain.then(async()=>{ try{ await SYNC.db.doc('shares/'+SYNC.uid).delete(); SYNC.lastSent=''; syncMsg('보내기를 멈추고 올린 기록을 지웠어요.'); }catch(e){ syncMsg('올린 기록을 지우지 못했어요. 다시 눌러 주세요.',true); } }); }
+}
+function watchPatients(){
+  const box=$('#patientList'); let loaded=false;
+  const timer=setTimeout(()=>{ if(!loaded) box.innerHTML='<p class="small">저장소에 아직 닿지 못했어요. 잠시 기다려 주세요.</p>'; },10000);
+  SYNC.db.collection('shares').onSnapshot(snap=>{
+    if(!snap.metadata.fromCache){ loaded=true; clearTimeout(timer); }
+    SYNC.patients={}; snap.docs.forEach(d=>{ if(d.exists) SYNC.patients[d.id]=d.data(); });
+    renderPatients();
+  },()=>{ clearTimeout(timer); box.innerHTML='<p class="small">공유 목록을 불러오지 못했어요.</p>'; });
+}
+function renderPatients(){
+  const box=$('#patientList'), ids=Object.keys(SYNC.patients).sort((a,b)=>String(SYNC.patients[b].updated||'').localeCompare(String(SYNC.patients[a].updated||'')));
+  if(!ids.length){ box.innerHTML='<p class="small">아직 기록을 보낸 사람이 없어요.</p>'; $('#patientView').innerHTML=''; return; }
+  box.innerHTML='';
+  ids.forEach(id=>{ const p=SYNC.patients[id], rows=p.rows||[], last=rows[rows.length-1];
+    const b=document.createElement('button'); b.className='pbtn'; b.setAttribute('aria-pressed',String(SYNC.sel===id));
+    const name=document.createElement('span'); name.textContent=(p.nick||'별칭 없음')+(id===SYNC.uid?' (나)':'');
+    const meta=document.createElement('small'); meta.textContent=`${last?`최근 ${last[0].slice(5).replace('-','/')} ${last[1]}걸음`:'기록 없음'} · ${fmtWhen(p.updated)} 받음`;
+    b.append(name,meta); b.addEventListener('click',()=>openPatient(id)); box.appendChild(b); });
+  if(SYNC.sel&&SYNC.patients[SYNC.sel]) renderPatientReport(); else if(SYNC.sel){ SYNC.sel=null; $('#patientView').innerHTML=''; }
+}
+function openPatient(id){
+  SYNC.sel=id; renderPatients();
+  if(SYNC.selUnsub){ SYNC.selUnsub(); SYNC.selUnsub=null; }
+  const v=$('#patientView');
+  v.innerHTML='<div id="pvReport"></div><h3 style="margin:8px 0 0;font:800 21px var(--num)">메모 남기기</h3><label class="sr" for="noteText">치료사 메모</label><textarea id="noteText" maxlength="500" placeholder="예: 이번 주 걸음 수가 꾸준히 늘었어요. 오른발 보폭을 조금 더 신경 써 보세요."></textarea><div class="row"><button class="btn go sm" id="btnNote">메모 보내기</button></div><p class="state" id="noteState"></p><div class="notes" id="pvNotes"></div>';
+  renderPatientReport();
+  $('#btnNote').addEventListener('click',sendNote);
+  if(SYNC.canWrite===false){ $('#btnNote').disabled=true; $('#noteState').textContent='보기 전용 권한이라 메모를 남길 수 없어요.'; }
+  SYNC.selUnsub=SYNC.db.collection('notes/'+id+'/items').orderBy('at','desc').limit(20).onSnapshot(snap=>renderNotes($('#pvNotes'),snap.docs,'아직 남긴 메모가 없어요.'),()=>{});
+}
+function renderPatientReport(){
+  const p=SYNC.patients[SYNC.sel], el=$('#pvReport'); if(!p||!el) return;
+  el.innerHTML=reportHTML({nick:p.nick||'',from:p.from||'',to:p.to||'',made:fmtWhen(p.updated),rows:Array.isArray(p.rows)?p.rows:[]});
+}
+function renderNotes(box,docs,empty){
+  if(!box) return; box.innerHTML='';
+  const list=docs.filter(d=>d.exists);
+  if(!list.length){ const e=document.createElement('p'); e.className='small'; e.textContent=empty; box.appendChild(e); return; }
+  list.forEach(d=>{ const n=d.data(), it=document.createElement('div'); it.className='note-item';
+    const t=document.createElement('time'); t.textContent=fmtWhen(new Date(n.at||0).toISOString());
+    const pp=document.createElement('p'); pp.textContent=String(n.text||'');
+    it.append(t,pp); box.appendChild(it); });
+}
+async function sendNote(){
+  const ta=$('#noteText'), text=ta.value.trim(), st=$('#noteState'); if(!text){ st.textContent='메모 내용을 적어 주세요.'; return; }
+  const btn=$('#btnNote'); btn.disabled=true; st.textContent='보내는 중이에요.';
+  try{ await SYNC.db.collection('notes/'+SYNC.sel+'/items').add({text:text.slice(0,500),at:Date.now(),by:SYNC.uid||''}); ta.value=''; st.textContent='메모를 보냈어요. 환자 화면의 "치료사가 남긴 메모"에 나타나요.'; }
+  catch(e){ st.textContent=e&&e.code==='invalid_argument'?'이 페이지에서 메모를 쓸 권한이 없어요.':'메모를 보내지 못했어요. 다시 눌러 주세요.'; }
+  btn.disabled=false;
+}
+function watchMyNotes(){
+  SYNC.db.collection('notes/'+SYNC.uid+'/items').orderBy('at','desc').limit(20).onSnapshot(snap=>renderNotes($('#myNotes'),snap.docs,'아직 받은 메모가 없어요.'),()=>{});
+}
+
+// ── 걷기와 환경 계산 ─────────────────────────────────
+function renderDecay(){
+  const tile=(k,v,u,n='')=>`<div class="tile"><span class="k">${k}</span><span class="v">${v}<small>${u}</small></span>${n?`<span class="n">${n}</span>`:''}</div>`;
+  $('#decayList').innerHTML=tile('페트병','약 450','년')+tile('캔','약 200','년')+tile('스티로폼 컵','약 50','년')+tile('비닐봉지','최대 20','년');
+}
+function renderEco(){
+  renderDecay();
+  const T=allTotals(null), w=recRows(7).reduce((a,t)=>a+t.steps,0), km=T.steps*0.5/1000, d=fmtDist(km), c=fmtCO2(km*187.3), cw=fmtCO2(w*0.5/1000*187.3);
+  const tile=(k,v,u,n='')=>`<div class="tile"><span class="k">${k}</span><span class="v">${v}<small>${u}</small></span>${n?`<span class="n">${n}</span>`:''}</div>`;
+  $('#ecoCalc').innerHTML=tile('지금까지 걸음',T.steps,'걸음',`최근 7일 ${w}걸음`)+tile('지금까지 걸은 거리',d.v,d.u,'보폭 0.5m 가정')+tile('지금까지 차 대신 걸었다면',c.v,c.u,`줄어드는 이산화탄소 · 최근 7일 ${cw.v}${cw.u.replace(' CO₂','')}`);
+  $('#ecoCalcNote').textContent='이 기기에 기록된 걸음으로 계산했어요'+(T.sample?"('내 기록'의 예시 기록 포함)":'')+'. 보폭은 0.5m로 가정했어요.';
+}
+
+// ── 버튼 연결 ───────────────────────────────────────
+// 목표 걸음: 버튼 4개 + 직접 정하기 (5~300걸음, −/+ 5걸음씩)
+const GOAL_MIN=5, GOAL_MAX=300, GOAL_HINT='−, + 버튼으로 5걸음씩 바뀌어요. 5걸음에서 300걸음까지 정할 수 있어요.';
+function setGoal(n,custom,quiet){
+  n=Math.round(Number(n)); if(!isFinite(n)) n=S.goal;
+  const c=Math.min(GOAL_MAX,Math.max(GOAL_MIN,n));
+  $('#goalHint').textContent = (!quiet&&c!==n) ? '5걸음에서 300걸음 사이로 정할 수 있어요. 가장 가까운 '+c+'걸음으로 맞췄어요.' : GOAL_HINT;
+  S.goal=c;
+  $$('#goalChips .goal').forEach(x=>x.setAttribute('aria-pressed',String(custom ? x.id==='goalCustomBtn' : x.dataset.goal===String(c))));
+  $('#goalCustom').hidden=!custom; $('#goalNum').value=String(c);
+  try{ localStorage.setItem('riverstep:goal',String(c)); localStorage.setItem('riverstep:goalCustom',custom?'1':'0'); }catch(e){}
+}
+$$('#goalChips .goal').forEach(b=>b.addEventListener('click',()=>{
+  if(b.id==='goalCustomBtn'){ setGoal(S.goal,true,true); if(tvOn) $('#goalNum').focus(); }
+  else setGoal(b.dataset.goal,false,true);
+}));
+$('#goalMinus').addEventListener('click',()=>setGoal(S.goal-5,true));
+$('#goalPlus').addEventListener('click',()=>setGoal(S.goal+5,true));
+$('#goalNum').addEventListener('input',e=>{ const v=e.target.value.replace(/[^0-9]/g,''); if(v!==e.target.value) e.target.value=v; const n=Number(v); if(v&&n>=GOAL_MIN&&n<=GOAL_MAX){ S.goal=n; try{ localStorage.setItem('riverstep:goal',String(n)); }catch(err){} } });
+$('#goalNum').addEventListener('change',e=>setGoal(e.target.value||S.goal,true));
+$('#goalNum').addEventListener('keydown',e=>{
+  if(e.key==='Enter'){ e.preventDefault(); setGoal(e.target.value||S.goal,true); }
+  else if(tvOn&&(e.key==='ArrowLeft'||e.key==='ArrowRight')){ e.preventDefault(); setGoal(S.goal+(e.key==='ArrowRight'?5:-5),true); }
+});
+try{ const g=Number(localStorage.getItem('riverstep:goal')), c=localStorage.getItem('riverstep:goalCustom')==='1';
+  if(g>=GOAL_MIN&&g<=GOAL_MAX) setGoal(g, c||![20,30,50,100].includes(g), true); }catch(e){}
+$$('#moodSeg button').forEach(b=>b.addEventListener('click',()=>setMood(b.dataset.mood)));
+$$('#bgSeg button').forEach(b=>b.addEventListener('click',()=>{ bgPref=b.dataset.bg; try{ localStorage.setItem('riverstep:bg',bgPref); }catch(e){} $$('#bgSeg button').forEach(x=>x.setAttribute('aria-pressed',String(x===b))); }));
+$$('#bgSeg button').forEach(x=>x.setAttribute('aria-pressed',String(x.dataset.bg===bgPref)));
+$$('#tvSeg button[data-tv]').forEach(b=>b.addEventListener('click',()=>{ tvOn=b.dataset.tv==='1'; try{ localStorage.setItem('riverstep:tv',tvOn?'1':'0'); }catch(e){} applyTV(); }));
+$('#btnFull').addEventListener('click',()=>{ const m=$('#tvMsg'); m.hidden=true; const el=document.documentElement; const p=el.requestFullscreen?el.requestFullscreen():null; if(!p){ m.hidden=false; m.textContent='이 화면에서는 전체 화면을 쓸 수 없어요. 브라우저의 F11 키를 눌러 주세요.'; return; } p.catch(()=>{ m.hidden=false; m.textContent='전체 화면을 열지 못했어요. 브라우저의 F11 키를 눌러 주세요.'; }); });
+$('#btnSyncOn').addEventListener('click',startSync);
+$('#btnSyncOff').addEventListener('click',stopSync);
+$('#nick').addEventListener('change',()=>{ queuePush(); });
+$('#btnStart').addEventListener('click',()=>{ audio(); phraseI=0; if(musicMode==='song'&&!song.audio){ $('#songName').textContent='노래 파일을 먼저 골라 주세요. 지금은 걸음 소리만 나요.'; } stopReplay(); resetSession(phonesOn()?'phone':cuffs.some(c=>c.on)?'cuff':'keys'); show('game'); });
+$('#btnPhone').addEventListener('click',openPhoneLink);
+$('#btnPairClose').addEventListener('click',()=>{ $('#pairModal').hidden=true; });
+$('#btnCuff').addEventListener('click',()=>{ audio(); connectCuff(); });
+$('#btnSample').addEventListener('click',()=>{ audio(); startReplay(makeSample()); });
+$('#csvFile').addEventListener('change',async e=>{
+  const f=e.target.files&&e.target.files[0], msg=$('#csvMsg'); msg.hidden=true; if(!f) return;
+  try{ const d=parseCSV(await f.text()); audio(); startReplay({label:'실측 데이터', end:d.end, truth:null, tracks:[{foot:$('#csvFoot').value, unit:d.unit, samples:d.samples}]}); }
+  catch(err){ msg.hidden=false; msg.textContent=err.message||'파일을 읽지 못했어요.'; }
+  e.target.value='';
+});
+$('#btnL').addEventListener('click',()=>{ audio(); step('L'); });
+$('#btnR').addEventListener('click',()=>{ audio(); step('R'); });
+$('#btnEnd').addEventListener('click',showResult);
+$('#btnSound').addEventListener('click',e=>{ soundOn=!soundOn; e.currentTarget.setAttribute('aria-pressed',soundOn); e.currentTarget.textContent=soundOn?'소리 끄기':'소리 켜기'; if(soundOn) audio(); else { try{ speechSynthesis.cancel(); }catch(err){} } });
+$$('#speedSeg button').forEach(b=>b.addEventListener('click',()=>{ if(!replay.active) return; replay.speed=Number(b.dataset.speed); $$('#speedSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b)); }));
+$('#btnPause').addEventListener('click',e=>{ if(!replay.active) return;
+  if(replay.done){ startReplay({label:replay.label,end:replay.end,truth:replay.truth,tracks:replay.tracks.map(t=>({foot:t.foot,unit:t.det.unit,samples:t.s}))}); return; }
+  replay.paused=!replay.paused; e.currentTarget.textContent=replay.paused?'계속':'일시정지'; });
+$('#btnReconnect').addEventListener('click',reconnect);
+$('#btnLostKeys').addEventListener('click',()=>{ $('#lost').hidden=true; S.source='keys'; setConn(); });
+$('#btnMore').addEventListener('click',()=>show('game'));
+$('#btnHome').addEventListener('click',goHome);
+$('#btnPlog').addEventListener('click',goPlog);
+$('#btnSampleLog').addEventListener('click',addSampleLog);
+$('#btnClearSample').addEventListener('click',clearSampleLog);
+$$('#rangeSeg button').forEach(b=>b.addEventListener('click',()=>{ shareDays=Number(b.dataset.days); $$('#rangeSeg button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderShare(); }));
+$('#nick').addEventListener('input',()=>{ try{ localStorage.setItem('riverstep:nick',$('#nick').value); }catch(e){} $('#reportBox').innerHTML=reportHTML(buildReport()); });
+try{ const n=localStorage.getItem('riverstep:nick'); if(n) $('#nick').value=n; }catch(e){}
+$('#btnMakeLink').addEventListener('click',makeLink);
+$('#btnCopyText').addEventListener('click',copyReportText);
+$$('.feet button').forEach(b=>b.addEventListener('click',()=>{ sp.foot=b.dataset.foot; $$('.feet button').forEach(x=>x.setAttribute('aria-pressed',x===b)); if(sp.running) spSend({type:'hello',foot:sp.foot,count:sp.count}); }));
+$('#spStart').addEventListener('click',spStart);
+$$('#musicSeg button').forEach(b=>b.addEventListener('click',()=>{ musicMode=b.dataset.music; try{ localStorage.setItem('riverstep:music',musicMode); }catch(e){} renderMusicUI(); audio(); if(musicMode==='melody'){ phraseI=0; melodyNote(); } }));
+$$('#tempoSeg button').forEach(b=>b.addEventListener('click',()=>{ bpm=Number(b.dataset.bpm); try{ localStorage.setItem('riverstep:bpm',String(bpm)); }catch(e){} renderMusicUI(); audio(); beatTick(); }));
+$('#songFile').addEventListener('change',e=>{ pickSong(e.target.files&&e.target.files[0]); });
+$('#voiceChk').addEventListener('change',e=>{ voiceOn=e.target.checked; try{ localStorage.setItem('riverstep:voice',voiceOn?'1':'0'); }catch(err){}
+  const m=$('#voiceMsg'); if(voiceOn&&!('speechSynthesis' in window)){ m.hidden=false; m.textContent='이 브라우저는 목소리 기능을 지원하지 않아요.'; } else if(voiceOn){ pickVoice(); m.hidden=!!voice.ko; m.textContent='이 컴퓨터에서 한국어 목소리를 찾지 못했어요. 크롬이나 엣지에서 열어 보세요.'; speak(`안녕하세요. 오늘도, ${tWith()} 함께 걸어요.`); } else m.hidden=true; renderVoiceUI(); });
+$('#voiceOnSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; const c=$('#voiceChk'); c.checked=b.dataset.on==='1'; c.dispatchEvent(new Event('change')); });
+$('#voiceSel').addEventListener('change',e=>{ const v=voice.list[Number(e.target.value)]; if(!v) return; voice.ko=v; voice.pref=v.name; try{ localStorage.setItem('riverstep:vname',v.name); }catch(err){} speechSynthesis.cancel(); speak('안녕하세요. 이 목소리로, 함께 걸을게요.',true); });
+$('#rateSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; voice.rate=Number(b.dataset.rate); try{ localStorage.setItem('riverstep:rate',String(voice.rate)); }catch(err){} renderVoiceUI(); speechSynthesis.cancel(); speak('이 빠르기로, 말씀드릴게요.',true); });
+$('#btnVoiceTry').addEventListener('click',()=>{ speechSynthesis.cancel(); speak(`좋아요. 오늘도, ${tWith()} 천천히 걸어 볼까요.`,true); });
+$('#tName').addEventListener('input',()=>{ try{ localStorage.setItem('riverstep:tname',$('#tName').value); }catch(e){} renderName(); });
+try{ const n=localStorage.getItem('riverstep:tname'); if(n) $('#tName').value=n; }catch(e){}
+renderName(); renderMusicUI(); setTimeout(renderGive,0);
+function applySpecies(){ $$('#spSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sp===species)));
+  const st=$('#namStory'); if(st) st.hidden=species!=='nam';
+  const tn=$('#tName'); if(tn) tn.placeholder=species==='sea'?'예: 순돌이':'예: 남순이';
+  const w=species==='sea'?'거북이':'남생이'; $('#spWord').textContent=w; $('#spWordSr').textContent=w+' 이름'; renderName(); }
+$('#spSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return; species=b.dataset.sp; try{ localStorage.setItem('riverstep:species',species); }catch(err){} applySpecies(); });
+applySpecies();
+$('#spStop').addEventListener('click',spStop);
+
+// ── 메인 루프 ───────────────────────────────────────
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now; const t=now/1000;
+  if(S.screen==='game'){
+    updateReplay(dt); updateGame(dt); updateSong(dt);
+    const st={t, cam:turtle.x-turtleX(), tx:.3, clarity:clarityShown, phase:turtle.phase, moving:Math.abs(turtle.target-turtle.x)>1, bottles:true, picked:S.bottles, goal:S.goal, lifts:true, name:tname()};
+    if(cam.on) drawSceneAR(ctx,Wr,Hr,DPR,st); else drawScene(ctx,Wr,Hr,DPR,st);
+  } else if(S.screen==='site' && !$('#v-walk').hidden){
+    const vw=Wp/(Hp/300);
+    drawScene(pctx,Wp,Hp,DPR,{t, cam:BOTTLE_EVERY*STEP_PX-vw*.66, tx:.3, clarity:.35, phase:t*2, moving:false, bottles:true, picked:0, goal:0, lifts:false, name:tname()});
+  }
+  requestAnimationFrame(frame);
+}
+
+// ── 시작 ────────────────────────────────────────────
+applyMood();
+if(LOGO_SRC){ const img=$('#logoImg'); img.src=LOGO_SRC; img.hidden=false; $('#logoText').hidden=true; }
+if(params.has('sensor')){
+  S.screen='sensor'; $('#scrSite').hidden=true; $('#scrSensor').hidden=false;
+  const c=(params.get('sensor')||'').replace(/\D/g,'').slice(0,4); $('#spCode').value=c;
+} else if(params.has('report')){
+  S.screen='report'; $('#scrSite').hidden=true; $('#scrReport').hidden=false;
+  try{ $('#reportView').innerHTML=reportHTML(b64d(params.get('report'))); }catch(e){ $('#reportView').innerHTML='<p class="empty">보고서 링크가 잘렸거나 잘못됐어요. 링크 전체를 다시 받아 주세요.</p>'; }
+} else {
+  resetSession('keys'); S.screen='site'; applyTV(); route(); resizeAll(); renderSyncButtons(); initSync();
+  requestAnimationFrame(frame);
+}
+})();
+</script>
