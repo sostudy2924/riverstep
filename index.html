@@ -333,6 +333,34 @@ html.tv .controls .foot{display:none}
 html.tv .tvhint{display:flex}
 html.tv :focus-visible{outline-width:8px;outline-offset:4px}
 @media (prefers-reduced-motion:reduce){.bar i{transition:none}.side div{animation:none}}
+
+/* ── 입장(로딩) 화면 시안: 주소에 ?intro 가 있을 때만 ──
+   TV 기준: 글자는 화면 가운데 90% 안, 위쪽 1/3에 두 줄만. 배경은 고정, 움직이는 건 남생이 하나(영상 한 번 재생, 반복 없음) */
+#intro{position:fixed;inset:0;z-index:1000;background:#cfe9f3;overflow:hidden;cursor:pointer;-webkit-user-select:none;user-select:none}
+#intro:focus{outline:none}
+#introVid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 70%;display:block;background:#cfe9f3}
+.in-head{position:absolute;left:5%;right:5%;top:max(7vh,calc(16px + env(safe-area-inset-top,0px)));display:flex;flex-direction:column;align-items:center;gap:clamp(8px,1.4vh,16px);text-align:center;color:#2a2a25;
+  animation:inFade 1.2s .2s ease both}
+.in-word{margin:0;font:800 clamp(52px,8.4vw,128px)/1 var(--num);letter-spacing:-.02em;text-shadow:0 2px 0 rgba(252,251,247,.55)}
+.in-word span{color:#9a5f12}
+.in-line{margin:0;font:800 clamp(22px,2.4vw,38px)/1.4 var(--font);color:#3b3a30;text-shadow:0 1px 0 rgba(252,251,247,.7)}
+.in-foot{position:absolute;left:5%;right:5%;bottom:max(6vh,calc(16px + env(safe-area-inset-bottom,0px)));display:flex;flex-direction:column;align-items:center;gap:10px}
+.in-st{margin:0;font:800 clamp(20px,1.8vw,30px) var(--font);color:#2a2a25;background:rgba(252,251,247,.82);padding:6px 18px;border-radius:2px}
+.in-go{min-width:min(520px,90vw);min-height:clamp(72px,9vh,104px);font-size:clamp(26px,2.4vw,40px)}
+#intro.ready .in-st{display:none}
+#intro:not(.ready) .in-go{display:none}
+#intro.ready .in-go{animation:inUpPlain .5s cubic-bezier(.16,1,.3,1) both}
+.in-skip{position:absolute;right:5%;top:max(5vh,calc(12px + env(safe-area-inset-top,0px)));font:700 clamp(16px,1.3vw,22px) var(--font);color:#2a2a25;background:rgba(252,251,247,.8);border:2px solid #36352f;padding:6px 14px;cursor:pointer}
+.in-dive{position:absolute;width:24px;height:24px;margin:-12px 0 0 -12px;border-radius:50%;background:var(--bg);transform:scale(0);pointer-events:none;z-index:3}
+.in-dive.go{transition:transform 1s cubic-bezier(.7,0,.2,1);transform:scale(240)}
+.in-ring{position:absolute;width:90px;height:90px;margin:-45px 0 0 -45px;border-radius:50%;border:3px solid #fbfaf2;opacity:0;pointer-events:none;z-index:2}
+.in-ring.go{animation:inRing 1s ease-out forwards}.in-ring.r2.go{animation-delay:.14s}
+#intro.leaving .in-head,#intro.leaving .in-foot,#intro.leaving .in-skip{transition:opacity .35s;opacity:0}
+#intro.out{transition:opacity .45s;opacity:0;pointer-events:none}
+@keyframes inFade{from{opacity:0}to{opacity:1}}
+@keyframes inUpPlain{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes inRing{0%{opacity:.95;transform:scale(.3)}100%{opacity:0;transform:scale(9)}}
+@media (prefers-reduced-motion:reduce){.in-head,.in-go{animation:none!important}.in-dive.go{transition:none}.in-ring{display:none}}
 </style>
 
 <!-- 사이트(걷기·기록·공유·줍깅·환경) -->
@@ -768,6 +796,19 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
   <main class="view gut"><div id="reportView"></div><p class="note" style="margin-top:16px">RiverStep 시제품이 만든 기록이에요. 측정값이며 진단이 아니에요.</p></main>
 </section>
 
+<div id="intro" hidden tabindex="-1" role="dialog" aria-label="RiverStep 시작 화면">
+  <video id="introVid" muted playsinline preload="auto" aria-hidden="true"></video>
+  <div class="in-head">
+    <p class="in-word">River<span>Step</span></p>
+    <p class="in-line">내가 한 걸음 걸으면, 남생이도 한 걸음.</p>
+  </div>
+  <div class="in-foot">
+    <p class="in-st" id="inSt">남생이가 물가로 가고 있어요</p>
+    <button class="btn go in-go" id="inGo" type="button">확인을 눌러 시작</button>
+  </div>
+  <button class="in-skip" id="inSkip" type="button">건너뛰기</button>
+  <div class="in-ring" id="inR1"></div><div class="in-ring r2" id="inR2"></div><div class="in-dive" id="inDive"></div>
+</div>
 <script>
 (() => {
 'use strict';
@@ -2305,6 +2346,45 @@ function frame(now){
   requestAnimationFrame(frame);
 }
 
+
+// ── 입장(로딩) 화면 시안 ─────────────────────────────
+// 배경 그림과 남생이가 걷는 영상은 Higgsfield로 만든 것(Nano Banana Pro 그림 → Seedance 2.0 영상).
+// 진짜로 기다리는 건 글꼴 불러오기뿐이고, 영상을 보여 주려고 최소 3.5초는 일부러 기다려요.
+const INTRO_IMG='https://d8j0ntlcm91z4.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/hf_20261114_131801_51eaa312-5afa-45e3-84c9-e442aa69a8ed.png';
+const INTRO_VID='https://d8j0ntlcm91z4.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/hf_20261114_132140_5f7e9655-2fad-412c-bc58-263cc16fb1d0.mp4';
+function startIntro(){
+  // 남생이 영상을 한 번만 재생(1.5배속, 약 4초). 남생이가 걸어간 거리가 곧 진행 정도라 진행 막대를 따로 두지 않음.
+  // 영상을 못 불러오면 그림 한 장을 보여 주고 2.5초 뒤 시작 버튼을 띄움.
+  const box=$('#intro'), v=$('#introVid'); box.hidden=false; try{ box.focus({preventScroll:true}); }catch(e){}
+  let ready=false, leaving=false;
+  const done=()=>{ if(ready) return; ready=true; box.classList.add('ready'); };
+  v.poster=INTRO_IMG;
+  if(reduceMotion||!INTRO_VID){ setTimeout(done,reduceMotion?300:2500); }
+  else {
+    v.src=INTRO_VID; v.playbackRate=1.5;
+    v.addEventListener('ended',done,{once:true});
+    v.addEventListener('error',()=>setTimeout(done,1500),{once:true});
+    v.play().then(()=>{ v.playbackRate=1.5; }).catch(()=>setTimeout(done,2500));
+    setTimeout(done,9000);   // 영상이 멈춰도 9초 뒤엔 시작할 수 있게
+  }
+  function enter(force){
+    if(leaving||(!ready&&!force)) return; leaving=true;
+    const px=innerWidth/2, py=innerHeight*.72;
+    for(const id of ['inR1','inR2','inDive']){ const e=$('#'+id); e.style.left=px+'px'; e.style.top=py+'px'; }
+    try{ const A=new (window.AudioContext||window.webkitAudioContext)(), o=A.createOscillator(), gg=A.createGain(), t=A.currentTime;
+      o.type='sine'; o.frequency.setValueAtTime(560,t); o.frequency.exponentialRampToValueAtTime(280,t+.45);
+      gg.gain.setValueAtTime(.0001,t); gg.gain.exponentialRampToValueAtTime(.16,t+.03); gg.gain.exponentialRampToValueAtTime(.0001,t+.6);
+      o.connect(gg).connect(A.destination); o.start(t); o.stop(t+.65); }catch(e){}
+    box.classList.add('leaving'); $('#inR1').classList.add('go'); $('#inR2').classList.add('go');
+    setTimeout(()=>$('#inDive').classList.add('go'),200);
+    setTimeout(()=>{ box.classList.add('out'); setTimeout(()=>{ box.hidden=true; try{ v.pause(); v.removeAttribute('src'); v.load(); }catch(e){} },460); },1150);
+  }
+  box.addEventListener('click',e=>{ if(e.target.id==='inSkip') return; enter(false); });
+  $('#inSkip').addEventListener('click',e=>{ e.stopPropagation(); enter(true); });
+  // TV 리모컨 확인 버튼은 대개 Enter로 들어옴
+  box.addEventListener('keydown',e=>{ if((e.key==='Enter'||e.key===' ')&&e.target.id!=='inSkip'){ e.preventDefault(); enter(false); } });
+}
+
 // ── 시작 ────────────────────────────────────────────
 applyMood();
 if(LOGO_SRC){ const img=$('#logoImg'); img.src=LOGO_SRC; img.hidden=false; $('#logoText').hidden=true; }
@@ -2317,6 +2397,7 @@ if(params.has('sensor')){
 } else {
   resetSession('keys'); S.screen='site'; applyTV(); route(); resizeAll(); renderSyncButtons(); initSync();
   requestAnimationFrame(frame);
+  if(params.has('intro')) startIntro();
 }
 })();
 </script>
