@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RiverStep 입장</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+<style>
+:root{--bg:#0b151b;--ink:#ece7dd;--muted:#9aa8a6;--accent:#7dbfa7;--paper:#f3f1ec;
+  --sans:"Pretendard Variable",Pretendard,-apple-system,system-ui,sans-serif;color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:var(--sans);overflow:hidden;-webkit-font-smoothing:antialiased}
+.stage{position:fixed;inset:0;display:grid;place-items:center;cursor:pointer;user-select:none;-webkit-user-select:none}
+video,canvas.bgc{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+video{opacity:0;transition:opacity 1.6s ease;transform:scale(1.06)}
+video.on{opacity:.6}
+canvas.bgc{opacity:.9}
+.veil{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(70% 60% at 50% 48%,rgba(11,21,27,.1),rgba(11,21,27,.85)),linear-gradient(to bottom,transparent 55%,var(--bg))}
+.title{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:clamp(14px,2.4vw,28px);padding:0 16px;text-align:center}
+.mark{position:relative;width:clamp(54px,6vw,84px);aspect-ratio:1;opacity:0;animation:rise 1.4s .2s cubic-bezier(.16,1,.3,1) forwards}
+.mark i{position:absolute;inset:0;border-radius:50%;border:2px solid var(--accent)}
+.mark i:nth-child(1){inset:34%;background:var(--accent);border:0}
+.mark i:nth-child(2){animation:ripple 3.2s ease-out infinite}
+.mark i:nth-child(3){animation:ripple 3.2s 1.6s ease-out infinite}
+.word{margin:0;font-weight:700;font-size:clamp(3.4rem,13vw,11rem);letter-spacing:-.055em;line-height:.9;opacity:0;animation:rise 1.4s .35s cubic-bezier(.16,1,.3,1) forwards}
+.line{margin:0;font-size:clamp(1rem,2.2vw,1.35rem);color:var(--muted);letter-spacing:-.01em;opacity:0;animation:fade 1.2s 1.1s ease forwards}
+@keyframes ripple{from{transform:scale(.45);opacity:.9}to{transform:scale(1.9);opacity:0}}
+@keyframes rise{from{opacity:0;transform:translate3d(0,40px,0)}to{opacity:1;transform:none}}
+@keyframes fade{to{opacity:1}}
+
+/* 물길 로딩 줄: 남생이가 줄을 따라 헤엄쳐 감 */
+.load{position:absolute;z-index:2;left:50%;bottom:calc(clamp(40px,9dvh,90px) + env(safe-area-inset-bottom,0px));transform:translateX(-50%);
+  width:min(520px,calc(100% - 48px));display:flex;flex-direction:column;align-items:center;gap:14px;opacity:0;animation:fade 1s 1.4s ease forwards}
+.river{position:relative;width:100%;height:30px}
+.river svg.track{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.track .base{stroke:rgba(236,231,221,.16);stroke-width:2;fill:none}
+.track .fill{stroke:var(--accent);stroke-width:2;fill:none;stroke-linecap:round}
+.turtle{position:absolute;top:50%;left:0;width:44px;height:26px;transform:translate(-50%,-62%);transition:left .12s linear}
+.turtle svg{width:100%;height:100%;animation:bob 1.1s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-2px) rotate(-2deg)}}
+.status{margin:0;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums;min-height:1.4em}
+.status b{color:var(--ink);font-weight:600}
+.press{margin:0;font-size:clamp(1rem,2vw,1.2rem);font-weight:600;color:var(--ink);opacity:0;transition:opacity .6s}
+.ready .press{opacity:1;animation:breathe 2.2s ease-in-out infinite}
+.ready .status{display:none}
+@keyframes breathe{50%{opacity:.45}}
+
+/* 들어갈 때: 물결이 퍼지며 화면을 덮고 게임 색으로 바뀜 */
+.dive{position:fixed;z-index:10;left:50%;top:50%;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;
+  background:var(--paper);transform:scale(0);pointer-events:none}
+.dive.go{transition:transform 1.1s cubic-bezier(.7,0,.2,1);transform:scale(260)}
+.ring{position:fixed;z-index:9;left:50%;top:50%;width:80px;height:80px;margin:-40px 0 0 -40px;border-radius:50%;border:2px solid var(--accent);opacity:0;pointer-events:none}
+.ring.go{animation:ringout 1.1s ease-out forwards}
+.ring.go.r2{animation-delay:.15s}
+@keyframes ringout{0%{opacity:.9;transform:scale(.3)}100%{opacity:0;transform:scale(14)}}
+.leaving .title,.leaving .load{transition:opacity .5s,transform .9s cubic-bezier(.7,0,.2,1);opacity:0;transform:scale(.92)}
+.draft{position:fixed;z-index:3;top:calc(12px + env(safe-area-inset-top,0px));right:calc(12px + env(safe-area-inset-right,0px));font-size:12px;color:var(--muted);border:1px solid rgba(236,231,221,.2);padding:3px 8px;border-radius:99px}
+.skip{position:fixed;z-index:3;bottom:calc(14px + env(safe-area-inset-bottom,0px));right:calc(14px + env(safe-area-inset-right,0px));font:500 13px var(--sans);color:var(--muted);background:none;border:0;cursor:pointer;padding:8px}
+@media (prefers-reduced-motion:reduce){
+  .mark,.word,.line,.load{animation:none;opacity:1}.mark i{animation:none}.turtle svg{animation:none}
+  .dive.go{transition:none}.ring{display:none}
+}
+</style>
+</head>
+<body>
+<div class="stage" id="stage" role="button" tabindex="0" aria-label="눌러서 RiverStep 시작하기">
+  <canvas class="bgc" id="bgc" aria-hidden="true"></canvas>
+  <video id="vid" muted loop playsinline preload="auto" aria-hidden="true"
+    poster="https://riverstep.higgsfield.app/assets/world/scene-01-poster.png"></video>
+  <div class="veil"></div>
+
+  <div class="title">
+    <span class="mark" aria-hidden="true"><i></i><i></i><i></i></span>
+    <p class="word">RiverStep</p>
+    <p class="line">내가 한 걸음 걸으면, 남생이도 한 걸음.</p>
+  </div>
+
+  <div class="load" id="load">
+    <div class="river">
+      <svg class="track" viewBox="0 0 520 30" preserveAspectRatio="none" aria-hidden="true">
+        <path class="base" d="M0 15 C 65 5, 130 25, 195 15 S 325 5, 390 15 S 485 25, 520 15"/>
+        <path class="fill" id="fill" d="M0 15 C 65 5, 130 25, 195 15 S 325 5, 390 15 S 485 25, 520 15"/>
+      </svg>
+      <div class="turtle" id="turtle" aria-hidden="true">
+        <!-- 남생이 옆모습: 등딱지 + 머리 + 발톱 달린 다리 -->
+        <svg viewBox="0 0 44 26">
+          <path d="M8 17 Q 9 5 22 4 Q 34 5 35 17 Z" fill="#5b4a33" stroke="#ece7dd" stroke-width="1.2"/>
+          <path d="M13 9 Q 22 7 30 9 M11 13 Q 22 11 33 13" stroke="#c9b48a" stroke-width="1" fill="none" opacity=".7"/>
+          <path d="M35 14 Q 41 12 42 15 Q 41 18 35 17 Z" fill="#6f7a4c" stroke="#ece7dd" stroke-width="1"/>
+          <circle cx="39.6" cy="14.3" r=".9" fill="#0b151b"/>
+          <path d="M12 17 l-2 5 M17 17 l-1 5 M27 17 l1 5 M32 17 l2 5" stroke="#6f7a4c" stroke-width="2.4" stroke-linecap="round"/>
+          <path d="M7 17 h29" stroke="#ece7dd" stroke-width="1.2"/>
+        </svg>
+      </div>
+    </div>
+    <p class="status" id="status">하천으로 내려가는 중 <b id="pct">0%</b></p>
+    <p class="press" id="press">화면을 눌러 들어가기</p>
+  </div>
+  <span class="draft">시안</span>
+  <button class="skip" id="skip" type="button">건너뛰기</button>
+</div>
+<div class="ring" id="ring1"></div><div class="ring r2" id="ring2"></div>
+<div class="dive" id="dive"></div>
+
+<script>
+(()=>{
+const GAME='./';                       // 들어갈 게임 주소
+const VIDEO=matchMedia('(max-width:700px)').matches
+  ? 'https://riverstep.higgsfield.app/assets/world/scene-01-mobile.mp4'
+  : 'https://riverstep.higgsfield.app/assets/world/scene-01.mp4';
+const $=id=>document.getElementById(id);
+const stage=$('stage'), vid=$('vid');
+
+// 1) 배경: Higgsfield 소개 페이지의 새벽 하천 영상. 못 불러오면 아래 그림 하천으로 대신함
+vid.src=VIDEO;
+vid.addEventListener('canplay',()=>{ vid.classList.add('on'); vid.play().catch(()=>{}); },{once:true});
+
+// 그림 하천(영상이 없을 때도 같은 분위기): 산 능선, 물안개, 물 위 반사
+const cv=$('bgc'), g=cv.getContext('2d'); let W,H,dpr;
+function size(){ dpr=Math.min(2,devicePixelRatio||1); W=cv.width=innerWidth*dpr; H=cv.height=innerHeight*dpr; }
+size(); addEventListener('resize',size);
+function ridge(y,amp,seed,col){ g.beginPath(); g.moveTo(0,H); for(let x=0;x<=W;x+=W/80){ const k=x/W; g.lineTo(x,y-amp*(Math.sin(k*6+seed)*.5+Math.sin(k*13+seed*2)*.25+Math.sin(k*29+seed*3)*.12)); } g.lineTo(W,H); g.closePath(); g.fillStyle=col; g.fill(); }
+function draw(t){
+  const sky=g.createLinearGradient(0,0,0,H*.55); sky.addColorStop(0,'#1a2a36'); sky.addColorStop(1,'#46586a');
+  g.fillStyle=sky; g.fillRect(0,0,W,H);
+  const sun=g.createRadialGradient(W*.62,H*.4,0,W*.62,H*.4,H*.35); sun.addColorStop(0,'rgba(240,214,180,.35)'); sun.addColorStop(1,'rgba(240,214,180,0)'); g.fillStyle=sun; g.fillRect(0,0,W,H);
+  ridge(H*.44,H*.10,1.2,'#2a3a47'); ridge(H*.5,H*.07,3.4,'#1d2b35');
+  const wat=g.createLinearGradient(0,H*.52,0,H); wat.addColorStop(0,'#3a4c5a'); wat.addColorStop(1,'#0f1c24');
+  g.fillStyle=wat; g.fillRect(0,H*.52,W,H);
+  g.strokeStyle='rgba(236,231,221,.07)'; g.lineWidth=dpr;
+  for(let i=0;i<26;i++){ const y=H*.55+i*i*H*.0007, off=(t*.012*(1+i*.08))%(W*.4); g.beginPath(); g.moveTo(-W*.4+off+(i*97)%W*.3,y); g.lineTo(off+W*.3+(i*53)%W*.4,y); g.stroke(); }
+  for(let i=0;i<5;i++){ const y=H*(.46+i*.05), x=((t*.008*(i%2?1:-1)*(1+i*.3))%W+W)%W;
+    const m=g.createRadialGradient(x,y,0,x,y,W*.35); m.addColorStop(0,'rgba(200,210,215,.10)'); m.addColorStop(1,'rgba(200,210,215,0)');
+    g.fillStyle=m; g.fillRect(0,0,W,H);
+    const m2=g.createRadialGradient(x-W,y,0,x-W,y,W*.35); m2.addColorStop(0,'rgba(200,210,215,.10)'); m2.addColorStop(1,'rgba(200,210,215,0)'); g.fillStyle=m2; g.fillRect(0,0,W,H); }
+}
+let raf; const loop=t=>{ draw(t); raf=requestAnimationFrame(loop); }; raf=requestAnimationFrame(loop);
+vid.addEventListener('playing',()=>{ setTimeout(()=>{ cancelAnimationFrame(raf); cv.style.transition='opacity 1.6s'; cv.style.opacity=0; },1600); },{once:true});
+
+// 2) 로딩: 게임 파일을 실제로 미리 받아 두고, 남생이가 물길을 따라 헤엄쳐 감
+const fill=$('fill'), turtle=$('turtle'), pct=$('pct'), L=fill.getTotalLength();
+fill.style.strokeDasharray=L; fill.style.strokeDashoffset=L;
+let shown=0, real=0, ready=false; const t0=performance.now(), MIN=2600;
+fetch(GAME,{cache:'force-cache'}).then(r=>r.text()).then(()=>{ real=1; }).catch(()=>{ real=1; });
+function setP(p){
+  fill.style.strokeDashoffset=L*(1-p);
+  const pt=fill.getPointAtLength(L*p), box=fill.ownerSVGElement.getBoundingClientRect();
+  turtle.style.left=(pt.x/520*box.width)+'px'; turtle.style.top=(pt.y/30*box.height)+'px';
+  pct.textContent=Math.round(p*100)+'%';
+}
+const msgs=[[0,'하천으로 내려가는 중'],[.35,'물안개를 걷어 내는 중'],[.7,'남생이를 깨우는 중'],[.97,'다 됐어요']];
+function tick(){
+  const timeP=Math.min(1,(performance.now()-t0)/MIN), target=Math.min(timeP, real?1:.9);
+  shown+= (target-shown)*.12; if(target-shown<.002) shown=target;
+  setP(shown);
+  for(const [k,m] of msgs) if(shown>=k) $('status').firstChild.nodeValue=m+' ';
+  if(shown>=1&&!ready){ ready=true; $('load').classList.add('ready'); return; }
+  requestAnimationFrame(tick);
+}
+setTimeout(tick,1400);
+
+// 3) 들어가기: 물결이 퍼지며 화면이 게임 바탕색으로 덮이고 게임으로 이동
+let leaving=false;
+function enter(force){
+  if(leaving||(!ready&&!force)) return; leaving=true;
+  try{ const A=new (window.AudioContext||window.webkitAudioContext)(); const o=A.createOscillator(), gg=A.createGain();
+    o.type='sine'; o.frequency.setValueAtTime(520,A.currentTime); o.frequency.exponentialRampToValueAtTime(260,A.currentTime+.5);
+    gg.gain.setValueAtTime(.0001,A.currentTime); gg.gain.exponentialRampToValueAtTime(.18,A.currentTime+.03); gg.gain.exponentialRampToValueAtTime(.0001,A.currentTime+.7);
+    o.connect(gg).connect(A.destination); o.start(); o.stop(A.currentTime+.75); }catch(e){}
+  stage.classList.add('leaving');
+  $('ring1').classList.add('go'); $('ring2').classList.add('go');
+  setTimeout(()=>$('dive').classList.add('go'),250);
+  setTimeout(()=>{ location.href=GAME; },1300);
+}
+stage.addEventListener('click',e=>{ if(e.target.id!=='skip') enter(false); });
+stage.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); enter(false); } });
+$('skip').addEventListener('click',()=>enter(true));
+stage.focus();
+})();
+</script>
+</body>
+</html>
