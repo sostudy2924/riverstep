@@ -2351,9 +2351,9 @@ function startIntro(){
   let W=0,H=0,dpr=1; const fit=()=>{ dpr=Math.min(2,devicePixelRatio||1); W=innerWidth; H=innerHeight; cv.width=W*dpr; cv.height=H*dpr; }; fit();
   // 사람 발자국(왼발·오른발)은 화면 가운데를 가로질러 한 걸음씩 찍히고,
   // 남생이는 화면 아래쪽 밖에서 걸어 들어와 같은 속도로 함께 걸어요. "내가 한 걸음, 남생이도 한 걸음"
-  const STEPS=10, DUR=reduceMotion?0:4200, t0=performance.now()+600;
+  const STEPS=6, DUR=reduceMotion?0:4200, t0=performance.now()+600;
   const prints=[]; let lastStep=-1, ready=false, leaving=false, raf=0;
-  const footY=()=>H*.56, footX=i=>W*(.12+.44*(i/(STEPS-1)));   // 왼쪽 모래에서 물가 앞까지
+  const footY=()=>H*.56, footX=i=>W*(.10+.46*(i/(STEPS-1)));   // 왼쪽 모래에서 물가 앞까지
   function stamp(i){ const side=i%2?1:-1, sz=Math.min(W,H*1.6)*.022; prints.push({x:footX(i), y:footY()+side*sz*.62, side, sz:sz*.92, t:performance.now()}); }
   function drawPrint(f,now){ const al=Math.min(1,(now-f.t)/500)*.30, k=f.sz/20;
     g.save(); g.translate(f.x,f.y); g.rotate(Math.PI/2); if(f.side<0) g.scale(-1,1); g.scale(k,k);
@@ -2366,7 +2366,7 @@ function startIntro(){
   const tprints=[]; let lastT=-1;
   // 남생이 발자국: 사람 한 걸음마다 남생이도 앞·뒷발 자국을 좌우에 남김(몸 양옆 두 줄)
   function tstamp(j,x){ const tw=tu.getBoundingClientRect().width||180, side=j%2?1:-1, y=tuY()+side*tw*.22;
-    for(const dx of [tw*.18,-tw*.20]) tprints.push({x:x+dx+(side>0?tw*.04:0), y:y+(dx>0?-side*tw*.02:side*tw*.02), side, s:tw/170, t:performance.now()}); }
+    for(const dx of [tw*.16]) tprints.push({x:x+dx+(side>0?tw*.04:0), y:y+(dx>0?-side*tw*.02:side*tw*.02), side, s:tw/170, t:performance.now()}); }
   function drawTPrint(f,now){ const al=Math.min(1,(now-f.t)/450)*.30; g.save(); g.translate(f.x,f.y); g.scale(f.s,f.s);
     g.fillStyle=`rgba(104,82,52,${al})`; g.beginPath(); g.ellipse(0,0,7,5.5,0,0,Math.PI*2); g.fill();
     for(const cy of [-5,0,5]){ g.beginPath(); g.ellipse(9.5,cy+f.side*1.2,2,1.4,0,0,Math.PI*2); g.fill(); } g.restore(); }
@@ -2375,7 +2375,7 @@ function startIntro(){
     const u=DUR?Math.max(0,Math.min(1,(now-t0)/DUR)):1;
     const step=Math.floor(u*STEPS-1e-6); while(lastStep<step){ lastStep++; stamp(lastStep); }
     // 남생이는 화면에 들어온 뒤부터 걸음마다 자국(몸 뒤쪽에 남도록 현재 위치 기준)
-    const tstep=Math.floor(u*STEPS*1.5-1e-6); while(lastT<tstep){ lastT++; const x=tuX(lastT/(STEPS*1.5)); if(x>-20) tstamp(lastT,x); }
+    const tstep=Math.floor(u*STEPS*2-1e-6); while(lastT<tstep){ lastT++; const x=tuX(lastT/(STEPS*2)); if(x>-20) tstamp(lastT,x); }
     const tw=tu.getBoundingClientRect().width||180, th=tu.getBoundingClientRect().height||180;
     const walking=u>0&&u<1, ph=u*STEPS*Math.PI, sway=walking?Math.sin(ph)*.05:0, bob=walking?Math.abs(Math.sin(ph))*2.5:0;
     tu.style.opacity=1;
@@ -2386,7 +2386,7 @@ function startIntro(){
     if(u>=1&&!ready){ ready=true; box.classList.add('ready'); }
     if(!ready) raf=requestAnimationFrame(frame);
   }
-  const onResize=()=>{ fit(); prints.length=0; tprints.length=0; for(let i=0;i<=lastStep;i++) stamp(i); for(let j=0;j<=lastT;j++){ const x=tuX(j/(STEPS*1.5)); if(x>-20) tstamp(j,x); } prints.forEach(f=>f.t=0); tprints.forEach(f=>f.t=0); if(ready){ ready=false; frame(performance.now()); } };
+  const onResize=()=>{ fit(); prints.length=0; tprints.length=0; for(let i=0;i<=lastStep;i++) stamp(i); for(let j=0;j<=lastT;j++){ const x=tuX(j/(STEPS*2)); if(x>-20) tstamp(j,x); } prints.forEach(f=>f.t=0); tprints.forEach(f=>f.t=0); if(ready){ ready=false; frame(performance.now()); } };
   addEventListener('resize',onResize);
   raf=requestAnimationFrame(frame);
   setTimeout(()=>{ if(!ready){ ready=true; box.classList.add('ready'); } },DUR+3500);
