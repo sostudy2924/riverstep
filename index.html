@@ -1330,7 +1330,7 @@ function frontDawn(g,VW,cam){
 // 배경: 옆으로 이어 붙여도 이음매가 없게 다듬은 하천 그림 한 장 → 걸을 때 천천히 뒤로 흐름
 // 남생이: 옆모습 2장(앞발을 앞으로/뒤로 저은 모습)을 걸음 박자에 맞춰 번갈아 보여 줌
 const NEWART=params.has('newart');
-const ART={ swimN:0, src:{swim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5aa7c44c-1581-4034-abe3-f84f9588d995.png', up:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e7a2904e-ad8c-4560-8056-0c65120c47cb.png', bg:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/6beb56df-94bc-463b-92b4-cee5e2f23af7.jpg', tA:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/23e3cd17-6f92-4de9-ab2b-d4d895e824f3.png', tB:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e0c2554b-293d-4fde-8bb3-97806e196d83.png', bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/cf734381-8308-443d-b33e-ddc7ab9d7fb4.png', can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3b7721b2-95f6-469e-9769-cd9904b9d491.png', bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/db302282-3882-4d7f-bfaa-94623820688e.png', cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7089d5d1-601f-40b9-a213-a762ad3e9626.png'}, img:{}, ok:{} };
+const ART={ swimN:0, src:{swim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5aa7c44c-1581-4034-abe3-f84f9588d995.png', up:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/03e586cc-81ad-4e98-b0ff-d09fba68f175.png', bg:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/6beb56df-94bc-463b-92b4-cee5e2f23af7.jpg', tA:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/23e3cd17-6f92-4de9-ab2b-d4d895e824f3.png', tB:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e0c2554b-293d-4fde-8bb3-97806e196d83.png', bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/cf734381-8308-443d-b33e-ddc7ab9d7fb4.png', can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3b7721b2-95f6-469e-9769-cd9904b9d491.png', bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/db302282-3882-4d7f-bfaa-94623820688e.png', cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7089d5d1-601f-40b9-a213-a762ad3e9626.png'}, img:{}, ok:{} };
 if(NEWART){ for(const [k,u] of Object.entries(ART.src)){ if(!u.startsWith('http')) continue; const im=new Image(); im.onload=()=>{ ART.ok[k]=true; }; im.src=u; ART.img[k]=im; } }
 const artOn=k=>NEWART&&ART.ok[k];
 function drawArtBG(g,VW,cam,t,c){
@@ -1519,9 +1519,9 @@ function drawSceneAR(g,W,H,dpr,st){
   const T=arAt(Ln,AR.YT), ts=Math.min(1.2,T.w/120), ty=AR.YT+Math.sin(a*1.3)*1.5;
   drawFeetUnder(g,T.cx,ty+33*ts,15*ts,20*ts,st.t,m);
   if(NA){ // 위에서 본 남생이가 화면 안쪽으로 헤엄침: 다리 쪽은 물에 잠기고, 몸이 좌우로 살짝 흔들림
-    // 뒤에서 비스듬히 내려다보는 시점: 위에서 본 그림을 세로로 눌러(원근 축소) 등딱지가 멀어지는 방향으로 보이게
-    const im=ART.img.up, w=86*ts, h=w*im.naturalHeight/im.naturalWidth*.52, sway=Math.sin(st.phase)*.05;
-    drawSubmerged(g,im,T.cx-w/2,ty-h*.62,w,h,.66,sway);
+    // 뒤에서 비스듬히 내려다본 남생이(Higgsfield로 따로 그린 뒷모습): 가까운 뒷다리는 크고 먼 머리는 작게
+    const im=ART.img.up, w=80*ts, h=w*im.naturalHeight/im.naturalWidth, sway=Math.sin(st.phase)*.05;
+    drawSubmerged(g,im,T.cx-w/2,ty-h*.62,w,h,.70,sway);
     g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.12,r,r*.26,0,.15,Math.PI-.15); g.stroke(); } g.restore();
   } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
   if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
@@ -1554,9 +1554,10 @@ function drawFoot(g,x,y,sz,side,flash,next,t,m){
     g.fillStyle=`rgba(170,226,140,${.55+.35*pulse})`; footShape(g); g.fill(); g.shadowBlur=0; }
   else { g.fillStyle=day?'rgba(252,251,247,.55)':'rgba(255,255,255,.18)'; footShape(g); g.fill(); }
   if(flash>0){ g.globalAlpha=Math.min(1,.25+flash); g.fillStyle='#f0c25a'; footShape(g); g.fill(); g.globalAlpha=1; }
-  g.lineWidth=(next?3.2:2.2)/s; g.strokeStyle=next?'#2f6b2a':(day?'#36352f':'rgba(243,215,176,.9)'); footShape(g); g.stroke();
+  const soft=NEWART&&day;   // 새 그림체 시안: 테두리를 얇고 연하게
+  g.lineWidth=(soft?(next?1.6:1.1):(next?3.2:2.2))/s; g.strokeStyle=soft?(next?'rgba(47,107,42,.55)':'rgba(54,53,47,.28)'):(next?'#2f6b2a':(day?'#36352f':'rgba(243,215,176,.9)')); footShape(g); g.stroke();
   g.rotate(-.12); g.scale(side==='L'?-1/1.28:1/1.28,1);
-  g.fillStyle=next?'#1f4a1c':(day?'#2a2a25':'#f3d7b0'); g.font='800 34px "Nanum Gothic", sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillStyle=soft?(next?'rgba(31,74,28,.8)':'rgba(42,42,37,.55)'):(next?'#1f4a1c':(day?'#2a2a25':'#f3d7b0')); g.font='800 34px "Nanum Gothic", sans-serif'; g.textAlign='center'; g.textBaseline='middle';
   g.fillText(side==='L'?'왼':'오',0,14);
   g.restore();
 }
