@@ -77,6 +77,10 @@ a{color:inherit}
 .say b{display:block;font:800 clamp(32px,3.6vw,42px)/1.32 var(--num);letter-spacing:-.01em}
 .say span{display:block;margin-top:12px;font:700 clamp(21px,2vw,24px)/1.5 var(--font);color:var(--text-2)}
 #pic{width:100%;aspect-ratio:16/9;border:4px double var(--edge);display:block;background:var(--stage)}
+.picwrap{position:relative}
+/* 시안: 첫 화면 그림을 입장 화면과 같은 Higgsfield 그림체로(주소에 ?newpic). 액자는 그대로, 안쪽만 그림 */
+#picImg{position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);object-fit:cover;display:block;background:var(--stage)}
+#picName{position:absolute;left:39%;top:36%;transform:translate(-50%,-100%);font:800 clamp(13px,1.4vw,18px)/1 var(--font);background:rgba(252,251,247,.92);border:1.5px solid #36352f;color:#2a2a25;padding:5px 8px;white-space:nowrap}
 .today{margin:0;font-size:20px;font-weight:700;color:var(--text-2)}
 .story{border-top:2px solid var(--soft);padding-top:16px;display:flex;flex-direction:column;gap:8px}
 .story h2{margin:0;font:800 22px/1.3 var(--num);display:flex;align-items:center;gap:10px}
@@ -379,7 +383,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
     <div class="walk">
       <div class="intro">
         <p class="say" id="say"><b>내가 한 걸음 걸으면<br>남생이도 한 걸음.</b><span>걸을수록 쓰레기를 건져서 하천이 맑아져요.</span></p>
-        <canvas id="pic" aria-label="하천을 헤엄치는 남생이와 떠 있는 쓰레기 그림"></canvas>
+        <div class="picwrap"><canvas id="pic" aria-label="하천을 헤엄치는 남생이와 떠 있는 쓰레기 그림"></canvas><img id="picImg" alt="" aria-hidden="true" hidden><span id="picName" hidden></span></div>
         <p class="today" id="todayLine">오늘은 아직 걷지 않았어요.</p>
         <details class="morestory"><summary>남생이 이야기 · 걸음 기부 보기</summary>
         <div class="story" id="namStory">
@@ -2434,6 +2438,16 @@ function startIntro(){
   box.addEventListener('keydown',e=>{ if(['Enter',' ','Escape','Backspace','GoBack','BrowserBack'].includes(e.key)||e.keyCode===10009||e.keyCode===461){ e.preventDefault(); enter(true); } });
 }
 
+// ── 시안: 첫 화면 그림을 Higgsfield 그림체로 ─────────────
+// 입장 화면과 같은 '위에서 내려다본 모래톱·청록 강물' 그림(Nano Banana Pro). 이름표는 글자가 바뀌므로 그림 위에 따로 얹음.
+const NEW_PIC='https://d8j0ntlcm91z4.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/hf_20261114_144007_faa6f370-9736-49cf-99e6-62476cf3d8d8.png';
+function startNewPic(){
+  if(!NEW_PIC.startsWith('http')) return;
+  const im=$('#picImg'), nm=$('#picName');
+  im.src=NEW_PIC; im.hidden=false;
+  const upd=()=>{ nm.textContent=tname(); nm.hidden=false; }; upd();
+  $('#tName').addEventListener('input',upd);
+}
 // ── 시작 ────────────────────────────────────────────
 applyMood();
 if(LOGO_SRC){ const img=$('#logoImg'); img.src=LOGO_SRC; img.hidden=false; $('#logoText').hidden=true; }
@@ -2446,7 +2460,8 @@ if(params.has('sensor')){
 } else {
   resetSession('keys'); S.screen='site'; applyTV(); route(); resizeAll(); renderSyncButtons(); initSync();
   requestAnimationFrame(frame);
-  if(!params.has('nointro')) startIntro();   // 처음 들어오면 입장 화면. 주소 끝에 ?nointro 를 붙이면 바로 게임
+  if(!params.has('nointro')) startIntro();
+  if(params.has('newpic')) startNewPic();   // 처음 들어오면 입장 화면. 주소 끝에 ?nointro 를 붙이면 바로 게임
 }
 })();
 </script>
