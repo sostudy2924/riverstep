@@ -1413,7 +1413,8 @@ function waterline(g,cx,y,half,t,strength){
 }
 const RSWIM_N=24; const RSWIMC={cv:document.createElement('canvas')};
 // 헤엄 동작: Higgsfield 영상에서 뽑은 프레임(가로로 이어 붙인 한 장)을 걸음 박자에 맞춰 넘김. 멈춰 있으면 천천히 넘김(제자리 헤엄)
-const SWIM_N=24; let SWIM_LAST=0; const SWIM_ANCHOR=[[0.466,0.033],[0.466,0.026],[0.46,0.026],[0.455,0.026],[0.45,0.02],[0.453,0.026],[0.463,0.026],[0.466,0.026],[0.466,0.026],[0.466,0.026],[0.461,0.026],[0.457,0.026],[0.451,0.02],[0.452,0.026],[0.459,0.026],[0.466,0.026],[0.467,0.026],[0.467,0.026],[0.463,0.026],[0.457,0.026],[0.452,0.026],[0.45,0.02],[0.456,0.026],[0.464,0.026]];   // 프레임별 등딱지 꼭대기(가로·세로 비율) const SWIMC={cv:document.createElement('canvas')};
+const SWIM_N=24; let SWIM_LAST=0; const SWIM_ANCHOR=[[0.466,0.033],[0.466,0.026],[0.46,0.026],[0.455,0.026],[0.45,0.02],[0.453,0.026],[0.463,0.026],[0.466,0.026],[0.466,0.026],[0.466,0.026],[0.461,0.026],[0.457,0.026],[0.451,0.02],[0.452,0.026],[0.459,0.026],[0.466,0.026],[0.467,0.026],[0.467,0.026],[0.463,0.026],[0.457,0.026],[0.452,0.026],[0.45,0.02],[0.456,0.026],[0.464,0.026]];   // 프레임별 등딱지 꼭대기(가로·세로 비율)
+const SWIMC={cv:document.createElement('canvas')};
 function swimFrame(phase,t,moving){ const im=ART.img.swim, fw=im.naturalWidth/SWIM_N, fh=im.naturalHeight;
   const u=moving?((phase/(Math.PI*2))%1+1)%1:((t*.35)%1+1)%1, f=Math.floor(u*SWIM_N)%SWIM_N; SWIM_LAST=f;
   const c=SWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(im,f*fw,0,fw,fh,0,0,fw,fh); return c; }
