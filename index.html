@@ -1330,12 +1330,22 @@ function frontDawn(g,VW,cam){
 // 배경: 옆으로 이어 붙여도 이음매가 없게 다듬은 하천 그림 한 장 → 걸을 때 천천히 뒤로 흐름
 // 남생이: 옆모습 2장(앞발을 앞으로/뒤로 저은 모습)을 걸음 박자에 맞춰 번갈아 보여 줌
 const NEWART=params.has('newart');
-const ART={ src:{bg:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7ef7e5dc-ce67-4848-b7f7-e305af4b364f.jpg', tA:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/23e3cd17-6f92-4de9-ab2b-d4d895e824f3.png', tB:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e0c2554b-293d-4fde-8bb3-97806e196d83.png', bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/a54f42a7-8549-43eb-9165-2460c921e110.png', can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7a9fa494-a845-4e01-8110-b36b2540a387.png', bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/55397a3f-1ded-4b5f-b42c-a6f4646c4b07.png', cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/fd055961-2233-43c1-af0d-70d0683a16b5.png'}, img:{}, ok:{} };
+const ART={ swimN:0, src:{swim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5aa7c44c-1581-4034-abe3-f84f9588d995.png', up:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e7a2904e-ad8c-4560-8056-0c65120c47cb.png', bg:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/6beb56df-94bc-463b-92b4-cee5e2f23af7.jpg', tA:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/23e3cd17-6f92-4de9-ab2b-d4d895e824f3.png', tB:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e0c2554b-293d-4fde-8bb3-97806e196d83.png', bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/cf734381-8308-443d-b33e-ddc7ab9d7fb4.png', can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3b7721b2-95f6-469e-9769-cd9904b9d491.png', bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/db302282-3882-4d7f-bfaa-94623820688e.png', cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7089d5d1-601f-40b9-a213-a762ad3e9626.png'}, img:{}, ok:{} };
 if(NEWART){ for(const [k,u] of Object.entries(ART.src)){ if(!u.startsWith('http')) continue; const im=new Image(); im.onload=()=>{ ART.ok[k]=true; }; im.src=u; ART.img[k]=im; } }
 const artOn=k=>NEWART&&ART.ok[k];
-function drawArtBG(g,VW,cam,t){
+function drawArtBG(g,VW,cam,t,c){
   const im=ART.img.bg, h=345, top=-45, w=im.naturalWidth*h/im.naturalHeight, off=((cam*.55)%w+w)%w;   // 하늘을 줄이고 수평선을 위로
   for(let x=-off; x<VW; x+=w) g.drawImage(im,x,top,w+1,h);
+  // 물 맑기(원래 게임과 같은 규칙): 처음엔 흙탕물처럼 누렇고 탁하다가, 쓰레기를 주울수록 맑은 청록으로 바뀜
+  c=Math.max(0,Math.min(1,c==null?1:c)); const wy0=top+h*.475, wy1=top+h*.83, murk=(1-c);
+  if(murk>.01){ const gm=g.createLinearGradient(0,wy0,0,wy1); gm.addColorStop(0,`rgba(150,140,92,${.50*murk})`); gm.addColorStop(1,`rgba(112,104,70,${.62*murk})`);
+    g.fillStyle=gm; g.fillRect(0,wy0,VW,wy1-wy0);
+    // 떠다니는 부유물(탁할수록 많음)
+    for(let i=0;i<26;i++){ if(hash(i,91)>murk*.95) continue; const x=((hash(i,92)*VW*1.5 - cam*(.6+hash(i,93)*.4))%(VW+30)+VW+30)%(VW+30)-15, y=wy0+10+hash(i,94)*(wy1-wy0-20);
+      g.fillStyle=`rgba(96,86,58,${.45*murk})`; g.beginPath(); g.ellipse(x,y,3+hash(i,95)*4,1.4+hash(i,96)*1.4,0,0,Math.PI*2); g.fill(); } }
+  // 맑아지면 물속에 물고기 그림자가 보이기 시작
+  const nf=Math.round(c*4); for(let i=0;i<nf;i++){ const x=((hash(i,101)*VW*1.4 + t*(10+i*4) - cam*.8)%(VW+60)+VW+60)%(VW+60)-30, y=wy0+30+hash(i,102)*(wy1-wy0-45);
+    g.fillStyle=`rgba(52,96,92,${.28*c})`; g.beginPath(); g.ellipse(x,y,9,3.2,0,0,Math.PI*2); g.moveTo(x-8,y); g.lineTo(x-14,y-3.5); g.lineTo(x-14,y+3.5); g.closePath(); g.fill(); }
   // 물이 살아 있게: 가는 물결 선이 천천히 흐르고(가까울수록 빠름), 햇빛 반짝임이 잠깐씩 떴다 사라짐
   g.save(); g.lineCap='round';
   for(let i=0;i<34;i++){ const depth=hash(i,71), y=125+depth*110, sp=.35+depth*.65, len=10+depth*26;
@@ -1367,9 +1377,15 @@ function waterline(g,cx,y,half,t,strength){
   g.beginPath(); for(let i=0;i<=24;i++){ const u=i/24, x=cx-half+u*half*2, yy=y+Math.sin(u*9+t*4)*1.1; i?g.lineTo(x,yy):g.moveTo(x,yy); } g.stroke();
   g.restore();
 }
+// 헤엄 동작: Higgsfield 영상에서 뽑은 프레임(가로로 이어 붙인 한 장)을 걸음 박자에 맞춰 넘김. 멈춰 있으면 천천히 넘김(제자리 헤엄)
+const SWIM_N=24; const SWIMC={cv:document.createElement('canvas')};
+function swimFrame(phase,t,moving){ const im=ART.img.swim, fw=im.naturalWidth/SWIM_N, fh=im.naturalHeight;
+  const u=moving?((phase/(Math.PI*2))%1+1)%1:((t*.35)%1+1)%1, f=Math.floor(u*SWIM_N)%SWIM_N;
+  const c=SWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(im,f*fw,0,fw,fh,0,0,fw,fh); return c; }
 function drawArtTurtle(g,x,y,s,phase,t,moving){
-  const im=(Math.sin(phase)>=0||!ART.ok.tB)?ART.img.tA:ART.img.tB, w=150*s, h=w*im.naturalHeight/im.naturalWidth;
-  const bob=Math.sin(t*1.6)*1.4+(moving?Math.sin(phase*2)*1.2:0), rot=(moving?Math.sin(phase)*.035:Math.sin(t*1.1)*.02);
+  const sw=artOn('swim'), im=sw?swimFrame(phase,t,moving):((Math.sin(phase)>=0||!ART.ok.tB)?ART.img.tA:ART.img.tB);
+  const w=(sw?165:150)*s, h=w*(im.height||im.naturalHeight)/(im.width||im.naturalWidth);
+  const bob=sw?Math.sin(t*1.3)*1:(Math.sin(t*1.6)*1.4+(moving?Math.sin(phase*2)*1.2:0)), rot=sw?0:(moving?Math.sin(phase)*.035:Math.sin(t*1.1)*.02);
   const left=x-w*.45, top=y-h*.55+bob-14, wl=.64;   // 등딱지 아래쪽부터 물속, 머리는 물 위로(얼굴이 잠기지 않게)
   // 뒤로 끌리는 물살(움직일 때)
   if(moving){ g.save(); g.strokeStyle='rgba(252,253,250,.55)'; g.lineWidth=1.6; g.lineCap='round';
@@ -1391,7 +1407,7 @@ function drawScene(g,W,H,dpr,st){
   g.setTransform(dpr*k,0,0,dpr*k,0,0);
   const a=reduceMotion?0:st.t, cam=st.cam, c=st.clarity;
   const NA=m==='day'&&artOn('bg');
-  if(NA) drawArtBG(g,VW,cam,a); else if(m==='day'){ skyDay(g,VW,cam); waterDay(g,VW,cam,c,a); } else { skyDawn(g,VW,cam); waterDawn(g,VW,cam,c,a); }
+  if(NA) drawArtBG(g,VW,cam,a,c); else if(m==='day'){ skyDay(g,VW,cam); waterDay(g,VW,cam,c,a); } else { skyDawn(g,VW,cam); waterDawn(g,VW,cam,c,a); }
   if(st.goal){ const fx=st.goal*STEP_PX+30-cam;
     if(fx>-60&&fx<VW+60){
       g.strokeStyle=m==='day'?'rgba(251,250,242,.85)':'rgba(255,226,180,.7)'; g.lineWidth=3; g.setLineDash([9,8]); g.beginPath(); g.moveTo(fx,SY.water+4); g.lineTo(fx,SY.front-4); g.stroke(); g.setLineDash([]);
@@ -1464,11 +1480,11 @@ function arAt(Ln,y){ const t=(y-AR.HZ)/(300-AR.HZ); return {cx:Ln.cxT+(Ln.cxB-Ln
 function arProj(d){ return AR.HZ+(AR.YT-AR.HZ)*AR.DEPTH/(AR.DEPTH+Math.max(d,-AR.DEPTH*.6)); } // 앞으로 d만큼 떨어진 곳의 화면 y
 let arLifts=[];
 function drawSceneAR(g,W,H,dpr,st){
-  const k=H/300, VW=W/k, m=mood(), L=LOOK[m];
+  const k=H/300, VW=W/k, m=mood(), L=LOOK[m], NA=m==='day'&&artOn('up');
   g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
   g.setTransform(dpr*k,0,0,dpr*k,0,0);
   const a=reduceMotion?0:st.t, c=st.clarity, Ln=arLane(VW), tw=st.cam+Math.max(80,VW*st.tx);
-  const col=m==='day'?mix([150,146,104],[84,176,214],c):mix([150,118,90],[236,176,132],c);
+  const col=NA?mix([96,150,138],[70,168,170],c):m==='day'?mix([150,146,104],[84,176,214],c):mix([150,118,90],[236,176,132],c);
   const top=arAt(Ln,AR.HZ), bot=arAt(Ln,300);
   const lane=()=>{ g.beginPath(); g.moveTo(top.cx-top.w/2,AR.HZ); g.lineTo(top.cx+top.w/2,AR.HZ); g.lineTo(bot.cx+bot.w/2,300); g.lineTo(bot.cx-bot.w/2,300); g.closePath(); };
   const gr=g.createLinearGradient(0,AR.HZ,0,300); gr.addColorStop(0,rgba(col,.12)); gr.addColorStop(.35,rgba(col,.55)); gr.addColorStop(1,rgba(col,.8));
@@ -1498,11 +1514,15 @@ function drawSceneAR(g,W,H,dpr,st){
   if(st.bottles){ for(let kb=st.picked+1;kb<st.picked+4;kb++){ const d=kb*BOTTLE_EVERY*STEP_PX-tw; if(d>AR.DEPTH*6) break; items.push([kb,d]); } }
   for(let n=items.length-1;n>=0;n--){ const [kb,d]=items[n], y=arProj(d)+Math.sin(a*1.2+kb)*1.5, A=arAt(Ln,y), sc=A.w/Ln.WB, x=A.cx+(hash(kb,3)-.5)*A.w*.35;
     if(n===0){ g.save(); g.strokeStyle=L.ring; g.lineWidth=3; g.setLineDash([6,5]); g.beginPath(); g.ellipse(x,y,38*sc,20*sc,0,0,Math.PI*2); g.stroke(); g.restore(); }
-    drawItem(g,itemAt(kb),x,y,1.2*sc,L.bottle,a*1.3+kb); }
+    if(!(NA&&artOn(itemAt(kb))&&drawArtItem(g,itemAt(kb),x,y+14,1.2*sc,kb,a))) drawItem(g,itemAt(kb),x,y,1.2*sc,L.bottle,a*1.3+kb); }
   // 거북이
   const T=arAt(Ln,AR.YT), ts=Math.min(1.2,T.w/120), ty=AR.YT+Math.sin(a*1.3)*1.5;
   drawFeetUnder(g,T.cx,ty+33*ts,15*ts,20*ts,st.t,m);
-  drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
+  if(NA){ // 위에서 본 남생이가 화면 안쪽으로 헤엄침: 다리 쪽은 물에 잠기고, 몸이 좌우로 살짝 흔들림
+    const im=ART.img.up, w=78*ts, h=w*im.naturalHeight/im.naturalWidth, sway=Math.sin(st.phase)*.06;
+    drawSubmerged(g,im,T.cx-w/2,ty-h*.5,w,h,.72,sway);
+    g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.08,r,r*.32,0,.15,Math.PI-.15); g.stroke(); } g.restore();
+  } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
   if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,26); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,26);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.fillText(st.name,nx+8,ny+19); }
