@@ -359,6 +359,22 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
 @keyframes inFade{from{opacity:0}to{opacity:1}}
 @media (max-width:700px){.in-skip{right:6%}}
 @media (prefers-reduced-motion:reduce){.in-head{animation:none}.in-dive.go{transition:none}}
+
+/* 시안: 레벨·옷장 */
+.lvbox{border:2px solid var(--edge);background:var(--card);padding:16px;display:flex;flex-direction:column;gap:10px}
+.lvtop{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:19px;color:var(--text-2)}
+.lvb{font:800 28px var(--num);color:var(--text)}
+.lvbar{height:16px;border:2px solid var(--edge);background:var(--bar-bg);position:relative}
+.lvbar i{position:absolute;inset:0 auto 0 0;background:#e08a2e}
+.lvbox h3{margin:6px 0 0;font:800 20px var(--num)}
+.wardrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.ward{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:2px solid var(--edge);background:var(--card);color:var(--text);cursor:pointer;min-height:132px}
+.ward img{width:64px;height:52px;object-fit:contain}
+.ward .lk{font-size:30px;line-height:52px;opacity:.6}
+.ward b{font-size:17px}.ward small{font-size:14px;color:var(--text-2);text-align:center}
+.ward.on{border-color:#e08a2e;box-shadow:inset 0 0 0 3px #e08a2e}
+.ward.lock{opacity:.6;cursor:default}
+@media (max-width:560px){.wardrow{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
 
 <!-- 사이트(걷기·기록·공유·줍깅·환경) -->
@@ -381,6 +397,12 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
         <p class="say" id="say"><b>내가 한 걸음 걸으면<br>남생이도 한 걸음.</b><span>걸을수록 쓰레기를 건져서 하천이 맑아져요.</span></p>
         <canvas id="pic" aria-label="하천을 헤엄치는 남생이와 떠 있는 쓰레기 그림"></canvas>
         <p class="today" id="todayLine">오늘은 아직 걷지 않았어요.</p>
+        <section class="lvbox" id="lvBox" hidden aria-label="레벨과 옷장">
+          <div class="lvtop"><b class="lvb">레벨 <span id="lvNum">1</span></b><span id="lvNext"></span></div>
+          <div class="lvbar"><i id="lvFill"></i></div>
+          <h3>옷장</h3>
+          <div class="wardrow" id="wardRow"></div>
+        </section>
         <details class="morestory"><summary>남생이 이야기 · 걸음 기부 보기</summary>
         <div class="story" id="namStory">
           <h2>남생이 이야기</h2>
@@ -1007,7 +1029,7 @@ function route(){
 addEventListener('hashchange',()=>{ const h=(location.hash||'').slice(1); if(VIEWS.includes(h)&&h!==curView){ curView=h; if(S.screen==='site') route(); } });
 $$('.nav a, .brand').forEach(a=>a.addEventListener('click',e=>{ e.preventDefault(); openView(a.dataset.v); }));
 { const h=(location.hash||'').slice(1); if(VIEWS.includes(h)) curView=h; }
-function show(name){
+function show(name){ if(name==='site'&&NEWART) setTimeout(renderWardrobe,0);
   S.screen=name;
   $('#scrSite').hidden = name!=='site';
   $('#scrGame').hidden = name!=='game';
@@ -1062,7 +1084,7 @@ function step(foot, tData, est){
   afterStep();
 }
 function afterStep(){
-  courseOnStep();
+  courseOnStep(); checkLevelUp();
   if(S.steps%MILE===0 && S.steps<S.goal){ notify(`${S.steps}걸음 걸었어요`,`목표까지 ${S.goal-S.steps}걸음 남았어요`,true); if(musicMode!=='melody') sfx.mile(); speak(`와, 벌써 ${S.steps}걸음이에요. 목표까지, ${S.goal-S.steps}걸음 남았어요.`); }
   const b=Math.floor(S.activeSec/BREAK_EVERY_SEC);
   if(b>S.breaks){ S.breaks=b; notify('잠시 쉬어 가세요',`${Math.round(S.activeSec/60)}분 걸었어요. ${tSubj()} 기다려 줘요.`,false,9000); if(musicMode!=='melody') sfx.rest(); speak(`조금, 쉬어 가셔도 괜찮아요. ${tSubj()} 여기서, 기다리고 있을게요.`); }
@@ -1330,14 +1352,26 @@ function frontDawn(g,VW,cam){
 // 배경: 옆으로 이어 붙여도 이음매가 없게 다듬은 하천 그림 한 장 → 걸을 때 천천히 뒤로 흐름
 // 남생이: 옆모습 2장(앞발을 앞으로/뒤로 저은 모습)을 걸음 박자에 맞춰 번갈아 보여 줌
 const NEWART=params.has('newart');
-const ART={ swimN:0, src:{swim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5aa7c44c-1581-4034-abe3-f84f9588d995.png', up:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/03e586cc-81ad-4e98-b0ff-d09fba68f175.png', bg:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/6beb56df-94bc-463b-92b4-cee5e2f23af7.jpg', tA:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/23e3cd17-6f92-4de9-ab2b-d4d895e824f3.png', tB:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e0c2554b-293d-4fde-8bb3-97806e196d83.png', bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/cf734381-8308-443d-b33e-ddc7ab9d7fb4.png', can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3b7721b2-95f6-469e-9769-cd9904b9d491.png', bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/db302282-3882-4d7f-bfaa-94623820688e.png', cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7089d5d1-601f-40b9-a213-a762ad3e9626.png'}, img:{}, ok:{} };
+const ART={ swimN:0, src:{decor:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/2452bb30-f588-46eb-a759-b0f77935bfb5.png', acc_ribbon:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/9eb56791-4f83-4912-845b-6fed4dac8250.png', acc_flowers:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b18a6d48-4451-4ef1-92ac-62bf0979ec6a.png', acc_lotus:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/071de686-a2a5-456d-9abf-7ff253343a48.png', acc_star:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3648df17-b3cd-468c-9511-a486b55f8e6a.png', rswim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5f10a7e4-69ef-4760-b6bb-0cc8bc09bce3.png', ar_bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/44cbc911-856d-4dc5-97d7-6f705724b701.png', ar_can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/65e18950-7b9e-4aaa-91e4-20882f9ac4c5.png', ar_bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/8188025a-4913-46dd-baec-f02f25c7a090.png', ar_cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7df1dcb4-1dfe-4216-870a-b4a0f6f50ae7.png', swim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5aa7c44c-1581-4034-abe3-f84f9588d995.png', up:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b6ad4e55-7aee-4f21-915b-e5f67b4d40d5.png', bg:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/6beb56df-94bc-463b-92b4-cee5e2f23af7.jpg', tA:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/23e3cd17-6f92-4de9-ab2b-d4d895e824f3.png', tB:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e0c2554b-293d-4fde-8bb3-97806e196d83.png', bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/cf734381-8308-443d-b33e-ddc7ab9d7fb4.png', can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3b7721b2-95f6-469e-9769-cd9904b9d491.png', bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/db302282-3882-4d7f-bfaa-94623820688e.png', cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7089d5d1-601f-40b9-a213-a762ad3e9626.png'}, img:{}, ok:{} };
 if(NEWART){ for(const [k,u] of Object.entries(ART.src)){ if(!u.startsWith('http')) continue; const im=new Image(); im.onload=()=>{ ART.ok[k]=true; }; im.src=u; ART.img[k]=im; } }
 const artOn=k=>NEWART&&ART.ok[k];
+function mixHex(a,b,k){ const pa=[1,3,5].map(i=>parseInt(a.substr(i,2),16)), pb=[1,3,5].map(i=>parseInt(b.substr(i,2),16)); return 'rgb('+pa.map((v,i)=>Math.round(v+(pb[i]-v)*k)).join(',')+')'; }
+// 꾸미기 그림(갈대·나무·풀·돌): 가로로 이어 붙인 한 장에서 잘라 씀. 밑동을 (x,y)에 맞춤
+const DECOR_BOX=[[0,28,202,316],[212,27,226,317],[448,0,285,344],[743,274,180,70],[933,228,192,116]];
+function drawDecor(g,i,x,y,s){ const im=ART.img.decor, b=DECOR_BOX[i]; if(!b) return; const w=b[2]*s, h=b[3]*s; g.drawImage(im,b[0],b[1],b[2],b[3],x-w/2,y-h,w,h); }
+// 가까운 강가(시안): 모래톱 물가를 따라 갈대·풀·돌을 띄엄띄엄, 나무는 아주 가끔. 번잡하지 않게 간격을 넓게
+function drawArtFront(g,VW,cam){
+  const sp=150, i0=Math.floor(cam/sp)-1;
+  for(let i=i0;i<i0+VW/sp+3;i++){ const r=hash(i,401); if(r>.62) continue;
+    const kind=r<.10?(hash(i,402)<.5?1:2):(r<.36?0:(r<.52?3:4)), x=i*sp+hash(i,403)*90-cam, y=kind===1||kind===2?296:252+hash(i,404)*6;
+    const s=kind===1||kind===2?.30:(kind===0?.12:.10); drawDecor(g,kind,x,y,s); }
+}
 function drawArtBG(g,VW,cam,t,c){
   const im=ART.img.bg, h=345, top=-45, w=im.naturalWidth*h/im.naturalHeight, off=((cam*.55)%w+w)%w;   // 하늘을 줄이고 수평선을 위로
   for(let x=-off; x<VW; x+=w) g.drawImage(im,x,top,w+1,h);
   // 물 맑기(원래 게임과 같은 규칙): 처음엔 흙탕물처럼 누렇고 탁하다가, 쓰레기를 주울수록 맑은 청록으로 바뀜
   c=Math.max(0,Math.min(1,c==null?1:c)); const wy0=top+h*.475, wy1=top+h*.83, murk=(1-c);
+  g.fillStyle='rgba(24,74,72,.16)'; g.fillRect(0,wy0,VW,wy1-wy0);   // 어르신 눈에 잘 띄게: 물을 한 단계 어둡게 해서 쓰레기·남생이와 밝기 차이를 키움
   if(murk>.01){ const gm=g.createLinearGradient(0,wy0,0,wy1); gm.addColorStop(0,`rgba(150,140,92,${.50*murk})`); gm.addColorStop(1,`rgba(112,104,70,${.62*murk})`);
     g.fillStyle=gm; g.fillRect(0,wy0,VW,wy1-wy0);
     // 떠다니는 부유물(탁할수록 많음)
@@ -1377,10 +1411,11 @@ function waterline(g,cx,y,half,t,strength){
   g.beginPath(); for(let i=0;i<=24;i++){ const u=i/24, x=cx-half+u*half*2, yy=y+Math.sin(u*9+t*4)*1.1; i?g.lineTo(x,yy):g.moveTo(x,yy); } g.stroke();
   g.restore();
 }
+const RSWIM_N=24; const RSWIMC={cv:document.createElement('canvas')};
 // 헤엄 동작: Higgsfield 영상에서 뽑은 프레임(가로로 이어 붙인 한 장)을 걸음 박자에 맞춰 넘김. 멈춰 있으면 천천히 넘김(제자리 헤엄)
-const SWIM_N=24; const SWIMC={cv:document.createElement('canvas')};
+const SWIM_N=24; let SWIM_LAST=0; const SWIM_ANCHOR=[[0.466,0.033],[0.466,0.026],[0.46,0.026],[0.455,0.026],[0.45,0.02],[0.453,0.026],[0.463,0.026],[0.466,0.026],[0.466,0.026],[0.466,0.026],[0.461,0.026],[0.457,0.026],[0.451,0.02],[0.452,0.026],[0.459,0.026],[0.466,0.026],[0.467,0.026],[0.467,0.026],[0.463,0.026],[0.457,0.026],[0.452,0.026],[0.45,0.02],[0.456,0.026],[0.464,0.026]];   // 프레임별 등딱지 꼭대기(가로·세로 비율) const SWIMC={cv:document.createElement('canvas')};
 function swimFrame(phase,t,moving){ const im=ART.img.swim, fw=im.naturalWidth/SWIM_N, fh=im.naturalHeight;
-  const u=moving?((phase/(Math.PI*2))%1+1)%1:((t*.35)%1+1)%1, f=Math.floor(u*SWIM_N)%SWIM_N;
+  const u=moving?((phase/(Math.PI*2))%1+1)%1:((t*.35)%1+1)%1, f=Math.floor(u*SWIM_N)%SWIM_N; SWIM_LAST=f;
   const c=SWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(im,f*fw,0,fw,fh,0,0,fw,fh); return c; }
 function drawArtTurtle(g,x,y,s,phase,t,moving){
   const sw=artOn('swim'), im=sw?swimFrame(phase,t,moving):((Math.sin(phase)>=0||!ART.ok.tB)?ART.img.tA:ART.img.tB);
@@ -1391,14 +1426,15 @@ function drawArtTurtle(g,x,y,s,phase,t,moving){
   if(moving){ g.save(); g.strokeStyle='rgba(252,253,250,.55)'; g.lineWidth=1.6; g.lineCap='round';
     for(let i=0;i<3;i++){ const d=12+i*14+((t*30)%14), yy=top+h*wl+1; g.globalAlpha=1-i*.28; g.beginPath(); g.moveTo(left+w*.05-d,yy-3-i*2); g.quadraticCurveTo(left+w*.05-d-10,yy,left+w*.05-d-22,yy+3+i*2); g.stroke(); } g.restore(); }
   drawSubmerged(g,im,left,top,w,h,wl,rot);
+  { const an=(sw&&SWIM_ANCHOR[SWIM_LAST])||[.45,.06]; drawAccessory(g,left+w*an[0],top+h*an[1]+2,w,'side'); }
   waterline(g,left+w*.52,top+h*wl+1,w*.40,t,1);
   // 머리 앞 작은 물결
   g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.5; const hx=left+w*.98, hy=top+h*wl+1;
   for(let i=0;i<2;i++){ const r=4+i*5+((t*8)%5); g.beginPath(); g.arc(hx,hy,r,-.7,.7); g.stroke(); } g.restore();
 }
-function drawArtItem(g,type,x,y,s,ph,t){
-  y-=14; const im=ART.img[type]; if(!im) return false; const w=58*s, h=w*im.naturalHeight/im.naturalWidth, bob=Math.sin((t||0)*1.4+(ph||0))*1.6;
-  drawSubmerged(g,im,x-w/2,y-h/2+bob,w,h,.58,Math.sin(ph||0)*.06);
+function drawArtItem(g,type,x,y,s,ph,t,ar){
+  if(!ar) y-=14; const im=(ar&&ART.ok['ar_'+type])?ART.img['ar_'+type]:ART.img[type]; if(!im) return false; const w=58*s, h=w*im.naturalHeight/im.naturalWidth, bob=Math.sin((t||0)*1.4+(ph||0))*1.6;
+  g.save(); g.shadowColor='rgba(255,252,240,.95)'; g.shadowBlur=8; drawSubmerged(g,im,x-w/2,y-h/2+bob,w,h,.58,Math.sin(ph||0)*.06); g.restore();
   waterline(g,x,y-h/2+bob+h*.58+1,w*.48,(t||0)+ph,.8);
   return true;
 }
@@ -1417,7 +1453,7 @@ function drawScene(g,W,H,dpr,st){
       g.fillStyle=m==='day'?'#2a2a25':'#16202b'; g.font='700 15px "Nanum Gothic", sans-serif'; g.fillText('목표',fx+11,69); } }
   if(st.bottles){ for(let kb=st.picked+1;;kb++){ const bx=kb*BOTTLE_EVERY*STEP_PX-cam; if(bx>VW+60) break; if(bx<-60) continue;
     const by=BY+Math.sin(a*1.2+kb)*2;
-    if(kb===st.picked+1){ g.save(); g.strokeStyle=L.ring; g.lineWidth=3.5; g.setLineDash([7,6]); g.beginPath(); g.ellipse(bx,by-(NA?14:0),40,24,0,0,Math.PI*2); g.stroke(); g.restore(); }
+    if(kb===st.picked+1){ g.save(); if(NA){ g.strokeStyle='rgba(255,250,235,.9)'; g.lineWidth=8; g.beginPath(); g.ellipse(bx,by-14,42,25,0,0,Math.PI*2); g.stroke(); g.strokeStyle='#e8781a'; g.lineWidth=4.5; g.setLineDash([9,6]); } else { g.strokeStyle=L.ring; g.lineWidth=3.5; g.setLineDash([7,6]); } g.beginPath(); g.ellipse(bx,by-(NA?14:0),NA?42:40,NA?25:24,0,0,Math.PI*2); g.stroke(); g.restore(); }
     if(!(NA&&artOn(itemAt(kb))&&drawArtItem(g,itemAt(kb),bx,by,1.15,kb,a))) drawItem(g,itemAt(kb),bx,by,1.15,L.bottle,a*1.3+kb); } }
   const tx=Math.max(80,VW*st.tx), ty=TY+Math.sin(a*1.3)*2;
   if(m==='day'&&!NA){ g.fillStyle='rgba(40,70,80,.15)'; g.beginPath(); g.ellipse(tx,ty+34,46,6,0,0,Math.PI*2); g.fill(); }
@@ -1426,7 +1462,7 @@ function drawScene(g,W,H,dpr,st){
   if(st.name){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62-(NA?16:0);
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,24); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,24);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.textAlign='center'; g.fillText(st.name,tx+18,ny+17); g.textAlign='left'; }
-  if(NA){} else if(m==='day') frontDay(g,VW,cam); else frontDawn(g,VW,cam);
+  if(NA){ if(artOn('decor')) drawArtFront(g,VW,cam); } else if(m==='day') frontDay(g,VW,cam); else frontDawn(g,VW,cam);
   if(st.goal){ const m0=Math.max(1,Math.floor(cam/(MILE*STEP_PX)));
     for(let n=m0;;n++){ const mx=n*MILE*STEP_PX-cam; if(mx>VW+70) break; if(mx<-70) continue;
       g.fillStyle=L.post; g.fillRect(mx-2.5,262,5,34);
@@ -1514,21 +1550,25 @@ function drawSceneAR(g,W,H,dpr,st){
   if(st.bottles){ for(let kb=st.picked+1;kb<st.picked+4;kb++){ const d=kb*BOTTLE_EVERY*STEP_PX-tw; if(d>AR.DEPTH*6) break; items.push([kb,d]); } }
   for(let n=items.length-1;n>=0;n--){ const [kb,d]=items[n], y=arProj(d)+Math.sin(a*1.2+kb)*1.5, A=arAt(Ln,y), sc=A.w/Ln.WB, x=A.cx+(hash(kb,3)-.5)*A.w*.35;
     if(n===0){ g.save(); g.strokeStyle=L.ring; g.lineWidth=3; g.setLineDash([6,5]); g.beginPath(); g.ellipse(x,y,38*sc,20*sc,0,0,Math.PI*2); g.stroke(); g.restore(); }
-    if(!(NA&&artOn(itemAt(kb))&&drawArtItem(g,itemAt(kb),x,y+14,1.2*sc,kb,a))) drawItem(g,itemAt(kb),x,y,1.2*sc,L.bottle,a*1.3+kb); }
+    if(!(NA&&artOn(itemAt(kb))&&drawArtItem(g,itemAt(kb),x,y,1.2*sc,kb,a,true))) drawItem(g,itemAt(kb),x,y,1.2*sc,L.bottle,a*1.3+kb); }
   // 거북이
   const T=arAt(Ln,AR.YT), ts=Math.min(1.2,T.w/120), ty=AR.YT+Math.sin(a*1.3)*1.5;
   drawFeetUnder(g,T.cx,ty+33*ts,15*ts,20*ts,st.t,m);
   if(NA){ // 위에서 본 남생이가 화면 안쪽으로 헤엄침: 다리 쪽은 물에 잠기고, 몸이 좌우로 살짝 흔들림
-    // 뒤에서 비스듬히 내려다본 남생이(Higgsfield로 따로 그린 뒷모습): 가까운 뒷다리는 크고 먼 머리는 작게
-    const im=ART.img.up, w=80*ts, h=w*im.naturalHeight/im.naturalWidth, sway=Math.sin(st.phase)*.05;
-    drawSubmerged(g,im,T.cx-w/2,ty-h*.62,w,h,.70,sway);
+    // 물길과 같은 시점(뒤에서 약 40도로 내려다봄)의 남생이. 헤엄 동작은 Higgsfield 영상 프레임을 걸음 박자에 맞춰 넘김
+    let im=ART.img.up, iw=im.naturalWidth, ih=im.naturalHeight;
+    if(artOn('rswim')){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=st.moving?((st.phase/(Math.PI*2))%1+1)%1:((a*.35)%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
+      const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh); im=c; iw=fw; ih=fh; }
+    const w=84*ts, h=w*ih/iw, sway=artOn('rswim')?0:Math.sin(st.phase)*.04;
+    drawSubmerged(g,im,T.cx-w/2,ty-h*.62,w,h,.62,sway);
+    drawAccessory(g,T.cx,ty-h*.62+h*.30,w,'rear');
     g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.12,r,r*.26,0,.15,Math.PI-.15); g.stroke(); } g.restore();
   } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
   if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,26); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,26);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.fillText(st.name,nx+8,ny+19); }
   if(st.lifts){ const now=performance.now()/1000; if(lifts.length){ lifts.forEach(p=>arLifts.push({t0:p.t0,type:p.type})); lifts=[]; }
-    arLifts=arLifts.filter(p=>{ const u=(now-p.t0)/1.2; if(u>=1) return false; g.globalAlpha=1-u; const tp=p.type||'bottle'; if(!(NA&&artOn(tp)&&drawArtItem(g,tp,T.cx,ty-24*ts-u*50,(1-u*.4)*ts,0,a))) drawItem(g,tp,T.cx,ty-38*ts-u*50,(1-u*.4)*ts,L.bottle,0); g.globalAlpha=1; return true; }); }
+    arLifts=arLifts.filter(p=>{ const u=(now-p.t0)/1.2; if(u>=1) return false; g.globalAlpha=1-u; const tp=p.type||'bottle'; if(!(NA&&artOn(tp)&&drawArtItem(g,tp,T.cx,ty-24*ts-u*50,(1-u*.4)*ts,0,a,true))) drawItem(g,tp,T.cx,ty-38*ts-u*50,(1-u*.4)*ts,L.bottle,0); g.globalAlpha=1; return true; }); }
 }
 
 
@@ -1606,7 +1646,7 @@ function stepToDist(k){ const P=TC.path; if(k<=0) return P.lead+k; for(const g o
 function pathAt(d){ const P=TC.path, i=Math.max(0,Math.min(P.pts.length-1,Math.round(d/P.DS))); return P.pts[i]; }
 function drawTurnScene(g,W,H,dpr,st){
   if(!TC.path) buildTurnPath();
-  const m=mood(), day=m!=='dawn', Lk=LOOK[m];
+  const m=mood(), day=m!=='dawn', Lk=LOOK[m], NA=day&&artOn('rswim');
   g.setTransform(dpr,0,0,dpr,0,0); g.clearRect(0,0,W,H);
   const Lr=cam.on?{x:Math.round(W*.46),y:10,w:Math.round(W*.54)-12,h:H-20}:{x:0,y:0,w:W,h:H};
   const kStep=turtle.x/STEP_PX, sv=stepToDist(kStep), P=pathAt(sv);
@@ -1614,9 +1654,10 @@ function drawTurnScene(g,W,H,dpr,st){
   const hz=Lr.y+Lr.h*.2, K=Lr.h*.66;
   const proj=(qx,qy)=>{ const dx=qx-P.x, dy=qy-P.y, z=dx*Math.sin(a)+dy*Math.cos(a)+1.2, xl=dx*Math.cos(a)-dy*Math.sin(a); if(z<.35) return null; return {x:Lr.x+Lr.w/2+xl*K/z, y:hz+1.1*K/z, k:K/z}; };
   g.save(); g.beginPath(); g.rect(Lr.x,Lr.y,Lr.w,Lr.h); g.clip();
-  const sky=g.createLinearGradient(0,Lr.y,0,hz); if(day){ sky.addColorStop(0,'#8fcbe6'); sky.addColorStop(1,'#eef6f6'); } else { sky.addColorStop(0,'#141c25'); sky.addColorStop(1,'#3a3340'); }
-  g.fillStyle=sky; g.fillRect(Lr.x,Lr.y,Lr.w,hz-Lr.y+1); g.fillStyle=day?'#8fab72':'#1a242d'; g.fillRect(Lr.x,hz,Lr.w,Lr.h);
-  const water=day?'#62b4d8':'#c98a62', edgeC=day?'#faf7ec':'#f3d7b0', RW=1.25;
+  const sky=g.createLinearGradient(0,Lr.y,0,hz); if(NA){ sky.addColorStop(0,'#a9d4e2'); sky.addColorStop(1,'#e6f1f0'); } else if(day){ sky.addColorStop(0,'#8fcbe6'); sky.addColorStop(1,'#eef6f6'); } else { sky.addColorStop(0,'#141c25'); sky.addColorStop(1,'#3a3340'); }
+  g.fillStyle=sky; g.fillRect(Lr.x,Lr.y,Lr.w,hz-Lr.y+1); g.fillStyle=NA?'#e6d9b8':day?'#8fab72':'#1a242d'; g.fillRect(Lr.x,hz,Lr.w,Lr.h);
+  if(NA){ g.fillStyle='#8fae86'; g.fillRect(Lr.x,hz,Lr.w,Lr.h*.035); g.fillStyle='#b9c9cf'; g.beginPath(); g.moveTo(Lr.x,hz); for(let i=0;i<=8;i++){ const x=Lr.x+Lr.w*i/8; g.lineTo(x,hz-Lr.h*(.03+.025*Math.sin(i*1.7+1))); } g.lineTo(Lr.x+Lr.w,hz); g.closePath(); g.fill(); }
+  const clr=Math.max(0,Math.min(1,st.clarity==null?1:st.clarity)), water=NA?mixHex('#8f8a5c','#4fa49d',clr):day?'#62b4d8':'#c98a62', edgeC=day?'#faf7ec':'#f3d7b0', RW=1.25;
   let prev=null; for(let d=Math.max(0,sv-.6); d<=sv+14; d+=.1){ const q=pathAt(d), nx=Math.cos(q.a)*RW/2, ny=-Math.sin(q.a)*RW/2, l=proj(q.x-nx,q.y-ny), r=proj(q.x+nx,q.y+ny);
     if(prev&&l&&r&&prev.l&&prev.r){ g.fillStyle=water; g.beginPath(); g.moveTo(prev.l.x,prev.l.y); g.lineTo(prev.r.x,prev.r.y); g.lineTo(r.x,r.y); g.lineTo(l.x,l.y); g.closePath(); g.fill();
       g.strokeStyle=edgeC; g.lineWidth=Math.max(1.5,l.k*.05); g.beginPath(); g.moveTo(prev.l.x,prev.l.y); g.lineTo(l.x,l.y); g.moveTo(prev.r.x,prev.r.y); g.lineTo(r.x,r.y); g.stroke(); }
@@ -1626,7 +1667,9 @@ function drawTurnScene(g,W,H,dpr,st){
     const p1=proj(q.x+ox-Math.sin(q.a)*.12,q.y+oy-Math.cos(q.a)*.12), p2=proj(q.x+ox+Math.sin(q.a)*.12,q.y+oy+Math.cos(q.a)*.12); if(p1&&p2){ g.lineWidth=Math.max(1.5,p1.k*.03); g.beginPath(); g.moveTo(p1.x,p1.y); g.lineTo(p2.x,p2.y); g.stroke(); } } }
   // 쓰레기
   const items=[]; for(let kb=S.bottles+1; kb*BOTTLE_EVERY<=courseSteps()+BOTTLE_EVERY; kb++){ const d=stepToDist(kb*BOTTLE_EVERY); if(d>sv+14) break; items.push([kb,d]); }
-  for(let n=items.length-1;n>=0;n--){ const [kb,d]=items[n], q=pathAt(d), p=proj(q.x+Math.cos(q.a)*.18,q.y-Math.sin(q.a)*.18); if(p) drawItem(g,itemAt(kb),p.x,p.y,Math.max(.12,p.k*.012),Lk.bottle,st.t*1.3+kb); }
+  for(let n=items.length-1;n>=0;n--){ const [kb,d]=items[n], q=pathAt(d), p=proj(q.x+Math.cos(q.a)*.18,q.y-Math.sin(q.a)*.18); if(p){ const sc=Math.max(.12,p.k*.012); if(!(NA&&artOn(itemAt(kb))&&drawArtItem(g,itemAt(kb),p.x,p.y,sc*1.1,kb,st.t,true))) drawItem(g,itemAt(kb),p.x,p.y,sc,Lk.bottle,st.t*1.3+kb); } }
+  // 강가 꾸미기(시안): 물길 양쪽 둑을 따라 갈대·나무를 띄엄띄엄
+  if(NA&&artOn('decor')) for(let d=Math.ceil(sv)+1; d<sv+12; d++){ const r=hash(d,301); if(r>.55) continue; const side=hash(d,302)<.5?-1:1, q=pathAt(d), off=side*(RW/2+.35+hash(d,303)*.5), p=proj(q.x+Math.cos(q.a)*off,q.y-Math.sin(q.a)*off); if(p) drawDecor(g,Math.floor(hash(d,304)*5),p.x,p.y,p.k*.0012); }
   // 돌 곳 안내
   const ti=turnSegOfStep(S.steps+1);
   if(ti>=0 && S.steps<courseSteps()){ const R=segRanges()[ti], dir=R.dir, cx=Lr.x+Lr.w/2, y=Lr.y+Lr.h*.12, s2=Lr.h*.06, blink=reduceMotion?1:.55+.45*Math.sin(st.t*4);
@@ -1638,7 +1681,10 @@ function drawTurnScene(g,W,H,dpr,st){
   // 거북이 + 발바닥
   const cx=Lr.x+Lr.w/2, ty=Lr.y+Lr.h*.7, Sz=Lr.h*.1, lean=(a-pathAt(Math.min(sv+1.5,TC.path.pts.length*TC.path.DS-.1)).a)*-.35;
   drawFeetUnder(g,cx,ty+Sz*1.95,Sz*1.05,Sz*1.55,st.t,m);
-  g.save(); g.translate(cx,ty); g.rotate(lean); drawTurtleTop(g,0,0,Sz/30,st.phase,Lk.turtle); g.restore();
+  if(NA){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=((st.phase/(Math.PI*2))%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
+    const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh);
+    const w=Sz*3.1, h=w*fh/fw; g.save(); g.translate(cx,ty); g.rotate(lean); drawSubmerged(g,c,-w/2,-h*.62,w,h,.62,0); drawAccessory(g,0,-h*.62+h*.30,w,'rear'); g.restore(); }
+  else { g.save(); g.translate(cx,ty); g.rotate(lean); drawTurtleTop(g,0,0,Sz/30,st.phase,Lk.turtle); g.restore(); }
   g.restore();
   if(cam.on){ g.strokeStyle=edgeC; g.lineWidth=3; g.strokeRect(Lr.x,Lr.y,Lr.w,Lr.h); }
 }
@@ -2518,6 +2564,37 @@ function startIntro(){
   box.addEventListener('keydown',e=>{ if(['Enter',' ','Escape','Backspace','GoBack','BrowserBack'].includes(e.key)||e.keyCode===10009||e.keyCode===461){ e.preventDefault(); enter(true); } });
 }
 
+
+// ── 시안: 레벨과 옷장(주소에 ?newart) ────────────────────
+// 레벨: 지금까지 걸은 모든 걸음(기록 합계)으로 올라감. 처음엔 빨리, 갈수록 천천히.
+// 옷장: 정해진 걸음 수가 되면 장식이 하나씩 열림. 한 번에 하나를 등딱지 위에 달 수 있음.
+const LV_STEPS=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
+const WARDROBE=[{id:'ribbon',name:'빨간 리본',need:50},{id:'flowers',name:'들꽃 화관',need:200},{id:'lotus',name:'연잎 모자',need:500},{id:'star',name:'별 배지',need:1000}];
+function lifeSteps(){ let n=0; for(const d of Object.keys(LOG.days)) for(const k of Object.keys(LOG.days[d].sessions)){ const x=LOG.days[d].sessions[k]; if(!x.sample&&(S.screen!=='game'||+k!==S.sid)) n+=x.steps||0; } return n+(S.screen==='game'?S.steps:0); }
+function levelOf(n){ let l=1; for(let i=1;i<LV_STEPS.length;i++) if(n>=LV_STEPS[i]) l=i+1; const next=LV_STEPS[l]??null; return {lv:l, cur:LV_STEPS[l-1], next}; }
+let wearing=null; try{ wearing=localStorage.getItem('riverstep:wear')||null; }catch(e){}
+function renderWardrobe(){
+  const box=$('#lvBox'); if(!box) return; const n=lifeSteps(), L=levelOf(n);
+  $('#lvNum').textContent=L.lv; $('#lvNext').textContent=L.next?`다음 레벨까지 ${L.next-n}걸음`:'가장 높은 레벨이에요';
+  $('#lvFill').style.width=(L.next?Math.min(100,(n-L.cur)/(L.next-L.cur)*100):100)+'%';
+  const row=$('#wardRow'); row.innerHTML='';
+  for(const w of WARDROBE){ const open=n>=w.need, on=wearing===w.id; const b=document.createElement('button'); b.type='button'; b.className='ward'+(on?' on':'')+(open?'':' lock'); b.disabled=!open; b.setAttribute('aria-pressed',String(on));
+    b.innerHTML=(open&&ART.src['acc_'+w.id].startsWith('http')?`<img alt="" src="${ART.src['acc_'+w.id]}">`:`<span class="lk">🔒</span>`)+`<b>${w.name}</b><small>${open?(on?'달고 있어요':'눌러서 달기'):w.need+'걸음에 열려요'}</small>`;
+    b.addEventListener('click',()=>{ wearing=on?null:w.id; try{ wearing?localStorage.setItem('riverstep:wear',wearing):localStorage.removeItem('riverstep:wear'); }catch(e){} renderWardrobe(); });
+    row.appendChild(b); }
+}
+let lastLv=null, lastUnlock=null;
+function checkLevelUp(){
+  if(!NEWART) return; const n=lifeSteps(), L=levelOf(n);
+  if(lastLv===null){ lastLv=L.lv; lastUnlock=WARDROBE.filter(w=>n>=w.need).length; return; }
+  if(L.lv>lastLv){ lastLv=L.lv; notify(`레벨 ${L.lv}이 되었어요!`,`${tSubj()} 더 힘차게 헤엄쳐요`,true,5000); try{ sfx.mile(); }catch(e){} speak(`축하해요. 레벨 ${L.lv}이 되었어요.`); }
+  const u=WARDROBE.filter(w=>n>=w.need).length; if(u>lastUnlock){ const w=WARDROBE[u-1]; lastUnlock=u; notify(`옷장에 '${w.name}'이 생겼어요`,'걷기를 마치고 처음 화면에서 달아 줄 수 있어요',true,6000); }
+}
+function drawAccessory(g,x,y,w,view){
+  if(!NEWART||!wearing) return; const im=ART.img['acc_'+wearing]; if(!im||!ART.ok['acc_'+wearing]) return;
+  const aw=w*(view==='rear'?.42:.34), ah=aw*im.naturalHeight/im.naturalWidth;
+  g.drawImage(im,x-aw/2,y-ah*.82,aw,ah);
+}
 // ── 시작 ────────────────────────────────────────────
 applyMood();
 if(LOGO_SRC){ const img=$('#logoImg'); img.src=LOGO_SRC; img.hidden=false; $('#logoText').hidden=true; }
@@ -2530,9 +2607,10 @@ if(params.has('sensor')){
 } else {
   resetSession('keys'); S.screen='site'; applyTV(); route(); resizeAll(); renderSyncButtons(); initSync();
   requestAnimationFrame(frame);
-  if(!params.has('nointro')) startIntro();   // 처음 들어오면 입장 화면. 주소 끝에 ?nointro 를 붙이면 바로 게임
+  if(!params.has('nointro')) startIntro();
+  if(NEWART){ $('#lvBox').hidden=false; renderWardrobe(); }   // 처음 들어오면 입장 화면. 주소 끝에 ?nointro 를 붙이면 바로 게임
 }
 })();
 </script>
-</body>
-</html>
+
+</body></html>
