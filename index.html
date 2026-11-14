@@ -1361,7 +1361,9 @@ function drawSubmerged(g,im,x,y,w,h,wl,rot){
 }
 // 수면 선: 몸을 가로지르는 흰 물선 + 몸 앞뒤의 작은 물결
 function waterline(g,cx,y,half,t,strength){
-  g.save(); g.lineCap='round'; g.strokeStyle=`rgba(252,253,250,${.75*strength})`; g.lineWidth=2;
+  g.save(); g.lineCap='round'; const lg=g.createLinearGradient(cx-half,0,cx+half,0);
+  lg.addColorStop(0,'rgba(252,253,250,0)'); lg.addColorStop(.25,`rgba(252,253,250,${.8*strength})`); lg.addColorStop(.75,`rgba(252,253,250,${.8*strength})`); lg.addColorStop(1,'rgba(252,253,250,0)');
+  g.strokeStyle=lg; g.lineWidth=2;
   g.beginPath(); for(let i=0;i<=24;i++){ const u=i/24, x=cx-half+u*half*2, yy=y+Math.sin(u*9+t*4)*1.1; i?g.lineTo(x,yy):g.moveTo(x,yy); } g.stroke();
   g.restore();
 }
@@ -1373,7 +1375,7 @@ function drawArtTurtle(g,x,y,s,phase,t,moving){
   if(moving){ g.save(); g.strokeStyle='rgba(252,253,250,.55)'; g.lineWidth=1.6; g.lineCap='round';
     for(let i=0;i<3;i++){ const d=12+i*14+((t*30)%14), yy=top+h*wl+1; g.globalAlpha=1-i*.28; g.beginPath(); g.moveTo(left+w*.05-d,yy-3-i*2); g.quadraticCurveTo(left+w*.05-d-10,yy,left+w*.05-d-22,yy+3+i*2); g.stroke(); } g.restore(); }
   drawSubmerged(g,im,left,top,w,h,wl,rot);
-  waterline(g,left+w*.5,top+h*wl+1,w*.52,t,1);
+  waterline(g,left+w*.52,top+h*wl+1,w*.40,t,1);
   // 머리 앞 작은 물결
   g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.5; const hx=left+w*.98, hy=top+h*wl+1;
   for(let i=0;i<2;i++){ const r=4+i*5+((t*8)%5); g.beginPath(); g.arc(hx,hy,r,-.7,.7); g.stroke(); } g.restore();
@@ -1381,7 +1383,7 @@ function drawArtTurtle(g,x,y,s,phase,t,moving){
 function drawArtItem(g,type,x,y,s,ph,t){
   const im=ART.img[type]; if(!im) return false; const w=58*s, h=w*im.naturalHeight/im.naturalWidth, bob=Math.sin((t||0)*1.4+(ph||0))*1.6;
   drawSubmerged(g,im,x-w/2,y-h/2+bob,w,h,.58,Math.sin(ph||0)*.06);
-  waterline(g,x,y-h/2+bob+h*.58+1,w*.55,(t||0)+ph,.8);
+  waterline(g,x,y-h/2+bob+h*.58+1,w*.48,(t||0)+ph,.8);
   return true;
 }
 function drawScene(g,W,H,dpr,st){
