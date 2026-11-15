@@ -2828,7 +2828,7 @@ if(NEWART){ const sb=$('#sortBox'); if(sb) sb.hidden=false; }
 // ── 시안: 박자(1분에 N걸음) · 목표 시간 · 준비 확인 ──
 let planMin=0, planChk=null;
 if(NEWART){
-  try{ paceOn=localStorage.getItem('riverstep:pace')==='on'; }catch(e){}
+  try{ paceOn=localStorage.getItem('riverstep:pace')==='on'; const b0=+(localStorage.getItem('riverstep:bpm')||0); if(b0>=10&&b0<=80) bpm=b0; }catch(e){}
   if(musicMode==='beat'){ musicMode='melody'; paceOn=true; }
   const mb=document.querySelector('#musicSeg [data-music="beat"]'); if(mb) mb.hidden=true; $('#tempoSeg').hidden=true;
   $('#paceBox').hidden=false;
