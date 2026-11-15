@@ -345,6 +345,20 @@ html.na .lvbox .planbox{margin:4px 0 0}html.na .lvbox .planbox[open]{display:fle
 .tlt{display:flex;flex-direction:column;gap:14px;max-width:1100px}.tlt h1{margin:0;font:800 30px var(--num)}.tlt p{margin:0}
 .tlform{display:flex;flex-direction:column;gap:12px;background:var(--card);border:1.5px solid var(--soft);border-radius:18px;padding:20px}.tlform h2{margin:0;font:800 24px var(--num)}
 .tlform textarea{font:500 19px var(--font);border:2px solid var(--edge);border-radius:12px;padding:10px 12px;background:var(--card);color:var(--text)}
+/* TV 우선 첫 화면 */
+html.na .walk{grid-template-columns:minmax(0,1.3fr) minmax(0,540px);gap:28px 44px}
+@media (max-width:900px){html.na .walk{grid-template-columns:minmax(0,1fr)}}
+html.na .rcol{display:flex;flex-direction:column;gap:22px;min-width:0}
+html.na .intro{gap:14px}
+html.na .intro #pic{width:min(100%,calc((100vh - 430px)*16/9));min-width:min(100%,360px);border:0;box-shadow:0 6px 22px rgba(40,60,50,.18);border-radius:22px}
+html.na .intro .startstep{position:static;padding:0;background:none;box-shadow:none;gap:8px;width:min(100%,calc((100vh - 430px)*16/9));min-width:min(100%,360px)}
+html.na .intro .startstep h2{display:none}
+html.na .intro #btnStart{min-height:104px;font-size:40px;border-radius:22px;letter-spacing:.04em}
+html.na .intro #btnStart::before{content:'▶';font-size:.7em;margin-right:6px}
+html.na .intro #btnStart:focus-visible{outline:6px solid var(--pick);outline-offset:4px}
+html.na .intro .safety{margin:0;border:0;background:none;padding:0;font-size:17px;color:var(--text-2);text-align:center}
+html.na .say b{font-size:clamp(28px,3vw,38px)}html.na .say span{margin-top:6px;font-size:clamp(18px,1.6vw,21px)}
+@media (min-width:901px) and (min-height:620px){html.na .intro{position:sticky;top:10px;align-self:start}}
 html.na:not([data-mood="dawn"]) .guide{background:var(--card);color:var(--text);border:2px solid var(--pick)}
 html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
 html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
@@ -3059,7 +3073,13 @@ function drawAccessory(g,x,y,w,view,fr){
 // ── 시작 ────────────────────────────────────────────
 applyMood();
 if(NEWART){ const sb=$('#sortBox'); if(sb) sb.hidden=false; }
-if(NEWART){ document.documentElement.classList.add('na');   // 발 버튼에 넣을 발바닥 그림
+if(NEWART){ document.documentElement.classList.add('na');
+  // TV 우선 첫 화면: 왼쪽 = 큰 남생이 그림 + 바로 아래 시작 단추(늘 같은 자리에 고정), 오른쪽 = 설정·레벨·이야기
+  try{ const walk=document.querySelector('.walk'), intro=walk.querySelector('.intro'), box=walk.querySelector(':scope>.box'), st=document.querySelector('.startstep'), pic=$('#pic');
+    const rc=document.createElement('div'); rc.className='rcol'; walk.insertBefore(rc,box); rc.appendChild(box);
+    let n=$('#homeNote').nextElementSibling; while(n){ const nx=n.nextElementSibling; rc.appendChild(n); n=nx; }
+    pic.insertAdjacentElement('afterend',st); const saf=box.querySelector('.safety'); if(saf) st.appendChild(saf);
+  }catch(e){}   // 발 버튼에 넣을 발바닥 그림
   for(const [id,side] of [['btnL','L'],['btnR','R']]){ const cv=document.createElement('canvas'); cv.width=108; cv.height=152; const q=cv.getContext('2d'); q.translate(54,78); q.scale(side==='L'?-1.25:1.25,1.25); q.rotate(.1); footShape(q); q.fillStyle=side==='L'?'#3a2206':'#10330c'; q.fill(); $('#'+id).style.setProperty('--fi',`url(${cv.toDataURL()})`); } }
 // ── 시안: 박자(1분에 N걸음) · 목표 시간 · 준비 확인 ──
 let planMin=0, planChk=null;
