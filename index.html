@@ -280,16 +280,24 @@ tr.ex td{color:var(--text-2)}
 /* 시안: 테두리를 덜 짙게, 여백을 넉넉히, 발 버튼은 왼발 주황·오른발 초록 + 발바닥 그림 */
 html.na .lvbox{border:1.5px solid var(--soft);padding:18px;gap:12px}
 html.na .ward{border:1.5px solid var(--soft);min-height:112px;padding:8px 4px}
-html.na .ward.on{border:3px solid #e08a2e}
+html.na .ward.on{border:3px solid var(--pick,#e08a2e)}
 html.na .ward small{display:none}html.na .ward.on small,html.na .ward.lock small{display:block}
 html.na .wardrow{grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px}
 html.na .ward img,html.na .ward .ficw{width:54px;height:44px}html.na .ward b{font-size:15px;word-break:keep-all;text-align:center}
 html.na .planbox{border:1.5px solid var(--soft)}
-/* 시안: 검정 면적 줄이기 — 고른 단추는 까만 칠 대신 남생이 등딱지 갈색, 테두리는 한 톤 옅게(글자만 진하게 남김) */
-html.na:not([data-mood="dawn"]){--edge:#8b8676;--pick:#6e4a2c}
+/* 시안: 검정 면적 줄이기 — 고른 단추는 까만 칠 대신 그림 속 하천·숲과 같은 이끼 초록, 테두리는 한 톤 옅게(글자만 진하게 남김) */
+html.na:not([data-mood="dawn"]){--edge:#8b8676;--pick:#3f6650;--accent:#3f6650}
 html.na[data-mood="dawn"]{--pick:#e9edf1}
 html.na .goal[aria-pressed="true"]{background:var(--pick);box-shadow:inset 0 0 0 3px var(--pick),inset 0 0 0 4px var(--card)}
 html.na .seg button[aria-pressed="true"],html.na .feet button[aria-pressed="true"],html.na .pbtn[aria-pressed="true"],html.na .planbtn{background:var(--pick)}
+html.na .lvbar i{background:var(--pick,#e08a2e)}
+html.na .box{border:1.5px solid var(--soft);border-radius:22px}
+html.na .goal,html.na .seg button,html.na .feet button,html.na .pbtn,html.na .namein,html.na .planbox,html.na .lvbox,html.na .ward,html.na .card,html.na #paceNum,html.na #paceNumRow .gstep{border-radius:14px}
+html.na .goal,html.na .seg button,html.na .feet button,html.na .pbtn{border-width:1.5px}
+html.na .namein,html.na .planbox{border-width:2px}
+html.na .planbtn{border-radius:99px}html.na .lvbar{border-radius:99px;overflow:hidden;border-width:1.5px}html.na #pic{border-radius:18px}
+html.na .goal[aria-pressed="true"]{box-shadow:none}
+html.na .stepno h2 .n{display:inline-flex;align-items:center;justify-content:center;width:50px;height:46px;min-width:0;margin-right:12px;border-radius:52% 48% 50% 50%/58% 56% 44% 42%;background:var(--pick);color:#fff;font-size:28px;vertical-align:middle}   /* 번호 = 물 위 징검돌 */
 html.na:not([data-mood="dawn"]) .guide{background:var(--card);color:var(--text);border:2px solid var(--pick)}
 html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
 html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
@@ -1576,14 +1584,14 @@ function drawFriendSprite(g,i,cx,bottom,w,t,alpha,flip,rot,sx,sy){
 // 원앙은 물 위를 미끄러지듯, 개구리는 남생이 등딱지에 올라타고, 잠자리는 제자리에 조용히 떠 있음
 let GOS=0, GOS_T=0, SWT=0; function smoothGo(moving){ const n=performance.now(), dt=Math.min(.1,(n-GOS_T)/1000); GOS_T=n; GOS+=((moving?1:0)-GOS)*Math.min(1,dt*3); SWT+=dt*(1+GOS*.8); return GOS; }   // SWT: 헤엄 물결용 시간(걷는 동안 조금 빨리 흐름). 빠르기가 바뀌어도 이어져서 멈출 때 떨리지 않음   // 멈춤↔걷기 전환을 부드럽게(뚝 끊기지 않게)
 const WAVEC={cv:document.createElement('canvas')};
-function drawWave(g,img,b,cx,cy,w,h,ax,amp,k,ph,alpha){
+function drawWave(g,img,b,cx,cy,w,h,ax,amp,k,ph,alpha,rot){
   // 반투명일 때 조각 이음매가 줄무늬로 비치지 않게, 따로 그린 뒤 한 번에 얹음
   const N=14, R=2, pad=amp*w+2, c=WAVEC.cv, cw=Math.ceil((w+pad*2)*R), ch=Math.ceil((h+pad*2)*R); if(c.width<cw) c.width=cw; if(c.height<ch) c.height=ch;
   const q=c.getContext('2d'); q.setTransform(1,0,0,1,0,0); q.clearRect(0,0,cw,ch); q.setTransform(R,0,0,R,pad*R,pad*R);
   for(let i=0;i<N;i++){ const u=(i+.5)/N;
     if(ax==='y'){ const e=u*u, off=amp*w*e*Math.sin(ph-u*k); q.drawImage(img,b[0],b[1]+b[3]*i/N,b[2],b[3]/N,off,h*i/N,w,h/N+.6); }      /* 머리가 위: 아래(꼬리)로 갈수록 좌우로 */
     else { const v=1-u, e=v*v, off=amp*w*e*Math.sin(ph-v*k); q.drawImage(img,b[0]+b[2]*i/N,b[1],b[2]/N,b[3],w*i/N,off,w/N+.6,h); } }   /* 머리가 오른쪽: 왼쪽(꼬리)로 갈수록 위아래로 */
-  g.save(); if(alpha!=null) g.globalAlpha=alpha; g.drawImage(c,0,0,cw,ch,cx-w/2-pad,cy-h/2-pad,cw/R,ch/R); g.restore(); }
+  g.save(); if(alpha!=null) g.globalAlpha=alpha; g.translate(cx,cy); if(rot) g.rotate(rot); g.drawImage(c,0,0,cw,ch,-w/2-pad,-h/2-pad,cw/R,ch/R); g.restore(); }
 const FISH_S=[[6,6,110,39],[79,48,106,38],[19,91,107,38]], FISH_R=[[75,6,67,120],[6,93,66,120],[124,98,68,123]];   // 송사리 세 마리 각각의 자리(옆·뒤)
 const FROG_BOX={side:[6,6,239,200],rear:[251,6,209,200]};
 function drawFrogOnShell(g,view,cx,bottom,w,t){ const b=FROG_BOX[view]; if(!b||!artOn('frog')) return; const br=1+Math.sin(t*2.2)*.02, h=w*b[3]/b[2]; g.drawImage(ART.img.frog,b[0],b[1],b[2],b[3],cx-w/2,bottom-h*br,w,h*br); }   // 숨 쉬듯 아주 조금만 부풀었다 줄어듦
@@ -1607,9 +1615,9 @@ function drawCompanionsRear(g,w,t,phase,moving,lv,layer,place){
   if(!artOn('friendsR')) return; const go=smoothGo(moving), im=ART.img.friendsR, bob=k=>Math.sin(t*1.2+k)*w*.008;
   const at=(id,lat,ahead)=>(hasFriend(id,lv)&&((ahead>0)===(layer==='back')))?place(lat,ahead):null;
   let q;
-  if(q=at('duck',-.56,.42)) drawRearSprite(g,3,q.x,q.y+bob(3),w*.36*q.s,1,Math.sin(t*.7)*.02);                                   // 원앙: 미끄러지듯
-  if(q=at('minnow',.5,.5)) FISH_R.forEach((b,i)=>{ const fw=w*.11*q.s, fh=fw*b[3]/b[2], ox=[0,-.11,.1][i]*w*q.s+Math.sin(t*.7+i*2.1)*w*.012*q.s, oy=[-.15,0,.02][i]*w*q.s; drawWave(g,im,b,q.x+ox,q.y+oy-fh/2,fw,fh,'y',.3,3,SWT*7+i*1.9,.62); });   // 송사리: 꼬리를 좌우로 살랑살랑
-  if(q=at('otter',.56,-.12)){ const b=FRR_BOX[4], ow=w*.36*q.s, oh=ow*b[3]/b[2]; drawWave(g,im,b,q.x,q.y+bob(4)-oh/2,ow,oh,'y',.07,3.2,SWT*3.2,1); }   // 수달: 몸통과 꼬리가 좌우로 물결
+  if(q=at('duck',-.56,.42)) drawRearSprite(g,3,q.x,q.y+bob(3),w*.36*q.s,1,Math.sin(t*.7)*.02+(q.r||0));                                   // 원앙: 미끄러지듯
+  if(q=at('minnow',.5,.5)) FISH_R.forEach((b,i)=>{ const fw=w*.11*q.s, fh=fw*b[3]/b[2], ox=[0,-.11,.1][i]*w*q.s+Math.sin(t*.7+i*2.1)*w*.012*q.s, oy=[-.15,0,.02][i]*w*q.s; drawWave(g,im,b,q.x+ox,q.y+oy-fh/2,fw,fh,'y',.3,3,SWT*7+i*1.9,.62,q.r||0); });   // 송사리: 꼬리를 좌우로 살랑살랑
+  if(q=at('otter',.56,-.12)){ const b=FRR_BOX[4], ow=w*.36*q.s, oh=ow*b[3]/b[2]; drawWave(g,im,b,q.x,q.y+bob(4)-oh/2,ow,oh,'y',.07,3.2,SWT*3.2,1,q.r||0); }   // 수달: 몸통과 꼬리가 좌우로 물결
   if(q=at('fly',-.1,.95)) drawRearSprite(g,1,q.x+Math.sin(t*.5)*w*.03*q.s,q.y-w*.5*q.s+Math.sin(t*.8)*w*.012,w*.15*q.s,1,0);        // 잠자리: 작게, 조용히 떠 있음
 }
 // 백로는 헤엄을 못 치니까 목표 지점 깃발 옆 둔치에서 기다림
@@ -1938,7 +1946,7 @@ function drawTurnScene(g,W,H,dpr,st){
   if(NA){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=((st.phase/(Math.PI*2))%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
     const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh);
     const w=Sz*3.1, h=w*fh/fw, kP=K/1.2, FL=LV_PREVIEW||CUR_LV;
-    const place=(lat,ah)=>{ const d=Math.max(0,sv+ah*.62), q=pathAt(d), off=lat*RW/2*.62, pp=proj(q.x+Math.cos(q.a)*off,q.y-Math.sin(q.a)*off); return pp?{x:pp.x,y:pp.y+Lr.h*.035,s:pp.k/kP}:null; };   // 친구는 물길 위 실제 자리에(굽은 길에서도 물 밖으로 안 나가고 뜨지 않음)
+    const place=(lat,ah)=>{ const d=Math.max(0,sv+ah*.62), q=pathAt(d), off=lat*RW/2*.62, pp=proj(q.x+Math.cos(q.a)*off,q.y-Math.sin(q.a)*off); if(!pp) return null; const q2=pathAt(d+.3), p2=proj(q2.x+Math.cos(q2.a)*off,q2.y-Math.sin(q2.a)*off), r=p2?Math.max(-1,Math.min(1,Math.atan2(p2.x-pp.x,pp.y-p2.y))):0; return {x:pp.x,y:pp.y+Lr.h*.035,s:pp.k/kP,r}; };   // 친구는 물길 위 실제 자리에(굽은 길에서도 물 밖으로 안 나가고 뜨지 않음)
     drawCompanionsRear(g,w,st.t,st.phase,st.moving,FL,'back',place);
     g.save(); g.strokeStyle='rgba(240,248,244,.55)'; g.lineWidth=2; for(let i=0;i<2;i++){ const r=w*(.36+i*.13)+((st.t*10)%6); g.beginPath(); g.ellipse(cx,ty+h*.1,r,r*.3,0,.15,Math.PI-.15); g.stroke(); } g.restore();   // 남생이 둘레 물결: 물에 떠 있다는 느낌
     g.save(); g.translate(cx,ty); g.rotate(lean); drawSubmerged(g,c,-w/2,-h*.74,w,h,.80,0); drawAccessory(g,0,-h*.74+h*.36,w,'rear',{left:-w/2, top:-h*.74, w, h, wl:.80}); if(hasFriend('frog',FL)) drawFrogOnShell(g,'rear',0,-h*.74+h*.58,w*.25,st.t); g.restore();
