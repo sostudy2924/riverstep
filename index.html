@@ -346,13 +346,14 @@ html.na .lvbox .planbox{margin:4px 0 0}html.na .lvbox .planbox[open]{display:fle
 .tlform{display:flex;flex-direction:column;gap:12px;background:var(--card);border:1.5px solid var(--soft);border-radius:18px;padding:20px}.tlform h2{margin:0;font:800 24px var(--num)}
 .tlform textarea{font:500 19px var(--font);border:2px solid var(--edge);border-radius:12px;padding:10px 12px;background:var(--card);color:var(--text)}
 /* TV 우선 첫 화면 */
-html.na .walk{grid-template-columns:minmax(0,1.3fr) minmax(0,540px);gap:28px 44px}
+html.na .walk{grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:28px 44px}
+@media (min-width:901px) and (min-height:620px){html.na .walk{grid-template-columns:minmax(360px,calc((100vh - 430px)*16/9)) minmax(460px,1fr)}}
 @media (max-width:900px){html.na .walk{grid-template-columns:minmax(0,1fr)}}
 html.na .view,html.na .top{max-width:min(1560px,94vw)}html.na #v-walk{padding-top:20px}
 html.na .rcol{display:flex;flex-direction:column;gap:22px;min-width:0}
 html.na .intro{gap:14px}
-html.na .intro #pic{width:min(100%,calc((100vh - 430px)*16/9));min-width:min(100%,360px);border:0;box-shadow:0 6px 22px rgba(40,60,50,.18);border-radius:22px}
-html.na .intro .startstep{position:static;padding:0;background:none;box-shadow:none;gap:8px;width:min(100%,calc((100vh - 430px)*16/9));min-width:min(100%,360px)}
+html.na .intro #pic{width:100%;border:0;box-shadow:0 6px 22px rgba(40,60,50,.18);border-radius:22px}
+html.na .intro .startstep{position:static;padding:0;background:none;box-shadow:none;gap:8px;width:100%}
 html.na .intro .startstep h2{display:none}
 html.na .intro #btnStart{min-height:104px;font-size:40px;border-radius:22px;letter-spacing:.04em}
 html.na .intro #btnStart::before{content:'▶';font-size:.7em;margin-right:6px}
@@ -360,6 +361,34 @@ html.na .intro #btnStart:focus-visible{outline:6px solid var(--pick);outline-off
 html.na .intro .safety{margin:0;border:0;background:none;padding:0;font-size:17px;color:var(--text-2);text-align:center}
 html.na .say b{font-size:clamp(28px,3vw,38px)}html.na .say span{margin-top:6px;font-size:clamp(18px,1.6vw,21px)}
 @media (min-width:901px) and (min-height:620px){html.na .intro{position:sticky;top:10px;align-self:start}}
+/* ── 디자인 후보 미리보기(?newart&theme=…). 고르기 전까지 기본 시안에는 적용 안 함 ── */
+/* A 동화책 하천: 따뜻한 종이색 + 도톰한 단추(아래 턱) + 초록 시작 */
+html.na[data-th="a"]:not([data-mood="dawn"]),html.na[data-th="c"]:not([data-mood="dawn"]){--bg:#f5edd8;--card:#fffaf0;--text:#45382a;--text-2:#786852;--soft:#e7dcc2;--edge:#bfb08e;--pick:#3f8a4f;--accent:#3f8a4f;--r-bg:#4fa862;--r-bg-down:#3a8049;--r-t:#fff;--note-bg:#fcefc4;--chip:#f0e6cd}
+html.na[data-th="a"] .box,html.na[data-th="a"] .lvbox,html.na[data-th="c"] .box,html.na[data-th="c"] .lvbox{border:0;border-radius:26px;box-shadow:0 5px 0 #e2d6b8,0 12px 26px rgba(110,85,40,.10)}
+html.na:is([data-th="a"],[data-th="c"]) :is(.goal,.seg button,.pbtn){border:0;background:#f1e6cb;box-shadow:0 4px 0 #d9cba6;border-radius:16px}
+html.na:is([data-th="a"],[data-th="c"]) :is(.goal,.seg button,.pbtn)[aria-pressed="true"]{background:var(--pick);color:#fff;box-shadow:0 4px 0 #2c6639}
+html.na:is([data-th="a"],[data-th="c"]) .planbox{border:0;background:#f8f0db}
+html.na:is([data-th="a"],[data-th="c"]) .namein{border:2px solid #d9cba6;background:#fff}
+html.na:is([data-th="a"],[data-th="c"]) #btnStart{box-shadow:0 7px 0 var(--r-bg-down),0 14px 22px rgba(60,120,70,.25);text-shadow:0 2px 0 rgba(0,0,0,.12)}
+html.na:is([data-th="a"],[data-th="c"]) .top{border-bottom-color:#d9cba6}
+html.na:is([data-th="a"],[data-th="c"]) .stepno h2 .n{box-shadow:0 3px 0 #2c6639}
+/* B 맑은 아침: 흰 바탕 + 또렷한 글자 + 주황 시작(화면에서 따뜻한 색은 시작 하나뿐) */
+html.na[data-th="b"]:not([data-mood="dawn"]){--bg:#f3f7f4;--card:#ffffff;--text:#17231f;--text-2:#4d5b56;--soft:#dbe5df;--edge:#9fb0a8;--pick:#1d7a5c;--accent:#1d7a5c;--r-bg:#ffb03a;--r-bg-down:#e0921c;--r-t:#2a1600;--note-bg:#fff4d6;--chip:#eaf1ed}
+html.na[data-th="b"] .box,html.na[data-th="b"] .lvbox{border:0;border-radius:20px;box-shadow:0 2px 14px rgba(20,50,40,.09)}
+html.na[data-th="b"] :is(.goal,.seg button,.pbtn){border:2px solid #cbd8d1;background:#fff;border-radius:999px}
+html.na[data-th="b"] .goal{border-radius:18px}
+html.na[data-th="b"] :is(.goal,.seg button,.pbtn)[aria-pressed="true"]{background:var(--pick);border-color:var(--pick);color:#fff}
+html.na[data-th="b"] #btnStart{border-radius:999px;box-shadow:0 8px 20px rgba(224,146,28,.35)}
+html.na[data-th="b"] .top{border-bottom:2px solid #dbe5df}
+/* C 게임 첫 화면: A의 색 + 그림 위에 제목, 그림 아래쪽에 걸친 시작 단추 */
+html.na[data-th="c"] .intro{position:relative;gap:0}
+@media (min-width:901px) and (min-height:620px){html.na[data-th="c"] .intro{position:sticky}}
+html.na[data-th="c"] .say{position:absolute;z-index:2;left:26px;top:20px;right:26px;text-shadow:0 2px 0 rgba(255,255,255,.75),0 0 14px rgba(255,255,255,.6)}
+html.na[data-th="c"] .say span{display:none}
+html.na[data-th="c"] .intro #pic{aspect-ratio:16/10.5;border-radius:28px}
+html.na[data-th="c"] .intro .startstep{width:74%;align-self:center;margin-top:-58px;position:relative;z-index:2}
+html.na[data-th="c"] .intro .safety{margin-top:10px}
+html.na[data-th="c"] .today,html.na[data-th="c"] .tnote{margin-top:14px}
 html.na:not([data-mood="dawn"]) .guide{background:var(--card);color:var(--text);border:2px solid var(--pick)}
 html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
 html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
@@ -3074,7 +3103,7 @@ function drawAccessory(g,x,y,w,view,fr){
 // ── 시작 ────────────────────────────────────────────
 applyMood();
 if(NEWART){ const sb=$('#sortBox'); if(sb) sb.hidden=false; }
-if(NEWART){ document.documentElement.classList.add('na');
+if(NEWART){ document.documentElement.classList.add('na'); { const th=params.get('theme'); if(th) document.documentElement.dataset.th=th; }   // 디자인 후보 미리보기: ?newart&theme=a·b·c
   // TV 우선 첫 화면: 왼쪽 = 큰 남생이 그림 + 바로 아래 시작 단추(늘 같은 자리에 고정), 오른쪽 = 설정·레벨·이야기
   try{ const walk=document.querySelector('.walk'), intro=walk.querySelector('.intro'), box=walk.querySelector(':scope>.box'), st=document.querySelector('.startstep'), pic=$('#pic');
     const rc=document.createElement('div'); rc.className='rcol'; walk.insertBefore(rc,box); rc.appendChild(box);
