@@ -277,6 +277,24 @@ tr.ex td{color:var(--text-2)}
 .report .rs span{display:block;font-size:14px;color:#4a4a40}
 .report .rs b{font:800 26px var(--num)}
 
+/* 시안: 테두리를 덜 짙게, 여백을 넉넉히, 발 버튼은 왼발 주황·오른발 초록 + 발바닥 그림 */
+html.na .lvbox{border:1.5px solid var(--soft);padding:18px;gap:12px}
+html.na .ward{border:1.5px solid var(--soft);min-height:112px;padding:8px 4px}
+html.na .ward.on{border:3px solid #e08a2e}
+html.na .ward small{display:none}html.na .ward.on small,html.na .ward.lock small{display:block}
+html.na .wardrow{grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px}
+html.na .ward img,html.na .ward .ficw{width:54px;height:44px}html.na .ward b{font-size:15px;word-break:keep-all;text-align:center}
+html.na .planbox{border:1.5px solid var(--soft)}
+html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
+html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
+html.na .foot{flex-direction:row;gap:16px;border-width:0;border-radius:14px;box-shadow:none;transition:opacity .15s,transform .15s}
+html.na .foot::before{content:'';width:54px;height:76px;background:var(--fi) center/contain no-repeat;flex:none}
+html.na .foot.l{background:#f2a04e;color:#3a2206}html.na .foot.l:active,html.na .foot.l.hit{background:#e08a2e}
+html.na .foot.r{background:#6fb564;color:#10330c}html.na .foot.r:active,html.na .foot.r.hit{background:#589c4e}
+html.na .foot.next{animation:none;filter:none;outline:6px solid #fff;outline-offset:-10px;transform:scale(1.02)}
+html.na .foot.next::after{content:'지금 이 발';font-size:20px;font-weight:800;color:inherit;background:rgba(255,255,255,.75);padding:4px 12px;border-radius:99px}
+html.na .controls:has(.foot.next) .foot:not(.next){opacity:.45}
+html.na .foot.cue{box-shadow:0 0 0 6px #ffd640}
 /* 분리배출(시안): 글 대신 그림 단계 */
 .sort{margin:0 0 22px;padding:18px;border:2px solid var(--edge);background:var(--card)}
 .sort h2{margin:0 0 8px;font:800 24px var(--num)}
@@ -1759,14 +1777,15 @@ function footShape(g){ // 오른발 기준(엄지가 왼쪽=몸 안쪽), 길이 
 function drawFoot(g,x,y,sz,side,flash,next,t,m){
   const s=sz/110, day=m!=='dawn';
   g.save(); g.translate(x,y); g.scale(side==='L'?-s*1.28:s*1.28,s); g.rotate(.12);
-  if(next){ const pulse=.55+.45*Math.abs(Math.sin(t*3.2)); g.shadowColor=`rgba(122,201,96,${pulse})`; g.shadowBlur=16*pulse+6;
-    g.fillStyle=`rgba(170,226,140,${.55+.35*pulse})`; footShape(g); g.fill(); g.shadowBlur=0; }
-  else { g.fillStyle=day?'rgba(252,251,247,.55)':'rgba(255,255,255,.18)'; footShape(g); g.fill(); }
+  const FC=NEWART?(side==='L'?{rgb:'240,150,60',ink:'150,78,14'}:{rgb:'110,196,96',ink:'40,104,36'}):null;   // 시안: 왼발 주황 · 오른발 초록
+  if(next){ const pulse=.55+.45*Math.abs(Math.sin(t*3.2)); g.shadowColor=FC?`rgba(${FC.rgb},${pulse})`:`rgba(122,201,96,${pulse})`; g.shadowBlur=16*pulse+6;
+    g.fillStyle=FC?`rgba(${FC.rgb},${.75+.25*pulse})`:`rgba(170,226,140,${.55+.35*pulse})`; footShape(g); g.fill(); g.shadowBlur=0; }
+  else { g.fillStyle=FC?`rgba(${FC.rgb},.38)`:(day?'rgba(252,251,247,.55)':'rgba(255,255,255,.18)'); footShape(g); g.fill(); }
   if(flash>0){ g.globalAlpha=Math.min(1,.25+flash); g.fillStyle='#f0c25a'; footShape(g); g.fill(); g.globalAlpha=1; }
   const soft=NEWART&&day;   // 새 그림체 시안: 테두리를 얇고 연하게
-  g.lineWidth=(soft?(next?1.6:1.1):(next?3.2:2.2))/s; g.strokeStyle=soft?(next?'rgba(47,107,42,.55)':'rgba(54,53,47,.28)'):(next?'#2f6b2a':(day?'#36352f':'rgba(243,215,176,.9)')); footShape(g); g.stroke();
+  g.lineWidth=(soft?(next?1.6:1.1):(next?3.2:2.2))/s; g.strokeStyle=soft?(next?`rgba(${FC.ink},.8)`:`rgba(${FC.ink},.35)`):(next?'#2f6b2a':(day?'#36352f':'rgba(243,215,176,.9)')); footShape(g); g.stroke();
   g.rotate(-.12); g.scale(side==='L'?-1/1.28:1/1.28,1);
-  g.fillStyle=soft?(next?'rgba(31,74,28,.8)':'rgba(42,42,37,.55)'):(next?'#1f4a1c':(day?'#2a2a25':'#f3d7b0')); g.font='800 34px "Nanum Gothic", sans-serif'; g.textAlign='center'; g.textBaseline='middle';
+  g.fillStyle=soft?(next?'rgba(34,30,22,.92)':'rgba(42,42,37,.6)'):(next?'#1f4a1c':(day?'#2a2a25':'#f3d7b0')); g.font='800 34px "Nanum Gothic", sans-serif'; g.textAlign='center'; g.textBaseline='middle';
   g.fillText(side==='L'?'왼':'오',0,14);
   g.restore();
 }
@@ -1880,7 +1899,7 @@ function drawTurnScene(g,W,H,dpr,st){
   if(NA&&artOn('decor')){ const list=[], DS=.3;
     for(let d=Math.floor((sv+12)/DS)*DS; d>sv-1; d-=DS){ for(const side of [-1,1]){ const h=hash(Math.round(d/DS)*2+(side>0?1:0),511), off=RW/2+.3+h*.24; if(!clearAt(d,side,off,RW/2+.24)) continue; const q=pathAt(d), p=proj(q.x+Math.cos(q.a)*side*off,q.y-Math.sin(q.a)*side*off); if(!p||p.y<hz+4) continue; list.push({k:p.k,f:()=>drawDecor(g,h<.55?0:3,p.x,p.y,Math.min(.32,p.k*(.0009+h*.0005)))}); } }   // 축대 바로 뒤 갈대·풀 한 줄
     for(let n=Math.floor((sv+26)/1.6); n*1.6>sv-1.2; n--){ const d=n*1.6; for(const side of [-1,1]){ if(!clearAt(d,side,RW/2+1.45,RW/2+1.25)) continue; const q=pathAt(d), off=side*(RW/2+1.45), p=proj(q.x+Math.cos(q.a)*off,q.y-Math.sin(q.a)*off); if(!p||p.y<hz+2) continue; const kind=hash(n*2+(side>0?1:0),77)<.5?1:2; list.push({k:p.k,f:()=>drawDecor(g,kind,p.x,p.y,Math.min(1.5,p.k*.0034))}); } }   // 산책로 따라 가로수
-    if(artOn('bridge')){ const im=ART.img.bridge, segsS=TC.path.segs.filter(c=>c.t==='S'&&c.s1-c.s0>=4).map(c=>(c.s0+c.s1)/2), last=TC.path.segs[TC.path.segs.length-1]; if(last) segsS.push(last.s1+9);
+    if(artOn('bridge')){ const im=ART.img.bridge, str=TC.path.segs.filter(c=>c.t==='S'&&c.s1-c.s0>=4), segsS=str.length>1?[(str[1].s0+str[1].s1)/2]:str.map(c=>(c.s0+c.s1)/2);   // 다리는 하나만(되돌아오는 길 한가운데)
       for(const d of segsS){ if(d<sv+.25||d>sv+40) continue; const q=pathAt(d), p=proj(q.x,q.y); if(!p||p.y<hz+2) continue; const w=p.k*(RW+2.5), h=w*im.naturalHeight/im.naturalWidth, al=Math.min(1,(d-sv-.25)/.9); list.push({k:p.k,f:()=>{ g.save(); g.globalAlpha=al; g.drawImage(im,p.x-w/2,p.y-h*.97,w,h); g.restore(); }}); } }   // 하천을 가로지르는 보행교(지나갈 때는 옅어짐)
     list.sort((a,b)=>a.k-b.k).forEach(o=>o.f()); }
   // 돌 곳 안내
@@ -2843,6 +2862,8 @@ function drawAccessory(g,x,y,w,view,fr){
 // ── 시작 ────────────────────────────────────────────
 applyMood();
 if(NEWART){ const sb=$('#sortBox'); if(sb) sb.hidden=false; }
+if(NEWART){ document.documentElement.classList.add('na');   // 발 버튼에 넣을 발바닥 그림
+  for(const [id,side] of [['btnL','L'],['btnR','R']]){ const cv=document.createElement('canvas'); cv.width=108; cv.height=152; const q=cv.getContext('2d'); q.translate(54,78); q.scale(side==='L'?-1.25:1.25,1.25); q.rotate(.1); footShape(q); q.fillStyle=side==='L'?'#3a2206':'#10330c'; q.fill(); $('#'+id).style.setProperty('--fi',`url(${cv.toDataURL()})`); } }
 // ── 시안: 박자(1분에 N걸음) · 목표 시간 · 준비 확인 ──
 let planMin=0, planChk=null;
 if(NEWART){
