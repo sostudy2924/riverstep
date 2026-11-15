@@ -1532,7 +1532,7 @@ const RSWIM_N=24; const RSWIMC={cv:document.createElement('canvas')};
 const SWIM_N=24; let SWIM_LAST=0; const SWIM_ANCHOR=[[0.466,0.033],[0.466,0.026],[0.46,0.026],[0.455,0.026],[0.45,0.02],[0.453,0.026],[0.463,0.026],[0.466,0.026],[0.466,0.026],[0.466,0.026],[0.461,0.026],[0.457,0.026],[0.451,0.02],[0.452,0.026],[0.459,0.026],[0.466,0.026],[0.467,0.026],[0.467,0.026],[0.463,0.026],[0.457,0.026],[0.452,0.026],[0.45,0.02],[0.456,0.026],[0.464,0.026]];   // 프레임별 등딱지 꼭대기(가로·세로 비율)
 const SWIMC={cv:document.createElement('canvas')};
 function swimFrame(phase,t,moving){ const im=ART.img.swim, fw=im.naturalWidth/SWIM_N, fh=im.naturalHeight;
-  const u=moving?((phase/(Math.PI*2))%1+1)%1:((t*.35)%1+1)%1, f=Math.floor(u*SWIM_N)%SWIM_N; SWIM_LAST=f;
+  const u=((phase/(Math.PI*2))%1+1)%1, f=Math.floor(u*SWIM_N)%SWIM_N; SWIM_LAST=f;
   const c=SWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(im,f*fw,0,fw,fh,0,0,fw,fh); return c; }
 function drawArtTurtle(g,x,y,s,phase,t,moving){
   const sw=artOn('swim'), im=sw?swimFrame(phase,t,moving):((Math.sin(phase)>=0||!ART.ok.tB)?ART.img.tA:ART.img.tB);
@@ -1544,7 +1544,7 @@ function drawArtTurtle(g,x,y,s,phase,t,moving){
     for(let i=0;i<3;i++){ const d=12+i*14+((t*30)%14), yy=top+h*wl+1; g.globalAlpha=1-i*.28; g.beginPath(); g.moveTo(left+w*.05-d,yy-3-i*2); g.quadraticCurveTo(left+w*.05-d-10,yy,left+w*.05-d-22,yy+3+i*2); g.stroke(); } g.restore(); }
   drawSubmerged(g,im,left,top,w,h,wl,rot);
   { const an=(sw&&SWIM_ANCHOR[SWIM_LAST])||[.45,.06], a0=SWIM_ANCHOR[0]; drawAccessory(g,left+w*an[0],top+h*(an[1]+.035),w,'side',{left, top, w, h, dl:(an[0]-a0[0])*w, dt:(an[1]-a0[1])*h, wl}); }   // 등딱지 꼭대기에서 살짝 안쪽
-  if(hasFriend('frog',LV_PREVIEW||CUR_LV)){ const an=(sw&&SWIM_ANCHOR[SWIM_LAST])||[.45,.06]; drawFrogOnShell(g,'side',left+w*(an[0]-.17),top+h*(an[1]+.13),w*.2,t); }   // 개구리는 등딱지 위에 올라타고 감(꼭대기보다 조금 뒤)
+  if(hasFriend('frog',LV_PREVIEW||CUR_LV)){ const an=(sw&&SWIM_ANCHOR[SWIM_LAST])||[.45,.06]; drawFrogOnShell(g,'side',left+w*(an[0]-.05),top+h*(an[1]+.1),w*.2,t); }   // 개구리는 등딱지 위에 올라타고 감(등딱지 한가운데 꼭대기)
   waterline(g,left+w*.52,top+h*wl+1,w*.40,t,1);
   // 머리 앞 작은 물결
   g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.5; const hx=left+w*.98, hy=top+h*wl+1;
@@ -1574,7 +1574,7 @@ function drawFriendSprite(g,i,cx,bottom,w,t,alpha,flip,rot,sx,sy){
 }
 // 친구들의 움직임은 '실제로 그 동물이 어떻게 다니는지'를 따름: 물고기·수달은 몸을 물결치며 헤엄(그림을 얇게 잘라 꼬리 쪽이 더 크게 흔들림),
 // 원앙은 물 위를 미끄러지듯, 개구리는 남생이 등딱지에 올라타고, 잠자리는 제자리에 조용히 떠 있음
-let GOS=0, GOS_T=0; function smoothGo(moving){ const n=performance.now(), dt=Math.min(.1,(n-GOS_T)/1000); GOS_T=n; GOS+=((moving?1:0)-GOS)*Math.min(1,dt*3); return GOS; }   // 멈춤↔걷기 전환을 부드럽게(뚝 끊기지 않게)
+let GOS=0, GOS_T=0, SWT=0; function smoothGo(moving){ const n=performance.now(), dt=Math.min(.1,(n-GOS_T)/1000); GOS_T=n; GOS+=((moving?1:0)-GOS)*Math.min(1,dt*3); SWT+=dt*(1+GOS*.8); return GOS; }   // SWT: 헤엄 물결용 시간(걷는 동안 조금 빨리 흐름). 빠르기가 바뀌어도 이어져서 멈출 때 떨리지 않음   // 멈춤↔걷기 전환을 부드럽게(뚝 끊기지 않게)
 const WAVEC={cv:document.createElement('canvas')};
 function drawWave(g,img,b,cx,cy,w,h,ax,amp,k,ph,alpha){
   // 반투명일 때 조각 이음매가 줄무늬로 비치지 않게, 따로 그린 뒤 한 번에 얹음
@@ -1589,12 +1589,12 @@ const FROG_BOX={side:[6,6,239,200],rear:[251,6,209,200]};
 function drawFrogOnShell(g,view,cx,bottom,w,t){ const b=FROG_BOX[view]; if(!b||!artOn('frog')) return; const br=1+Math.sin(t*2.2)*.02, h=w*b[3]/b[2]; g.drawImage(ART.img.frog,b[0],b[1],b[2],b[3],cx-w/2,bottom-h*br,w,h*br); }   // 숨 쉬듯 아주 조금만 부풀었다 줄어듦
 // 옆모습: 친구들이 남생이 둘레 정해진 자리에서 같이 헤엄침. layer 'back'=남생이 뒤(먼 물), 'front'=남생이 앞(가까운 물·하늘)
 function drawCompanions(g,tx,ty,t,phase,moving,lv,layer){
-  if(!artOn('friends')) return; const go=smoothGo(moving), im=ART.img.friends, sp=1+go*.8;
+  if(!artOn('friends')) return; const go=smoothGo(moving), im=ART.img.friends;
   if(layer==='back'){
     if(hasFriend('duck',lv)){ const X=tx-86, Y=ty-20+Math.sin(t*1.1)*1.2; drawFriendSprite(g,4,X,Y,50,t,1,false,0); waterline(g,X,Y-1,25,t+4,.6); }   // 원앙: 흔들지 않고 물 위를 미끄러지듯
   } else {
-    if(hasFriend('otter',lv)){ const b=FR_BOX[5], w=66, h=w*b[3]/b[2]; drawWave(g,im,b,tx-96,ty+30,w,h,'x',.035,4.2,t*3.2*sp,1); }   // 수달: 머리는 그대로, 몸과 꼬리가 물결치며
-    if(hasFriend('minnow',lv)) FISH_S.forEach((b,i)=>{ const w=25, h=w*b[3]/b[2], x=tx+52+[0,17,4][i]+Math.sin(t*.7+i*2.1)*4, y=ty+14+i*9+Math.sin(t*.9+i*1.7)*1.5; drawWave(g,im,b,x,y,w,h,'x',.07,3,t*7*sp+i*1.9,.62); });   // 송사리: 꼬리를 살랑살랑, 무리가 느슨하게 모였다 벌어짐
+    if(hasFriend('otter',lv)){ const b=FR_BOX[5], w=66, h=w*b[3]/b[2]; drawWave(g,im,b,tx-96,ty+30,w,h,'x',.035,4.2,SWT*3.2,1); }   // 수달: 머리는 그대로, 몸과 꼬리가 물결치며
+    if(hasFriend('minnow',lv)) FISH_S.forEach((b,i)=>{ const w=25, h=w*b[3]/b[2], x=tx+52+[0,17,4][i]+Math.sin(t*.7+i*2.1)*4, y=ty+14+i*9+Math.sin(t*.9+i*1.7)*1.5; drawWave(g,im,b,x,y,w,h,'x',.07,3,SWT*7+i*1.9,.62); });   // 송사리: 꼬리를 살랑살랑, 무리가 느슨하게 모였다 벌어짐
     if(hasFriend('fly',lv)) drawFriendSprite(g,1,tx-52+Math.sin(t*.5)*7,ty-62+Math.sin(t*.8)*3,24,t,1,false,0);   // 잠자리: 떨지 않고 조용히 떠 있음
   }
 }
@@ -1604,12 +1604,12 @@ function drawRearSprite(g,i,cx,bottom,w,alpha,rot,sx,sy){ const b=FRR_BOX[i]; if
   g.save(); if(alpha!=null) g.globalAlpha=alpha; g.translate(cx,bottom-h/2); g.rotate(rot||0); g.scale(sx||1,sy||1); g.drawImage(ART.img.friendsR,b[0],b[1],b[2],b[3],-w/2,-h/2,w,h); g.restore(); }
 function drawCompanionsRear(g,w,t,phase,moving,lv,layer,place){
   // place(lat,ahead): lat=물길 가운데 0·끝 ±1, ahead=남생이보다 앞(+)·뒤(−) → 화면 자리 {x,y,s}. 남생이 바로 곁에 붙어서, 물길을 따라감
-  if(!artOn('friendsR')) return; const go=smoothGo(moving), im=ART.img.friendsR, sp=1+go*.8, bob=k=>Math.sin(t*1.2+k)*w*.008;
+  if(!artOn('friendsR')) return; const go=smoothGo(moving), im=ART.img.friendsR, bob=k=>Math.sin(t*1.2+k)*w*.008;
   const at=(id,lat,ahead)=>(hasFriend(id,lv)&&((ahead>0)===(layer==='back')))?place(lat,ahead):null;
   let q;
   if(q=at('duck',-.56,.42)) drawRearSprite(g,3,q.x,q.y+bob(3),w*.36*q.s,1,Math.sin(t*.7)*.02);                                   // 원앙: 미끄러지듯
-  if(q=at('minnow',.5,.5)) FISH_R.forEach((b,i)=>{ const fw=w*.11*q.s, fh=fw*b[3]/b[2], ox=[0,-.11,.1][i]*w*q.s+Math.sin(t*.7+i*2.1)*w*.012*q.s, oy=[-.15,0,.02][i]*w*q.s; drawWave(g,im,b,q.x+ox,q.y+oy-fh/2,fw,fh,'y',.3,3,t*7*sp+i*1.9,.62); });   // 송사리: 꼬리를 좌우로 살랑살랑
-  if(q=at('otter',.56,-.12)){ const b=FRR_BOX[4], ow=w*.36*q.s, oh=ow*b[3]/b[2]; drawWave(g,im,b,q.x,q.y+bob(4)-oh/2,ow,oh,'y',.07,3.2,t*3.2*sp,1); }   // 수달: 몸통과 꼬리가 좌우로 물결
+  if(q=at('minnow',.5,.5)) FISH_R.forEach((b,i)=>{ const fw=w*.11*q.s, fh=fw*b[3]/b[2], ox=[0,-.11,.1][i]*w*q.s+Math.sin(t*.7+i*2.1)*w*.012*q.s, oy=[-.15,0,.02][i]*w*q.s; drawWave(g,im,b,q.x+ox,q.y+oy-fh/2,fw,fh,'y',.3,3,SWT*7+i*1.9,.62); });   // 송사리: 꼬리를 좌우로 살랑살랑
+  if(q=at('otter',.56,-.12)){ const b=FRR_BOX[4], ow=w*.36*q.s, oh=ow*b[3]/b[2]; drawWave(g,im,b,q.x,q.y+bob(4)-oh/2,ow,oh,'y',.07,3.2,SWT*3.2,1); }   // 수달: 몸통과 꼬리가 좌우로 물결
   if(q=at('fly',-.1,.95)) drawRearSprite(g,1,q.x+Math.sin(t*.5)*w*.03*q.s,q.y-w*.5*q.s+Math.sin(t*.8)*w*.012,w*.15*q.s,1,0);        // 잠자리: 작게, 조용히 떠 있음
 }
 // 백로는 헤엄을 못 치니까 목표 지점 깃발 옆 둔치에서 기다림
@@ -1757,12 +1757,12 @@ function drawSceneAR(g,W,H,dpr,st){
     if(n===0){ if(NA){ const near=1-Math.min(1,Math.max(0,d/(BOTTLE_EVERY*STEP_PX))); drawDanger(g,x,y,Math.max(.55,sc*1.1),a,near,y,itemAt(kb)); } else { g.save(); g.strokeStyle=L.ring; g.lineWidth=3; g.setLineDash([6,5]); g.beginPath(); g.ellipse(x,y,38*sc,20*sc,0,0,Math.PI*2); g.stroke(); g.restore(); } }
     if(!(NA&&artOn(itemAt(kb))&&drawArtItem(g,itemAt(kb),x,y,1.2*sc,kb,a,true))) drawItem(g,itemAt(kb),x,y,1.2*sc,L.bottle,a*1.3+kb); }
   // 거북이
-  const T=arAt(Ln,AR.YT), ts=Math.min(1.2,T.w/120), ty=AR.YT+Math.sin(a*1.3)*1.5;
+  const YU=NEWART?18:0, T=arAt(Ln,AR.YT-YU), ts=Math.min(1.2,T.w/120), ty=AR.YT-YU+Math.sin(a*1.3)*1.5;   // 시안: 남생이를 조금 위로
   drawFeetUnder(g,T.cx,ty+33*ts,(NEWART?27:15)*ts,20*ts,st.t,m);
   if(NA){ // 위에서 본 남생이가 화면 안쪽으로 헤엄침: 다리 쪽은 물에 잠기고, 몸이 좌우로 살짝 흔들림
     // 물길과 같은 시점(뒤에서 약 40도로 내려다봄)의 남생이. 헤엄 동작은 Higgsfield 영상 프레임을 걸음 박자에 맞춰 넘김
     let im=ART.img.up, iw=im.naturalWidth, ih=im.naturalHeight;
-    if(artOn('rswim')){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=st.moving?((st.phase/(Math.PI*2))%1+1)%1:((a*.35)%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
+    if(artOn('rswim')){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=((st.phase/(Math.PI*2))%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
       const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh); im=c; iw=fw; ih=fh; }
     const w=84*ts, h=w*ih/iw, sway=artOn('rswim')?0:Math.sin(st.phase)*.04;
     drawCompanionsRear(g,w,a,st.phase,st.moving,LV_PREVIEW||CUR_LV,'back',(lat,ah)=>{ const y=ty-ah*w*.62, A=arAt(Ln,y); return {x:A.cx+lat*A.w/2, y:y+w*.1, s:A.w/T.w}; });
