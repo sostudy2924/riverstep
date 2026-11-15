@@ -296,7 +296,8 @@ html.na .goal,html.na .seg button,html.na .feet button,html.na .pbtn,html.na .na
 html.na .goal,html.na .seg button,html.na .feet button,html.na .pbtn{border-width:1.5px}
 html.na .namein,html.na .planbox{border-width:2px}
 html.na .planbtn{border-radius:99px}html.na .lvbar{border-radius:99px;overflow:hidden;border-width:1.5px}html.na #pic{border-radius:18px}
-html.na .goal[aria-pressed="true"]{box-shadow:none}
+html.na .goal{box-shadow:none}
+html.na .goal[aria-pressed="true"],html.na .seg button[aria-pressed="true"],html.na .feet button[aria-pressed="true"],html.na .pbtn[aria-pressed="true"]{border-color:var(--pick);box-shadow:none}
 html.na .stepno h2 .n{display:inline-flex;align-items:center;justify-content:center;width:50px;height:46px;min-width:0;margin-right:12px;border-radius:52% 48% 50% 50%/58% 56% 44% 42%;background:var(--pick);color:#fff;font-size:28px;vertical-align:middle}   /* 번호 = 물 위 징검돌 */
 html.na .ward.on{border:3px solid var(--pick,#e08a2e);box-shadow:none}
 html.na .btn{border-radius:16px;border-width:1.5px}
@@ -305,14 +306,32 @@ html.na .row .ch{border-radius:99px;border-width:1.5px}
 /* A안: 남생이가 보는 쪽으로 징검돌이 1번까지 이어지고, 1→2→3→4가 징검돌 길로 내려감 */
 @media (min-width:901px){
   html.na .walk>.box{position:relative}
-  html.na .walk>.box::before{content:'';position:absolute;left:-46px;top:43px;width:68px;height:10px;background:radial-gradient(ellipse 5px 4px at center,var(--pick) 96%,transparent) left center/17px 10px repeat-x;opacity:.5}
 }
 @media (min-width:621px){
   html.na .walk>.box>.stepno{position:relative}
   html.na .walk>.box>.stepno{padding-left:62px}html.na .walk>.box>.stepno>h2{margin-left:-62px}
-  html.na .walk>.box>.stepno::after{content:'';position:absolute;left:20px;top:54px;bottom:-16px;width:10px;background:radial-gradient(ellipse 4px 5px at center,var(--pick) 96%,transparent) center top/10px 17px repeat-y;opacity:.45}
+  html.na .walk>.box>.stepno::after{content:'';position:absolute;left:24px;top:52px;bottom:-14px;width:2px;border-radius:2px;background:var(--pick);opacity:.28}
   html.na .walk>.box>.stepno:last-of-type::after{display:none}
 }
+html.na #v-therapist .cols{grid-template-columns:minmax(0,1fr)}
+.rp{background:#fff;color:#1b2422;border:1px solid #d9dedc;border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px;font-size:16px}
+.rph{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:3px solid #0f6f6c;padding-bottom:14px}
+.rph small{font:800 14px var(--num);letter-spacing:.12em;color:#0f6f6c}.rph h3{margin:4px 0 0;font:800 26px/1.2 var(--num)}
+.rph dl{display:grid;grid-template-columns:auto auto;gap:4px 14px;margin:0;font-size:15px}.rph dt{color:#6a7673}.rph dd{margin:0;font-weight:700}
+.rp h4{margin:14px 0 0;font:800 20px var(--num)}
+.rpt{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.rpt div{background:#f2f6f5;border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rpt span{font-size:14px;color:#55615e}.rpt b{font:800 28px/1.1 var(--num);font-variant-numeric:tabular-nums}.rpt b i{font:700 15px var(--font);font-style:normal;color:#55615e}.rpt em{font-style:normal;font-size:14px;color:#0f6f6c;min-height:1em}
+.rpc{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+.rpc figure{margin:0;min-width:0}.rpc figcaption{display:flex;flex-direction:column;gap:2px;margin-bottom:4px}.rpc figcaption span{font-size:14px;color:#55615e}
+.rpc figcaption i{display:inline-block;width:12px;height:12px;margin:0 4px 0 8px;vertical-align:-1px}.rpc figcaption i:first-child{margin-left:0}
+.rpc svg{width:100%;height:auto;display:block}.rpc .ax{font:13px var(--font);fill:#6a7673}.rpc .vl{font:700 13px var(--font);fill:#1b2422}
+.rp table{min-width:760px;font-size:15px;width:100%;border-collapse:collapse}.rp th,.rp td{padding:9px 8px;border-bottom:1px solid #e3e6e4;text-align:right;white-space:nowrap}
+.rp th:nth-child(-n+2),.rp td:nth-child(-n+2){text-align:left}.rp thead th{color:#55615e;font-weight:700;border-bottom:2px solid #c9d0cd}
+.rp tr.hl td{background:#fdf0dc}.rp tr.off td{color:#9aa3a0}
+.rp mark{padding:2px 10px;border-radius:99px;font-size:13px;font-weight:700}.rp .m1{background:#d5ebe8;color:#0b5350}.rp .m2{background:#fbe0bd;color:#8a4a06}.rp .m0{background:#eceeed;color:#6a7673}
+.rpo{margin:0;background:#f2f6f5;border-radius:8px;padding:11px 14px}.rpo.w{background:#fdf0dc}.rpo b{display:inline-block;min-width:4.6em;margin-right:8px;font-size:14px;color:#0b5350}.rpo.w b{color:#8a4a06}
+.rps,.rpf,.rpe,.rpx{margin:0;font-size:14px;color:#55615e}.rpf{border-top:1px solid #e3e6e4;padding-top:12px;line-height:1.6}.rpx{background:#fdf0dc;padding:8px 12px;border-radius:8px;color:#8a4a06}
 html.na:not([data-mood="dawn"]) .guide{background:var(--card);color:var(--text);border:2px solid var(--pick)}
 html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
 html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
@@ -1020,7 +1039,7 @@ function cycle(f){ const ts=S.times[f], iv=[]; for(let i=1;i<ts.length;i++){ con
 function saveSession(){
   if(S.source==='replay'||!S.sid||S.steps===0) return;
   const d=dayStr(new Date(S.sid)); (LOG.days[d]=LOG.days[d]||{sessions:{}});
-  LOG.days[d].sessions[S.sid]={at:S.sid,steps:S.steps,sec:Math.round(S.activeSec),bottles:S.bottles,kinds:Object.assign({},S.kinds),left:S.left,right:S.right,cL:cycle('L'),cR:cycle('R'),est:S.est};
+  LOG.days[d].sessions[S.sid]={at:S.sid,steps:S.steps,sec:Math.round(S.activeSec),bottles:S.bottles,kinds:Object.assign({},S.kinds),left:S.left,right:S.right,cL:cycle('L'),cR:cycle('R'),est:S.est,goal:S.goal};
   saveLog(); queuePush();
 }
 let saveTimer=null; function scheduleSave(){ clearTimeout(saveTimer); saveTimer=setTimeout(saveSession,800); }
@@ -1945,7 +1964,11 @@ function drawTurnScene(g,W,H,dpr,st){
     for(let d=Math.floor((sv+12)/DS)*DS; d>sv-1; d-=DS){ for(const side of [-1,1]){ const h=hash(Math.round(d/DS)*2+(side>0?1:0),511), off=RW/2+.3+h*.24; if(!clearAt(d,side,off,RW/2+.24)) continue; const q=pathAt(d), p=proj(q.x+Math.cos(q.a)*side*off,q.y-Math.sin(q.a)*side*off); if(!p||p.y<hz+4) continue; list.push({k:p.k,f:()=>drawDecor(g,h<.55?0:3,p.x,p.y,Math.min(.32,p.k*(.0009+h*.0005)))}); } }   // 축대 바로 뒤 갈대·풀 한 줄
     for(let n=Math.floor((sv+26)/1.6); n*1.6>sv-1.2; n--){ const d=n*1.6; for(const side of [-1,1]){ if(!clearAt(d,side,RW/2+1.45,RW/2+1.25)) continue; const q=pathAt(d), off=side*(RW/2+1.45), p=proj(q.x+Math.cos(q.a)*off,q.y-Math.sin(q.a)*off); if(!p||p.y<hz+2) continue; const kind=hash(n*2+(side>0?1:0),77)<.5?1:2; list.push({k:p.k,f:()=>drawDecor(g,kind,p.x,p.y,Math.min(1.5,p.k*.0034))}); } }   // 산책로 따라 가로수
     if(artOn('bridge')){ const im=ART.img.bridge, str=TC.path.segs.filter(c=>c.t==='S'&&c.s1-c.s0>=4), segsS=str.length>1?[(str[1].s0+str[1].s1)/2]:str.map(c=>(c.s0+c.s1)/2);   // 다리는 하나만(되돌아오는 길 한가운데)
-      for(const d of segsS){ if(d<sv+.25||d>sv+40) continue; const q=pathAt(d), p=proj(q.x,q.y); if(!p||p.y<hz+2) continue; const w=p.k*(RW+2.5), h=w*im.naturalHeight/im.naturalWidth, da=Math.abs(Math.atan2(Math.sin(q.a-P.a),Math.cos(q.a-P.a))), al=Math.min(1,(d-sv-.25)/.9)*Math.max(0,Math.min(1,1-(da-.12)/.3)); if(al<=.01) continue; list.push({k:p.k,f:()=>{ g.save(); g.globalAlpha=al; g.drawImage(im,p.x-w/2,p.y-h*.97,w,h); g.restore(); }}); } }   // 하천을 가로지르는 보행교(지나갈 때는 옅어짐)
+      for(const d of segsS){ if(d<sv+.25||d>sv+40) continue; const q=pathAt(d), p=proj(q.x,q.y); if(!p) continue; const BW=RW+2.5, NS=32, ar=im.naturalHeight/im.naturalWidth, al=Math.min(1,(d-sv-.25)/.9), cs=[];
+        for(let i=0;i<=NS;i++){ const off=(i/NS-.5)*BW; cs.push(proj(q.x+Math.cos(q.a)*off,q.y-Math.sin(q.a)*off)); }   // 다리 바닥선을 물길에 가로질러 실제 자리에 놓고, 세로로 잘게 나눠 원근에 맞춰 세움 → 돌면서 비스듬히 봐도 모양이 맞고 계속 보임
+        list.push({k:p.k,f:()=>{ g.save(); g.globalAlpha=al; const sw=im.naturalWidth/NS;
+          for(let i=0;i<NS;i++){ const A=cs[i], B=cs[i+1]; if(!A||!B) continue; const x0=Math.min(A.x,B.x), dw=Math.abs(B.x-A.x); if(dw<.15) continue; const hh=(A.k+B.k)/2*BW*ar; g.drawImage(im,i*sw,0,sw,im.naturalHeight,x0,(A.y+B.y)/2-hh*.97,dw+.7,hh); }
+          g.restore(); }}); } }   // 하천을 가로지르는 보행교(지나갈 때는 옅어짐)
     list.sort((a,b)=>a.k-b.k).forEach(o=>o.f()); }
   // 돌 곳 안내
   const ti=turnSegOfStep(S.steps+1);
@@ -2500,9 +2523,11 @@ let shareDays=7;
 function buildReport(n){
   const days=lastDays(n||shareDays), rows=days.map(d=>dayTotals(d)).filter(t=>t&&t.steps>0);
   return {v:1, nick:($('#nick').value||'').trim().slice(0,20), from:days[0], to:days[days.length-1], made:dayStr(new Date()),
-    rows:rows.map(r=>[r.date,r.steps,r.sec,r.cL!=null?+r.cL.toFixed(2):null,r.cR!=null?+r.cR.toFixed(2):null,r.bottles,r.sample?1:0])};
+    rows:rows.map(r=>{ const ss=Object.values(LOG.days[r.date].sessions), g=ss.filter(x=>x.goal>0), at=ss.map(x=>x.at).filter(x=>x>1e9).sort((a,b)=>a-b)[0], dt=at?new Date(at):null;
+      return [r.date,r.steps,r.sec,r.cL!=null?+r.cL.toFixed(2):null,r.cR!=null?+r.cR.toFixed(2):null,r.bottles,r.sample?1:0,r.left,r.right,g.length?(g.some(x=>x.steps>=x.goal)?1:0):null,dt?dt.getHours()*60+dt.getMinutes():null]; }), days:days.length};
 }
 function reportHTML(R){
+  if(NEWART) return reportHTML2(R);
   const rows=R.rows||[], steps=rows.reduce((a,r)=>a+r[1],0), sec=rows.reduce((a,r)=>a+r[2],0);
   const syms=rows.filter(r=>r[3]!=null&&r[4]!=null).map(r=>Math.min(r[3],r[4])/Math.max(r[3],r[4])*100);
   const sym=syms.length?(syms.reduce((a,b)=>a+b,0)/syms.length).toFixed(0)+'%':'—';
@@ -2514,11 +2539,60 @@ function reportHTML(R){
     h+='</tbody></table></div>'; } else h+='<p class="meta">이 기간에는 기록이 없어요.</p>';
   return h+'<p class="meta">시제품 측정값이며 진단이 아니에요. 좌우 대칭은 두 발의 평균 보행 주기 비율이에요.</p></div>';
 }
+// 시안: 치료사용 보고서(요약 → 하루별 그래프 → 기록 표 → 자동 관찰). 실제로 잰 값만 씀
+function reportHTML2(R){
+  const rows=R.rows||[], by={}; rows.forEach(r=>by[r[0]]=r);
+  const dl=[]; { const a=new Date(R.from+'T00:00:00'), b=new Date(R.to+'T00:00:00'); for(let d=new Date(a); d<=b&&dl.length<31; d.setDate(d.getDate()+1)) dl.push(dayStr(d)); }
+  const WK='일월화수목금토', wk=d=>WK[new Date(d+'T00:00:00').getDay()], md=d=>d.slice(5).replace('-','.');
+  const diff=r=>(r&&r[7]!=null&&r[8]!=null&&(r[7]+r[8])>0)?Math.abs(r[7]-r[8])/((r[7]+r[8])/2)*100:null;
+  const steps=rows.reduce((a,r)=>a+r[1],0), sec=rows.reduce((a,r)=>a+r[2],0), n=rows.length, cad=sec>=60?Math.round(steps/(sec/60)):null;
+  const dfs=rows.map(r=>({d:r[0],v:diff(r)})).filter(x=>x.v!=null), dF=dfs[0], dL=dfs[dfs.length-1];
+  const gl=rows.filter(r=>r[9]!=null), gm=gl.filter(r=>r[9]===1).length;
+  const tile=(k,v,u,sub)=>`<div><span>${k}</span><b>${v}<i>${u||''}</i></b><em>${sub||''}</em></div>`;
+  let h=`<div class="rp"><div class="rph"><div><small>RIVERSTEP</small><h3>보행 재활 보고서</h3></div><dl><dt>사용자</dt><dd>${R.nick?esc(R.nick):'(별칭 없음)'}</dd><dt>기간</dt><dd>${esc(md(R.from))} – ${esc(md(R.to))}</dd><dt>만든 날</dt><dd>${esc(R.made)}</dd></dl></div>`;
+  if(rows.some(r=>r[6])) h+='<p class="rpx">예시 기록이 섞여 있어요(실제로 걸은 값이 아님).</p>';
+  h+='<h4>요약</h4><div class="rpt">'+tile('운동한 날',n,` / ${dl.length}일`,`운동 시간 ${fmtKo(sec)}`)+tile('걸음 합계',steps.toLocaleString(),'보',`하루 평균 ${n?Math.round(steps/n):0}보`)
+    +tile('좌우 걸음 차이(마지막 날)',dL?dL.v.toFixed(1):'—',dL?'%':'',(dF&&dL&&dF!==dL)?`첫날 ${dF.v.toFixed(1)}%에서 ${Math.abs(dL.v-dF.v).toFixed(1)}%p ${dL.v<dF.v?'줄어듦':'늘어남'}`:'')
+    +tile('목표 달성',gl.length?gm:'—',gl.length?` / ${gl.length}일`:'',gl.length?'':'목표 기록 없음')+tile('걷는 속도',cad??'—',cad?'보/분':'','운동 시간 기준 평균')+'</div>';
+  // 그래프
+  const W=520,H=230,L=38,B=28,T=18,pw=W-L-12,ph=H-B-T, N=dl.length, bw=Math.max(6,Math.min(46,pw/N*.6)), xs=i=>L+pw*(i+.5)/N, lab=i=>N<=7?wk(dl[i]):((N<=14||i%3===0)?md(dl[i]).replace(/^0/,''):'');
+  const mx=Math.max(10,...rows.map(r=>r[1])), top=Math.ceil(mx/100)*100||100, ys=v=>T+ph*(1-v/top);
+  let a=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="하루별 걸음 수 막대그래프">`;
+  for(let k=0;k<=4;k++){ const v=top*k/4, y=ys(v); a+=`<line x1="${L}" x2="${W-12}" y1="${y}" y2="${y}" stroke="#e3e6e4"/><text x="${L-6}" y="${y+4}" text-anchor="end" class="ax">${Math.round(v)}</text>`; }
+  dl.forEach((d,i)=>{ const r=by[d], x=xs(i); a+=`<text x="${x}" y="${H-8}" text-anchor="middle" class="ax">${lab(i)}</text>`;
+    if(!r){ if(N<=14) a+=`<text x="${x}" y="${ys(0)-6}" text-anchor="middle" class="ax" fill="#9aa3a0">쉼</text>`; return; }
+    const lf=r[7]!=null&&r[8]!=null&&(r[7]+r[8])>0?r[1]*r[7]/(r[7]+r[8]):r[1], yl=ys(lf), yt=ys(r[1]);
+    a+=`<rect x="${x-bw/2}" y="${yl}" width="${bw}" height="${ys(0)-yl}" fill="#0f6f6c"/><rect x="${x-bw/2}" y="${yt}" width="${bw}" height="${yl-yt}" fill="#6b5bb0"/>`;
+    if(N<=14) a+=`<text x="${x}" y="${yt-5}" text-anchor="middle" class="vl">${r[1]}</text>`; });
+  a+='</svg>';
+  const dmax=Math.max(10,...dfs.map(x=>x.v)), dt=Math.ceil(dmax/5)*5, yd=v=>T+ph*(1-v/dt), worst=dfs.reduce((m,x)=>(!m||x.v>m.v)?x:m,null);
+  let b=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="하루별 좌우 걸음 차이 꺾은선그래프">`;
+  for(let k=0;k<=5;k++){ const v=dt*k/5, y=yd(v); b+=`<line x1="${L}" x2="${W-12}" y1="${y}" y2="${y}" stroke="#e3e6e4"/><text x="${L-6}" y="${y+4}" text-anchor="end" class="ax">${Math.round(v)}</text>`; }
+  let pts=[]; dl.forEach((d,i)=>{ b+=`<text x="${xs(i)}" y="${H-8}" text-anchor="middle" class="ax">${lab(i)}</text>`; const v=diff(by[d]); if(v!=null) pts.push([xs(i),yd(v),v,d]); });
+  if(pts.length>1) b+=`<polyline fill="none" stroke="#0f6f6c" stroke-width="2.5" points="${pts.map(q=>q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ')}"/>`;
+  pts.forEach(q=>{ const w=worst&&q[3]===worst.d&&pts.length>2; b+=`<circle cx="${q[0]}" cy="${q[1]}" r="${w?5.5:4}" fill="${w?'#c2660a':'#0f6f6c'}"/>`; if(N<=14) b+=`<text x="${q[0]}" y="${q[1]-9}" text-anchor="middle" class="vl" ${w?'fill="#c2660a"':''}>${q[2].toFixed(1)}</text>`; });
+  b+='</svg>';
+  h+=`<h4>하루별 변화</h4><div class="rpc"><figure><figcaption><b>걸음 수 (왼발 + 오른발)</b><span><i style="background:#0f6f6c"></i>왼발 <i style="background:#6b5bb0"></i>오른발</span></figcaption>${a}</figure><figure><figcaption><b>좌우 걸음 차이 (%)</b><span>|왼 − 오| ÷ 평균. 낮을수록 양발이 고르게 걸었어요.</span></figcaption>${pts.length?b:'<p class="rpe">왼발·오른발을 따로 센 기록이 없어요.</p>'}</figure></div>`;
+  // 기록 표
+  h+='<h4>날짜별 기록</h4>';
+  if(n){ h+='<div style="overflow-x:auto"><table><thead><tr><th>날짜</th><th>요일</th><th>시작</th><th>운동 시간</th><th>걸음</th><th>왼 · 오</th><th>좌우 차이</th><th>속도(보/분)</th><th>보행 주기 왼/오(초)</th><th>목표</th></tr></thead><tbody>';
+    dl.forEach(d=>{ const r=by[d]; if(!r){ if(N<=14) h+=`<tr class="off"><td>${md(d)}</td><td>${wk(d)}</td><td colspan="7">—</td><td><mark class="m0">미실시</mark></td></tr>`; return; }
+      const v=diff(r), st=r[10]!=null?`${Math.floor(r[10]/60)}:${String(r[10]%60).padStart(2,'0')}`:'—', w=worst&&worst.d===d&&dfs.length>2&&v>15;
+      h+=`<tr${w?' class="hl"':''}><td>${md(d)}${r[6]?' (예시)':''}</td><td>${wk(d)}</td><td>${st}</td><td>${fmtKo(r[2])}</td><td>${r[1]}</td><td>${r[7]??'—'} · ${r[8]??'—'}</td><td>${v!=null?v.toFixed(1)+'%':'—'}</td><td>${r[2]>=60?Math.round(r[1]/(r[2]/60)):'—'}</td><td>${r[3]??'—'} / ${r[4]??'—'}</td><td>${r[9]==null?'—':r[9]?'<mark class="m1">달성</mark>':'<mark class="m2">미달</mark>'}</td></tr>`; });
+    h+='</tbody></table></div>'; } else h+='<p class="rpe">이 기간에는 기록이 없어요.</p>';
+  // 자동 관찰
+  const ob=[]; if(worst&&dfs.length>2&&worst.v>15) ob.push(['확인 필요',`${md(worst.d)}(${wk(worst.d)}) 좌우 걸음 차이가 ${worst.v.toFixed(1)}%로 이 기간에 가장 컸습니다.`,1]);
+  const off=dl.filter(d=>!by[d]); if(n&&off.length&&N<=14) ob.push(['미실시',`${off.map(d=>md(d)+'('+wk(d)+')').join(', ')}에는 운동 기록이 없습니다.`,1]);
+  if(dF&&dL&&dF!==dL) ob.push(['변화',`좌우 걸음 차이가 ${dF.v.toFixed(1)}%에서 ${dL.v.toFixed(1)}%로 ${dL.v<dF.v?'줄었습니다':'늘었습니다'}.`,0]);
+  if(n>1){ const f=rows[0], l=rows[n-1]; ob.push(['변화',`하루 걸음이 ${md(f[0])} ${f[1]}보에서 ${md(l[0])} ${l[1]}보로 ${l[1]>=f[1]?'늘었습니다':'줄었습니다'}.`,0]); }
+  if(ob.length) h+='<h4>자동 관찰</h4><p class="rps">기기가 숫자에서 찾은 변화입니다. 진단이 아니며, 판단은 치료사가 합니다.</p>'+ob.map(o=>`<p class="rpo${o[2]?' w':''}"><b>${o[0]}</b>${o[1]}</p>`).join('');
+  return h+'<p class="rpf">RiverStep은 집에서 하는 보행 재활 운동을 안내하고 걸음과 좌우 차이를 재서 기록하는 시제품입니다. 이 보고서는 진단이 아닙니다.<br>좌우 걸음 차이는 왼발·오른발 걸음 수로, 보행 주기는 같은 발이 다시 닿기까지의 평균 시간으로 계산했습니다. 영상과 위치 정보는 저장하지 않습니다.</p></div>';
+}
 function renderShare(){ $('#reportBox').innerHTML=reportHTML(buildReport()); $('#linkOut').hidden=true; $('#linkMsg').textContent=''; }
 function b64e(o){ const bytes=new TextEncoder().encode(JSON.stringify(o)); let s=''; bytes.forEach(b=>s+=String.fromCharCode(b)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function b64d(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const bin=atob(s); return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))); }
 async function makeLink(){
-  const url=location.origin+location.pathname+'?report='+b64e(buildReport());
+  const url=location.origin+location.pathname+'?'+(NEWART?'newart&':'')+'report='+b64e(buildReport());
   const out=$('#linkOut'); out.textContent=url; out.hidden=false;
   const ok=await copyText(url);
   $('#linkMsg').textContent=(ok?'링크를 복사했어요. ':'링크를 길게 눌러 복사하세요. ')+'링크에 기록이 그대로 담겨 있어서 링크를 가진 사람은 누구나 볼 수 있어요. 치료사에게만 보내세요.'+(inPreview()?' 이 미리보기 페이지의 링크는 열리지 않을 수 있어요. 게임을 GitHub Pages에 올리면 그 주소로 만들어져요.':'');
@@ -2546,6 +2620,7 @@ function renderSyncButtons(){
   if(syncOn&&SYNC.ready) syncMsg(SYNC.lastSent?'기록을 보내고 있어요. 걸음 기록이 바뀌면 자동으로 다시 보내요.':'기록을 보내는 중이에요.');
 }
 function syncUnavailable(){
+  if(NEWART){ const sc=document.querySelector('.box.sync'); if(sc) sc.hidden=true; }
   $('#syncAvail').textContent='치료사 연동은 claude.ai에 올린 이 페이지에서 로그인한 상태로만 쓸 수 있어요. 파일이나 다른 주소로 연 경우에는 위의 보고서 링크나 글 복사를 써 주세요.';
   ['#syncConsent','#btnSyncOn'].forEach(q=>$(q).disabled=true);
   $('#patientList').innerHTML='<p class="small">이 화면에서는 공유 목록을 불러올 수 없어요.</p>';
