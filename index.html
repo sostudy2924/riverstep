@@ -381,6 +381,8 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
 .lvbox h3{margin:6px 0 0;font:800 20px var(--num)}
 .wardrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:8px}
 .ward small{word-break:keep-all}
+.lvsm{font:500 15px var(--num);color:var(--text-2)}
+.ward .fic{width:64px;height:52px;background-repeat:no-repeat}
 .lvfr{margin:2px 0 0;font-size:16px;color:var(--text-2);word-break:keep-all}
 .ward.none .lk{font-size:34px;opacity:.45}
 .ward{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:2px solid var(--edge);background:var(--card);color:var(--text);cursor:pointer;min-height:132px}
@@ -417,6 +419,8 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
           <div class="lvbar"><i id="lvFill"></i></div>
           <h3>옷장</h3>
           <div class="wardrow" id="wardRow"></div>
+          <h3>함께 헤엄칠 친구 <small class="lvsm">최대 3마리</small></h3>
+          <div class="wardrow" id="compRow"></div>
           <p class="lvfr" id="lvFriends"></p>
         </section>
         <details class="morestory"><summary>남생이 이야기 · 걸음 기부 보기</summary>
@@ -1477,7 +1481,10 @@ const FRIENDS=[
  {id:'otter',  name:'수달',     lv:7}];
 let CUR_LV=1; const LV_PREVIEW=+(params.get('lv')||0);   // 발표·확인용: ?lv=7 처럼 주면 그 레벨 친구들이 미리 보임
 function friendsAt(lv){ const out=[]; for(let L=2;L<=Math.min(lv,1+FRIENDS.length);L++){ const i=L-2; out.push({f:FRIENDS[i],i}); } return out; }
-function hasFriend(id,lv){ return friendsAt(lv).some(x=>x.f.id===id); }
+const MAX_COMP=3;   // 화면이 복잡해지지 않게 함께 헤엄치는 친구는 최대 3마리
+let compSel=null; try{ compSel=JSON.parse(localStorage.getItem('riverstep:friends')||'null'); }catch(e){}
+function compOn(lv){ const open=friendsAt(lv).map(x=>x.f.id); if(Array.isArray(compSel)) return compSel.filter(id=>open.includes(id)).slice(0,MAX_COMP); return open.slice(-2); }   // 고른 적 없으면 가장 최근 친구 둘
+function hasFriend(id,lv){ return (LV_PREVIEW&&!Array.isArray(compSel))?friendsAt(lv).some(x=>x.f.id===id):compOn(lv).includes(id); }
 // 친구 한 마리 그리기(옆모습 그림 한 칸) — 헤엄 느낌: 위아래로 출렁 + 살짝 기울기 + 걸을 때 앞으로 밀려 나감
 function drawFriendSprite(g,i,cx,bottom,w,t,alpha,flip,rot){
   const b=FR_BOX[i]; if(!b||!artOn('friends')) return; const h=w*b[3]/b[2];
@@ -1492,8 +1499,8 @@ function drawCompanions(g,tx,ty,t,phase,moving,lv,layer){
     if(hasFriend('duck',lv)){ const x=tx-112+surge(1.2), y=ty-30+bob(2); drawFriendSprite(g,4,x,y,50,t,1,false,Math.sin(t*1.4)*.02); waterline(g,x,y-1,26,t+2,.6); }
     if(hasFriend('frog',lv)){ const x=tx-138+surge(2.4)*1.4, y=ty+18+bob(3.1)+go*Math.max(0,Math.sin(phase*2))*-4; drawFriendSprite(g,2,x,y,36,t,1,false,0); waterline(g,x,y-1,17,t+3,.55); }
   } else {
-    if(hasFriend('otter',lv)){ const x=tx-30+surge(.6), y=ty+54+bob(.9); drawFriendSprite(g,5,x,y,92,t,1,false,Math.sin(t*1.1)*.015); }   // 수달: 배를 아래로 하고 머리만 내밀고 헤엄
-    if(hasFriend('minnow',lv)){ const x=tx+92+Math.sin(t*1.3)*10+surge(.3)*1.5, y=ty+40+Math.sin(t*2.2)*3; drawFriendSprite(g,0,x,y,40,t,.6,false,Math.sin(t*2.2)*.05); }
+    if(hasFriend('otter',lv)){ const x=tx+6+surge(.6), y=ty+58+bob(.9); drawFriendSprite(g,5,x,y,92,t,1,false,Math.sin(t*1.1)*.015); }   // 수달: 배를 아래로 하고 머리만 내밀고 헤엄
+    if(hasFriend('minnow',lv)){ const x=tx-104+Math.sin(t*1.3)*8+surge(.3)*1.5, y=ty+48+Math.sin(t*2.2)*3; drawFriendSprite(g,0,x,y,40,t,.6,false,Math.sin(t*2.2)*.05); }
     if(hasFriend('fly',lv)){ const x=tx-70+Math.sin(t*.9)*12, y=ty-78+Math.sin(t*2.3)*6; drawFriendSprite(g,1,x,y,28,t,1,false,Math.sin(t*9)*.03); }
   }
 }
@@ -1501,15 +1508,16 @@ function drawCompanions(g,tx,ty,t,phase,moving,lv,layer){
 const FRR_BOX=[[6,6,186,215],[198,6,244,188],[448,6,189,256],[643,6,253,232],[902,6,318,217]];   // 뒷모습 그림 한 장 안의 위치: 0 송사리 1 잠자리 2 개구리 3 원앙 4 수달
 function drawRearSprite(g,i,cx,bottom,w,alpha,rot){ const b=FRR_BOX[i]; if(!b||!artOn('friendsR')) return; const h=w*b[3]/b[2];
   g.save(); if(alpha!=null) g.globalAlpha=alpha; g.translate(cx,bottom-h/2); g.rotate(rot||0); g.drawImage(ART.img.friendsR,b[0],b[1],b[2],b[3],-w/2,-h/2,w,h); g.restore(); }
-function drawCompanionsRear(g,cx,ty,w,t,phase,moving,lv,layer){
+function drawCompanionsRear(g,cx,ty,w,t,phase,moving,lv,layer,hw){
+  hw=hw||w*.9; const U=u=>cx+u*hw;   // u: 물길 가운데 0, 양쪽 끝 ±1 → 친구는 ±0.7 안쪽에만
   if(!artOn('friendsR')) return; const go=moving?1:0, surge=k=>go*Math.sin(phase+k)*w*.04, bob=k=>Math.sin(t*1.6+k)*w*.015;
   if(layer==='back'){   // 남생이보다 앞쪽(화면 위쪽, 멀리)
-    if(hasFriend('minnow',lv)) drawRearSprite(g,0,cx+w*.12+Math.sin(t*1.3)*w*.06,ty-w*.78+surge(.3),w*.34,.6,Math.sin(t*2)*.05);
-    if(hasFriend('duck',lv)){ const x=cx-w*.72, y=ty-w*.42+surge(1.2)+bob(2); drawRearSprite(g,3,x,y,w*.5,1,0); }
+    if(hasFriend('minnow',lv)) drawRearSprite(g,0,U(-.25)+Math.sin(t*1.3)*hw*.05,ty-w*.62+surge(.3),Math.min(w*.3,hw*.4),.6,Math.sin(t*2)*.05);
+    if(hasFriend('duck',lv)){ const x=U(-.52), y=ty-w*.3+surge(1.2)+bob(2); drawRearSprite(g,3,x,y,Math.min(w*.46,hw*.5),1,0); }
   } else {              // 남생이 옆·뒤(가까이)
-    if(hasFriend('otter',lv)){ const x=cx+w*.78, y=ty+w*.05+surge(.6)+bob(.9); drawRearSprite(g,4,x,y,w*.5,1,Math.sin(t*1.1)*.02); }
-    if(hasFriend('frog',lv)){ const x=cx-w*.82, y=ty+w*.12+surge(2.4)+bob(3); drawRearSprite(g,2,x,y,w*.26,1,0); }
-    if(hasFriend('fly',lv)) drawRearSprite(g,1,cx+w*.45+Math.sin(t*.9)*w*.1,ty-w*.95+Math.sin(t*2.3)*w*.04,w*.24,1,Math.sin(t*9)*.03);
+    if(hasFriend('otter',lv)){ const x=U(.66), y=ty+w*.08+surge(.6)+bob(.9); drawRearSprite(g,4,x,y,Math.min(w*.46,hw*.5),1,Math.sin(t*1.1)*.02); }
+    if(hasFriend('frog',lv)){ const x=U(-.68), y=ty+w*.14+surge(2.4)+bob(3); drawRearSprite(g,2,x,y,Math.min(w*.26,hw*.3),1,0); }
+    if(hasFriend('fly',lv)) drawRearSprite(g,1,U(.5)+Math.sin(t*.9)*hw*.06,ty-w*.55+Math.sin(t*2.3)*w*.04,Math.min(w*.24,hw*.3),1,Math.sin(t*9)*.03);
   }
 }
 // 백로는 헤엄을 못 치니까 목표 지점 깃발 옆 둔치에서 기다림
@@ -1527,7 +1535,8 @@ function drawDanger(g,x,y,s,t,near,wy,type){
   g.restore();
   // 빨간 느낌표 표지(위아래로 살짝 뜀)
   const r=(11+5*k)*s*(1+.08*pul*(.4+k)), by=y-(32+6*k)*s-Math.abs(Math.sin(t*(2+k*3)))*4*s;
-  g.save(); g.fillStyle='rgba(30,20,16,.18)'; g.beginPath(); g.ellipse(x,by+r+3*s,r*.8,r*.22,0,0,Math.PI*2); g.fill();
+  g.save(); g.globalAlpha=1-Math.max(0,(k-.8)/.2)*.8;   // 바로 앞에 오면(이제 주울 때) 표지가 옅어져 남생이 얼굴을 가리지 않음
+  g.fillStyle='rgba(30,20,16,.18)'; g.beginPath(); g.ellipse(x,by+r+3*s,r*.8,r*.22,0,0,Math.PI*2); g.fill();
   g.fillStyle=H.c; g.strokeStyle=H.d; g.lineWidth=2*s; g.beginPath(); g.arc(x,by,r,0,Math.PI*2); g.fill(); g.stroke();
   g.fillStyle='#fffaf0'; g.beginPath(); g.roundRect?g.roundRect(x-r*.14,by-r*.6,r*.28,r*.72,r*.14):g.rect(x-r*.14,by-r*.6,r*.28,r*.72); g.fill(); g.beginPath(); g.arc(x,by+r*.42,r*.16,0,Math.PI*2); g.fill();
   g.restore();
@@ -1663,10 +1672,10 @@ function drawSceneAR(g,W,H,dpr,st){
     if(artOn('rswim')){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=st.moving?((st.phase/(Math.PI*2))%1+1)%1:((a*.35)%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
       const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh); im=c; iw=fw; ih=fh; }
     const w=84*ts, h=w*ih/iw, sway=artOn('rswim')?0:Math.sin(st.phase)*.04;
-    drawCompanionsRear(g,T.cx,ty,w,a,st.phase,st.moving,LV_PREVIEW||CUR_LV,'back');
+    drawCompanionsRear(g,T.cx,ty,w,a,st.phase,st.moving,LV_PREVIEW||CUR_LV,'back',T.w/2);
     drawSubmerged(g,im,T.cx-w/2,ty-h*.74,w,h,.80,sway);   // 등딱지 대부분이 물 위로, 다리 끝만 잠김
     drawAccessory(g,T.cx,ty-h*.74+h*.36,w,'rear',{left:T.cx-w/2, top:ty-h*.74, w, h, wl:.80});
-    drawCompanionsRear(g,T.cx,ty,w,a,st.phase,st.moving,LV_PREVIEW||CUR_LV,'front');   // 뒤에서 본 등딱지 한가운데
+    drawCompanionsRear(g,T.cx,ty,w,a,st.phase,st.moving,LV_PREVIEW||CUR_LV,'front',T.w/2);   // 뒤에서 본 등딱지 한가운데
     g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.12,r,r*.26,0,.15,Math.PI-.15); g.stroke(); } g.restore();
   } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
   if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
@@ -1762,7 +1771,7 @@ function drawTurnScene(g,W,H,dpr,st){
   const sky=g.createLinearGradient(0,Lr.y,0,hz); if(NA){ sky.addColorStop(0,'#a9d4e2'); sky.addColorStop(1,'#e6f1f0'); } else if(day){ sky.addColorStop(0,'#8fcbe6'); sky.addColorStop(1,'#eef6f6'); } else { sky.addColorStop(0,'#141c25'); sky.addColorStop(1,'#3a3340'); }
   g.fillStyle=sky; g.fillRect(Lr.x,Lr.y,Lr.w,hz-Lr.y+1); g.fillStyle=NA?'#e6d9b8':day?'#8fab72':'#1a242d'; g.fillRect(Lr.x,hz,Lr.w,Lr.h);
   if(NA){ g.fillStyle='#8fae86'; g.fillRect(Lr.x,hz,Lr.w,Lr.h*.035); g.fillStyle='#b9c9cf'; g.beginPath(); g.moveTo(Lr.x,hz); for(let i=0;i<=8;i++){ const x=Lr.x+Lr.w*i/8; g.lineTo(x,hz-Lr.h*(.03+.025*Math.sin(i*1.7+1))); } g.lineTo(Lr.x+Lr.w,hz); g.closePath(); g.fill(); }
-  const clr=Math.max(0,Math.min(1,st.clarity==null?1:st.clarity)), water=NA?mixHex('#8f8a5c','#4fa49d',clr):day?'#62b4d8':'#c98a62', edgeC=day?'#faf7ec':'#f3d7b0', RW=1.25;
+  const clr=Math.max(0,Math.min(1,st.clarity==null?1:st.clarity)), water=NA?mixHex('#8f8a5c','#4fa49d',clr):day?'#62b4d8':'#c98a62', edgeC=day?'#faf7ec':'#f3d7b0', RW=NA?2.0:1.25;   // 시안: 친구들과 같이 헤엄칠 수 있게 물길을 넓힘
   let prev=null; for(let d=Math.max(0,sv-.6); d<=sv+14; d+=.1){ const q=pathAt(d), nx=Math.cos(q.a)*RW/2, ny=-Math.sin(q.a)*RW/2, l=proj(q.x-nx,q.y-ny), r=proj(q.x+nx,q.y+ny);
     if(prev&&l&&r&&prev.l&&prev.r){ g.fillStyle=water; g.beginPath(); g.moveTo(prev.l.x,prev.l.y); g.lineTo(prev.r.x,prev.r.y); g.lineTo(r.x,r.y); g.lineTo(l.x,l.y); g.closePath(); g.fill();
       g.strokeStyle=edgeC; g.lineWidth=Math.max(1.5,l.k*.05); g.beginPath(); g.moveTo(prev.l.x,prev.l.y); g.lineTo(l.x,l.y); g.moveTo(prev.r.x,prev.r.y); g.lineTo(r.x,r.y); g.stroke(); }
@@ -1788,7 +1797,7 @@ function drawTurnScene(g,W,H,dpr,st){
   drawFeetUnder(g,cx,ty+Sz*1.95,Sz*1.05,Sz*1.55,st.t,m);
   if(NA){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=((st.phase/(Math.PI*2))%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
     const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh);
-    const w=Sz*3.1, h=w*fh/fw; g.save(); g.translate(cx,ty); g.rotate(lean); drawCompanionsRear(g,0,0,w,st.t,st.phase,st.moving,LV_PREVIEW||CUR_LV,'back'); drawSubmerged(g,c,-w/2,-h*.74,w,h,.80,0); drawAccessory(g,0,-h*.74+h*.36,w,'rear',{left:-w/2, top:-h*.74, w, h, wl:.80}); drawCompanionsRear(g,0,0,w,st.t,st.phase,st.moving,LV_PREVIEW||CUR_LV,'front'); g.restore(); }
+    const w=Sz*3.1, h=w*fh/fw; g.save(); g.translate(cx,ty); g.rotate(lean); const thw=(()=>{ const q=pathAt(sv), nx=Math.cos(q.a)*RW/2, ny=-Math.sin(q.a)*RW/2, l=proj(q.x-nx,q.y-ny), r=proj(q.x+nx,q.y+ny); return (l&&r)?Math.abs(r.x-l.x)/2:w; })(); drawCompanionsRear(g,0,0,w,st.t,st.phase,st.moving,LV_PREVIEW||CUR_LV,'back',thw); drawSubmerged(g,c,-w/2,-h*.74,w,h,.80,0); drawAccessory(g,0,-h*.74+h*.36,w,'rear',{left:-w/2, top:-h*.74, w, h, wl:.80}); drawCompanionsRear(g,0,0,w,st.t,st.phase,st.moving,LV_PREVIEW||CUR_LV,'front',thw); g.restore(); }
   else { g.save(); g.translate(cx,ty); g.rotate(lean); drawTurtleTop(g,0,0,Sz/30,st.phase,Lk.turtle); g.restore(); }
   g.restore();
   if(cam.on){ g.strokeStyle=edgeC; g.lineWidth=3; g.strokeRect(Lr.x,Lr.y,Lr.w,Lr.h); }
@@ -1834,10 +1843,12 @@ function pickBottle(){
   updateHud(); scheduleSave();
 }
 function updateGame(dt){
-  turtle.x += (turtle.target-turtle.x)*Math.min(1,dt*4);
+  if(NEWART){ // 시안: 한 걸음마다 확 튀지 않고, 일정한 빠르기로 스르륵 앞으로 나아감(밀린 걸음이 많을 때만 조금 빨라짐)
+    const dx=turtle.target-turtle.x, v=Math.max(STEP_PX*1.1, Math.abs(dx)*1.2); turtle.x += Math.sign(dx)*Math.min(Math.abs(dx), v*dt);
+  } else turtle.x += (turtle.target-turtle.x)*Math.min(1,dt*4);
   if(Math.abs(turtle.target-turtle.x)<.5) turtle.x=turtle.target;
   const moving=Math.abs(turtle.target-turtle.x)>1;
-  turtle.phase += dt*(moving?6:1.5);
+  turtle.phase += dt*(NEWART?(moving?2.4:1.1):(moving?6:1.5));   // 시안: 헤엄 동작도 느긋하게
   while((S.bottles+1)*BOTTLE_EVERY<=S.steps && turtle.x+30>=(S.bottles+1)*BOTTLE_EVERY*STEP_PX) pickBottle();
   clarityShown += (clarityTarget()-clarityShown)*Math.min(1,dt*1.2);
   if(!S.completed && S.steps>=S.goal && turtle.x>=S.goal*STEP_PX-4){
@@ -2681,7 +2692,15 @@ function levelOf(n){ let l=1; for(let i=1;i<LV_STEPS.length;i++) if(n>=LV_STEPS[
 let wearing=null; try{ wearing=localStorage.getItem('riverstep:wear')||null; }catch(e){}
 function renderWardrobe(){
   const box=$('#lvBox'); if(!box) return; const n=lifeSteps(), L=levelOf(n); CUR_LV=L.lv;
-  { const fr=friendsAt(L.lv).map(x=>x.f.name), nx=FRIENDS[Math.min(L.lv-1,FRIENDS.length-1)]; const el=$('#lvFriends'); if(el) el.textContent=(fr.length?'같이 헤엄치는 친구: '+fr.join(' · ')+'. ':'')+(L.lv<=FRIENDS.length?`레벨 ${L.lv+1}이 되면 ${nx.name}${hasBatchim(nx.name)?'이':'가'} 같이 헤엄쳐요.`:'친구들이 모두 모였어요.'); }
+  { const nx=FRIENDS[L.lv-1]; const el=$('#lvFriends'); if(el) el.textContent=nx?`레벨 ${L.lv+1}이 되면 ${nx.name}${hasBatchim(nx.name)?'이':'가'} 친구가 돼요.`:'친구들이 모두 모였어요.'; }
+  { const cr=$('#compRow'); if(cr){ cr.innerHTML=''; const on=compOn(L.lv), SW=1397, SH=275;
+    FRIENDS.forEach((f,i)=>{ const open=L.lv>=f.lv, sel=on.includes(f.id), b=document.createElement('button'); b.type='button'; b.className='ward'+(sel?' on':'')+(open?'':' lock'); b.disabled=!open; b.setAttribute('aria-pressed',String(sel));
+      const bx=FR_BOX[i], k=Math.min(64/bx[2],52/bx[3]);
+      const ic=open?`<span class="fic" style="background-image:url('${ART.src.friends}');background-size:${SW*k}px ${SH*k}px;background-position:${-bx[0]*k+(64-bx[2]*k)/2}px ${-bx[1]*k+(52-bx[3]*k)/2}px"></span>`:'<span class="lk">🔒</span>';
+      b.innerHTML=ic+`<b>${f.name}</b><small>${open?(sel?'같이 헤엄쳐요':'눌러서 부르기'):'레벨 '+f.lv}</small>`;
+      b.addEventListener('click',()=>{ let cur=compOn(L.lv); if(cur.includes(f.id)) cur=cur.filter(x=>x!==f.id); else { cur.push(f.id); if(cur.length>MAX_COMP) cur.shift(); }   // 넷째를 부르면 가장 먼저 부른 친구가 쉬러 감
+        compSel=cur; try{ localStorage.setItem('riverstep:friends',JSON.stringify(cur)); }catch(e){} renderWardrobe(); });
+      cr.appendChild(b); }); } }
   $('#lvNum').textContent=L.lv; $('#lvNext').textContent=L.next?`다음 레벨까지 ${L.next-n}걸음`:'가장 높은 레벨이에요';
   $('#lvFill').style.width=(L.next?Math.min(100,(n-L.cur)/(L.next-L.cur)*100):100)+'%';
   const row=$('#wardRow'); row.innerHTML='';
