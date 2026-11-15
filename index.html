@@ -112,7 +112,12 @@ a{color:inherit}
 .dress{display:flex;flex-direction:column;gap:12px;border-top:2px solid var(--soft);padding-top:18px}
 .dress h2{margin:0;font:800 24px/1.3 var(--num)}
 .planbox{margin:14px 0 0;border:2px solid var(--soft);padding:10px 14px;background:var(--bg)}
-.planbox summary{font:800 19px var(--num);cursor:pointer;min-height:40px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.planbox{border:3px solid var(--edge);background:var(--card);padding:0}
+.planbox summary{font:800 19px var(--num);cursor:pointer;min-height:58px;padding:8px 12px 8px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;list-style:none}
+.planbox summary::-webkit-details-marker{display:none}
+.planbtn{margin-left:auto;display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:var(--edge);color:var(--card);font:800 17px var(--num)}
+.planbtn::before{content:'눌러서 열기 ▼'}.planbox[open] .planbtn::before{content:'접기 ▲'}
+.planbox[open]{padding:0 14px 14px}.planbox[open] summary{margin:0 -14px;border-bottom:2px solid var(--soft)}
 .plansum{font:500 16px var(--font);color:var(--text-2)}
 .chkrow{display:flex;align-items:center;gap:10px;min-height:46px;font-size:18px}.chkrow input{width:26px;height:26px;accent-color:#3f7a3a;flex:none}
 .chkrow button{margin-left:auto;border:0;background:none;font-size:22px;color:var(--text-2);cursor:pointer;min-width:40px;min-height:40px}
@@ -489,7 +494,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
           </div>
         </div>
         <details class="planbox" id="planBox" hidden>
-          <summary>목표 시간과 준비 확인 <span class="plansum" id="planSum"></span></summary>
+          <summary><span class="plant">목표 시간과 준비 확인</span> <span class="plansum" id="planSum"></span><span class="planbtn" aria-hidden="true"></span></summary>
           <h3 class="subh">오늘 걸을 시간</h3>
           <div class="seg" role="group" aria-label="오늘 걸을 시간" id="timeSeg">
             <button data-min="0" aria-pressed="true">정하지 않기</button><button data-min="5" aria-pressed="false">5분</button><button data-min="10" aria-pressed="false">10분</button><button data-min="15" aria-pressed="false">15분</button><button data-min="20" aria-pressed="false">20분</button>
@@ -531,7 +536,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
               <span class="goalunit">걸음</span>
               <button type="button" class="gstep" id="pacePlus" aria-label="2걸음 늘리기">+</button>
             </div>
-            <p class="small" id="paceHelp" hidden>화면 양옆 발 표시가 빨갛게 바뀌는 쪽 발을 디뎌요. 놓쳐도 괜찮아요.</p>
+            <p class="small" id="paceHelp" hidden>남생이 뒷발 쪽 발바닥에 동그라미가 켜지는 쪽 발을 디뎌요. 놓쳐도 괜찮아요.</p>
           </div>
           <div class="seg" role="group" aria-label="박자 빠르기" id="tempoSeg" hidden>
             <button data-bpm="16" aria-pressed="false">아주 느리게 · 1분 16걸음</button>
@@ -1018,13 +1023,13 @@ let phraseI=0;
 function melodyNote(){ const semi=PHRASE[phraseI++%PHRASE.length]; const f=330*Math.pow(2,semi/12); const k=voice.speaking?.25:1; tone(f,.42,'triangle',.17*k); tone(f*2,.25,'sine',.04*k); } // 목소리가 나오는 동안은 가락을 작게
 const beat={timer:null,next:'L'};
 function beatTick(){
-  if(NEWART){ const pf=beat.next==='L'?$('#paceL'):$('#paceR'), po=beat.next==='L'?$('#paceR'):$('#paceL'); po.classList.remove('on'); pf.classList.add('on'); setTimeout(()=>pf.classList.remove('on'),Math.min(900,60000/bpm*.55)); }   // 디딜 쪽 발 동그라미가 빨갛게
+  beat.cur=beat.next; beat.t=performance.now();   // 지금 디딜 발(남생이 뒷발 쪽 발바닥 표시가 물듦)
   if(!soundOn){ beat.next=beat.next==='L'?'R':'L'; return; }
   const f=beat.next==='L'?150:190; tone(f,.16,'sine',.22,0,f*.6); tone(f*4,.05,'triangle',.05);
   const el=beat.next==='L'?$('#btnL'):$('#btnR'); el.classList.add('cue'); setTimeout(()=>el.classList.remove('cue'),Math.min(300,30000/bpm));
   beat.next=beat.next==='L'?'R':'L';
 }
-function startBeat(){ stopBeat(); if((NEWART?!paceOn:musicMode!=='beat')||S.source==='replay') return; beat.next='L'; beat.timer=setInterval(beatTick,60000/bpm); if(NEWART){ $('#paceL').hidden=false; $('#paceR').hidden=false; } }
+function startBeat(){ stopBeat(); if((NEWART?!paceOn:musicMode!=='beat')||S.source==='replay') return; beat.next='L'; beat.timer=setInterval(beatTick,60000/bpm); beat.cur=null; }
 function stopBeat(){ if(beat.timer){ clearInterval(beat.timer); beat.timer=null; } $$('.foot').forEach(b=>b.classList.remove('cue')); const pl=$('#paceL'), pr=$('#paceR'); if(pl){ pl.hidden=true; pr.hidden=true; pl.classList.remove('on'); pr.classList.remove('on'); } }
 const song={audio:null,url:null,name:'',last:0};
 function pickSong(file){
@@ -1550,7 +1555,7 @@ function drawCompanions(g,tx,ty,t,phase,moving,lv,layer){
     if(hasFriend('duck',lv)){ const x=tx-104+surge(1.2), y=ty-24+bob(2); drawFriendSprite(g,4,x,y,50,t,1,false,Math.sin(t*1.4)*.02); waterline(g,x,y-1,26,t+2,.6); }
     if(hasFriend('frog',lv)){ const x=tx-128+surge(2.4)*1.4, y=ty+12+bob(3.1)+go*Math.max(0,Math.sin(phase*2))*-4; drawFriendSprite(g,2,x,y,36,t,1,false,0); waterline(g,x,y-1,17,t+3,.55); }
   } else {
-    if(hasFriend('otter',lv)){ const x=tx-58+surge(.6), y=ty+36+bob(.9); drawFriendSprite(g,5,x,y,78,t,1,false,Math.sin(t*1.1)*.015); }   // 수달: 배를 아래로 하고 머리만 내밀고 헤엄
+    if(hasFriend('otter',lv)){ const x=tx-112+surge(.6), y=ty+40+bob(.9); drawFriendSprite(g,5,x,y,72,t,1,false,Math.sin(t*1.1)*.015); }   // 수달: 배를 아래로 하고 머리만 내밀고 헤엄
     if(hasFriend('minnow',lv)){ const x=tx+70+Math.sin(t*1.3)*6+surge(.3)*1.5, y=ty+30+Math.sin(t*2.2)*3; drawFriendSprite(g,0,x,y,40,t,.6,false,Math.sin(t*2.2)*.05); }
     if(hasFriend('fly',lv)){ const x=tx-70+Math.sin(t*.9)*12, y=ty-78+Math.sin(t*2.3)*6; drawFriendSprite(g,1,x,y,28,t,1,false,Math.sin(t*9)*.03); }
   }
@@ -1619,6 +1624,7 @@ function drawScene(g,W,H,dpr,st){
   const FLV=LV_PREVIEW||CUR_LV;
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'back');
   if(NA&&artOn('tA')) drawArtTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,a,st.moving); else drawTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,L.turtle);
+  if(NA&&beat.timer&&S.screen==='game') drawFeetUnder(g,tx-34,ty+44,17,24,a,m);   // 박자에 맞춰 걸을 때: 남생이 뒷발 쪽 발바닥 표시
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'front');
   if(st.name&&showTag){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62-(NA?16:0)-(NA&&wearing?34:0);
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,24); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,24);
@@ -1766,12 +1772,15 @@ function drawFoot(g,x,y,sz,side,flash,next,t,m){
 }
 function drawFeetUnder(g,cx,y,dx,sz,t,m){
   const now=performance.now(), cf=S.screen==='game'?cueFoot():null;
-  for(const side of ['L','R']){ const f=Math.max(0,1-(now-footFlash[side])/450); drawFoot(g,cx+(side==='L'?-dx:dx),y,sz,side,f,cf===side&&f<=0,t,m); }
+  const pace=NEWART&&beat.timer&&beat.cur;
+  if(pace){ const iv=60000/bpm, u=Math.min(1,(now-beat.t)/(iv*.7)), k=1-u, x=cx+(beat.cur==='L'?-dx:dx), r=sz*(.72+.1*k);   // 박자마다 디딜 발에 살구빛 동그라미가 켜졌다 천천히 옅어짐
+    g.save(); g.fillStyle=`rgba(244,150,112,${.2+.6*k})`; g.strokeStyle=`rgba(226,112,78,${.35+.6*k})`; g.lineWidth=Math.max(2,sz*.08); g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill(); g.stroke(); g.restore(); }
+  for(const side of ['L','R']){ const f=Math.max(0,1-(now-footFlash[side])/450); drawFoot(g,cx+(side==='L'?-dx:dx),y,sz,side,f,!pace&&cf===side&&f<=0,t,m); }
 }
 // 다음에 내디딜 발: 방향 전환 중이면 도는 쪽, 박자 모드면 다음 박자의 발, 아니면 번갈아
 function cueFoot(){
   if(TC.active){ const i=turnSegOfStep(S.steps+1); if(i>=0) return TURN_COURSE[i].dir<0?'L':'R'; if(S.steps>=courseSteps()) return null; }
-  if(beat.timer) return beat.next;
+  if(beat.timer) return NEWART?(beat.cur||beat.next):beat.next;
   return S.nextFoot;
 }
 function updateNextCue(){ const cf=cueFoot(); $('#btnL').classList.toggle('next',cf==='L'); $('#btnR').classList.toggle('next',cf==='R'); }
