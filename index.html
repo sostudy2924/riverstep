@@ -1427,7 +1427,7 @@ function drawArtTurtle(g,x,y,s,phase,t,moving){
   if(moving){ g.save(); g.strokeStyle='rgba(252,253,250,.55)'; g.lineWidth=1.6; g.lineCap='round';
     for(let i=0;i<3;i++){ const d=12+i*14+((t*30)%14), yy=top+h*wl+1; g.globalAlpha=1-i*.28; g.beginPath(); g.moveTo(left+w*.05-d,yy-3-i*2); g.quadraticCurveTo(left+w*.05-d-10,yy,left+w*.05-d-22,yy+3+i*2); g.stroke(); } g.restore(); }
   drawSubmerged(g,im,left,top,w,h,wl,rot);
-  { const an=(sw&&SWIM_ANCHOR[SWIM_LAST])||[.45,.06]; drawAccessory(g,left+w*an[0],top+h*an[1]+2,w,'side'); }
+  { const an=(sw&&SWIM_ANCHOR[SWIM_LAST])||[.45,.06]; drawAccessory(g,left+w*an[0],top+h*(an[1]+.035),w,'side'); }   // 등딱지 꼭대기에서 살짝 안쪽
   waterline(g,left+w*.52,top+h*wl+1,w*.40,t,1);
   // 머리 앞 작은 물결
   g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.5; const hx=left+w*.98, hy=top+h*wl+1;
@@ -1562,7 +1562,7 @@ function drawSceneAR(g,W,H,dpr,st){
       const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh); im=c; iw=fw; ih=fh; }
     const w=84*ts, h=w*ih/iw, sway=artOn('rswim')?0:Math.sin(st.phase)*.04;
     drawSubmerged(g,im,T.cx-w/2,ty-h*.74,w,h,.80,sway);   // 등딱지 대부분이 물 위로, 다리 끝만 잠김
-    drawAccessory(g,T.cx,ty-h*.74+h*.30,w,'rear');
+    drawAccessory(g,T.cx,ty-h*.74+h*.36,w,'rear');   // 뒤에서 본 등딱지 한가운데
     g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.12,r,r*.26,0,.15,Math.PI-.15); g.stroke(); } g.restore();
   } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
   if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
@@ -2593,8 +2593,10 @@ function checkLevelUp(){
 }
 function drawAccessory(g,x,y,w,view){
   if(!NEWART||!wearing) return; const im=ART.img['acc_'+wearing]; if(!im||!ART.ok['acc_'+wearing]) return;
-  const aw=w*(view==='rear'?.34:.34), ah=aw*im.naturalHeight/im.naturalWidth;
-  g.drawImage(im,x-aw/2,y-ah*.82,aw,ah);
+  // 장식마다 등딱지에 닿는 지점이 다름: k=그림 위에서부터 닿는 곳 비율, sq=납작하게(화관은 등에 눕혀 놓은 모양), sz=등딱지 대비 크기
+  const P={ribbon:{k:.40,sq:[1,1],sz:[.30,.34]}, flowers:{k:.55,sq:[.42,.62],sz:[.36,.42]}, lotus:{k:.86,sq:[1,.8],sz:[.36,.40]}, star:{k:.42,sq:[1,1],sz:[.22,.26]}}[wearing]||{k:.6,sq:[1,1],sz:[.3,.3]};
+  const v=view==='rear'?1:0, aw=w*P.sz[v], ah=aw*im.naturalHeight/im.naturalWidth*P.sq[v];
+  g.drawImage(im,x-aw/2,y-ah*P.k,aw,ah);
 }
 // ── 시작 ────────────────────────────────────────────
 applyMood();
