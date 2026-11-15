@@ -367,7 +367,8 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
 .lvbar{height:16px;border:2px solid var(--edge);background:var(--bar-bg);position:relative}
 .lvbar i{position:absolute;inset:0 auto 0 0;background:#e08a2e}
 .lvbox h3{margin:6px 0 0;font:800 20px var(--num)}
-.wardrow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.wardrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:10px}
+.ward.none .lk{font-size:34px;opacity:.45}
 .ward{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:2px solid var(--edge);background:var(--card);color:var(--text);cursor:pointer;min-height:132px}
 .ward img{width:64px;height:52px;object-fit:contain}
 .ward .lk{font-size:30px;line-height:52px;opacity:.6}
@@ -1454,7 +1455,7 @@ function drawScene(g,W,H,dpr,st){
       g.fillStyle=m==='day'?'#2a2a25':'#16202b'; g.font='700 15px "Nanum Gothic", sans-serif'; g.fillText('목표',fx+11,69); } }
   if(st.bottles){ for(let kb=st.picked+1;;kb++){ const bx=kb*BOTTLE_EVERY*STEP_PX-cam; if(bx>VW+60) break; if(bx<-60) continue;
     const by=BY+Math.sin(a*1.2+kb)*2;
-    if(kb===st.picked+1){ g.save(); if(NA){ g.strokeStyle='rgba(255,250,235,.9)'; g.lineWidth=8; g.beginPath(); g.ellipse(bx,by-14,42,25,0,0,Math.PI*2); g.stroke(); g.strokeStyle='#e8781a'; g.lineWidth=4.5; g.setLineDash([9,6]); } else { g.strokeStyle=L.ring; g.lineWidth=3.5; g.setLineDash([7,6]); } g.beginPath(); g.ellipse(bx,by-(NA?14:0),NA?42:40,NA?25:24,0,0,Math.PI*2); g.stroke(); g.restore(); }
+    if(kb===st.picked+1){ g.save(); if(NA){ g.strokeStyle='#e8781a'; g.lineWidth=4.5; g.setLineDash([9,6]); }   // 주울 쓰레기: 주황 점선만(흰 테두리 없음) else { g.strokeStyle=L.ring; g.lineWidth=3.5; g.setLineDash([7,6]); } g.beginPath(); g.ellipse(bx,by-(NA?14:0),NA?42:40,NA?25:24,0,0,Math.PI*2); g.stroke(); g.restore(); }
     if(!(NA&&artOn(itemAt(kb))&&drawArtItem(g,itemAt(kb),bx,by,1.15,kb,a))) drawItem(g,itemAt(kb),bx,by,1.15,L.bottle,a*1.3+kb); } }
   const tx=Math.max(80,VW*st.tx), ty=TY+Math.sin(a*1.3)*2;
   if(m==='day'&&!NA){ g.fillStyle='rgba(40,70,80,.15)'; g.beginPath(); g.ellipse(tx,ty+34,46,6,0,0,Math.PI*2); g.fill(); }
@@ -2569,8 +2570,8 @@ function startIntro(){
 // ── 시안: 레벨과 옷장(주소에 ?newart) ────────────────────
 // 레벨: 지금까지 걸은 모든 걸음(기록 합계)으로 올라감. 처음엔 빨리, 갈수록 천천히.
 // 옷장: 정해진 걸음 수가 되면 장식이 하나씩 열림. 한 번에 하나를 등딱지 위에 달 수 있음.
-const LV_STEPS=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
-const WARDROBE=[{id:'ribbon',name:'빨간 리본',need:50},{id:'flowers',name:'들꽃 화관',need:200},{id:'lotus',name:'연꽃 한 송이',need:500},{id:'crown',name:'작은 왕관',need:1000}];
+const LV_STEPS=[0,30,80,150,250,400,600,850,1150,1500,1900,2400,3000,3700,4500];   // 한 번 걷기 ≈ 30걸음 기준: 첫날 레벨2, 일주일쯤 레벨5
+const WARDROBE=[{id:'ribbon',name:'빨간 리본',need:30,lv:2},{id:'flowers',name:'들꽃 화관',need:80,lv:3},{id:'lotus',name:'연잎 모자',need:150,lv:4},{id:'crown',name:'작은 왕관',need:250,lv:5}];
 function lifeSteps(){ let n=0; for(const d of Object.keys(LOG.days)) for(const k of Object.keys(LOG.days[d].sessions)){ const x=LOG.days[d].sessions[k]; if(!x.sample&&(S.screen!=='game'||+k!==S.sid)) n+=x.steps||0; } return n+(S.screen==='game'?S.steps:0); }
 function levelOf(n){ let l=1; for(let i=1;i<LV_STEPS.length;i++) if(n>=LV_STEPS[i]) l=i+1; const next=LV_STEPS[l]??null; return {lv:l, cur:LV_STEPS[l-1], next}; }
 let wearing=null; try{ wearing=localStorage.getItem('riverstep:wear')||null; }catch(e){}
@@ -2579,8 +2580,11 @@ function renderWardrobe(){
   $('#lvNum').textContent=L.lv; $('#lvNext').textContent=L.next?`다음 레벨까지 ${L.next-n}걸음`:'가장 높은 레벨이에요';
   $('#lvFill').style.width=(L.next?Math.min(100,(n-L.cur)/(L.next-L.cur)*100):100)+'%';
   const row=$('#wardRow'); row.innerHTML='';
+  { const off=!wearing, b=document.createElement('button'); b.type='button'; b.className='ward none'+(off?' on':''); b.setAttribute('aria-pressed',String(off));
+    b.innerHTML=`<span class="lk">○</span><b>안 쓰기</b><small>${off?'아무것도 안 했어요':'눌러서 벗기기'}</small>`;
+    b.addEventListener('click',()=>{ wearing=null; try{ localStorage.removeItem('riverstep:wear'); }catch(e){} renderWardrobe(); }); row.appendChild(b); }
   for(const w of WARDROBE){ const open=n>=w.need, on=wearing===w.id; const b=document.createElement('button'); b.type='button'; b.className='ward'+(on?' on':'')+(open?'':' lock'); b.disabled=!open; b.setAttribute('aria-pressed',String(on));
-    const ic=(ACC_FIT[w.id]&&ACC_FIT[w.id].side&&ACC_FIT[w.id].side.icon)||ART.src['acc_'+w.id]||''; b.innerHTML=(open&&ic.startsWith('http')?`<img alt="" src="${ic}">`:`<span class="lk">🔒</span>`)+`<b>${w.name}</b><small>${open?(on?'달고 있어요':'눌러서 달기'):w.need+'걸음에 열려요'}</small>`;
+    const ic=(ACC_FIT[w.id]&&ACC_FIT[w.id].side&&ACC_FIT[w.id].side.icon)||ART.src['acc_'+w.id]||''; b.innerHTML=(open&&ic.startsWith('http')?`<img alt="" src="${ic}">`:`<span class="lk">🔒</span>`)+`<b>${w.name}</b><small>${open?(on?'쓰고 있어요':'눌러서 쓰기'):`레벨 ${w.lv} · ${w.need}걸음`}</small>`;
     b.addEventListener('click',()=>{ wearing=on?null:w.id; try{ wearing?localStorage.setItem('riverstep:wear',wearing):localStorage.removeItem('riverstep:wear'); }catch(e){} renderWardrobe(); });
     row.appendChild(b); }
 }
@@ -2589,10 +2593,10 @@ function checkLevelUp(){
   if(!NEWART) return; const n=lifeSteps(), L=levelOf(n);
   if(lastLv===null){ lastLv=L.lv; lastUnlock=WARDROBE.filter(w=>n>=w.need).length; return; }
   if(L.lv>lastLv){ lastLv=L.lv; notify(`레벨 ${L.lv}이 되었어요!`,`${tSubj()} 더 힘차게 헤엄쳐요`,true,5000); try{ sfx.mile(); }catch(e){} speak(`축하해요. 레벨 ${L.lv}이 되었어요.`); }
-  const u=WARDROBE.filter(w=>n>=w.need).length; if(u>lastUnlock){ const w=WARDROBE[u-1]; lastUnlock=u; notify(`옷장에 '${w.name}'이 생겼어요`,'걷기를 마치고 처음 화면에서 달아 줄 수 있어요',true,6000); }
+  const u=WARDROBE.filter(w=>n>=w.need).length; if(u>lastUnlock){ const w=WARDROBE[u-1]; lastUnlock=u; notify(`옷장에 '${w.name}'이 생겼어요`,'걷기를 마치고 처음 화면 옷장에서 씌워 줄 수 있어요',true,6000); }
 }
 // 남생이가 실제로 쓴 모습으로 그린 장식(옆모습·뒷모습 따로). 상자=헤엄 그림 한 칸 안에서의 위치 비율 [왼, 위, 오른, 아래]
-const ACC_FIT={"ribbon":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b7ff6ce9-7ed8-4988-972d-db82f41042fe.png","box":[0.3881,-0.1159,0.5469,0.6733],"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b7ff6ce9-7ed8-4988-972d-db82f41042fe.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/d596028b-e5a8-4244-837a-19ce47eee061.png","box":[0.1312,0.0618,0.8612,0.755]}},"flowers":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/093c76e7-feac-4a91-9779-f65050084df2.png","box":[0.7933,0.1599,0.9823,0.31],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/093c76e7-feac-4a91-9779-f65050084df2.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/10b6ae12-0e81-41db-94d0-38ae3b9cea01.png","box":[0.3979,-0.035,0.5958,0.0704],"head":1}},"lotus":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/59bdabde-86d7-4d14-a3d0-3b3a88de5096.png","box":[0.8189,0.1063,0.9807,0.3335],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/59bdabde-86d7-4d14-a3d0-3b3a88de5096.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/a769e970-f8ed-43e6-b4bb-2818865b30c8.png","box":[0.4391,-0.0943,0.5484,0.0587],"head":1}},"crown":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/545e2232-10cd-4d0f-a7e2-d26c9c893a7f.png","box":[0.8384,0.1325,0.9697,0.2599],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/545e2232-10cd-4d0f-a7e2-d26c9c893a7f.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3acf5064-cc75-42ac-be15-f48e2ef6f1cf.png","box":[0.4525,-0.0465,0.5375,0.0484],"head":1}}};
+const ACC_FIT={"ribbon":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b7ff6ce9-7ed8-4988-972d-db82f41042fe.png","box":[0.3881,-0.1159,0.5469,0.6733],"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/0a3af697-88e8-4581-949e-a353119f751b.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/dbd73378-c794-4159-8615-3891cb6e6772.png","box":[0.1312,0.0168,0.8612,0.71]}},"flowers":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/093c76e7-feac-4a91-9779-f65050084df2.png","box":[0.7933,0.1599,0.9823,0.31],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/ec53b92f-0137-4db6-a11e-69b1df256a28.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/10b6ae12-0e81-41db-94d0-38ae3b9cea01.png","box":[0.3979,-0.035,0.5958,0.0704],"head":1}},"lotus":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/59bdabde-86d7-4d14-a3d0-3b3a88de5096.png","box":[0.8189,0.1063,0.9807,0.3335],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/4839de33-01dd-4d1d-8c1b-ea756ce14e65.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/a769e970-f8ed-43e6-b4bb-2818865b30c8.png","box":[0.4391,-0.0943,0.5484,0.0587],"head":1}},"crown":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/545e2232-10cd-4d0f-a7e2-d26c9c893a7f.png","box":[0.8384,0.1325,0.9697,0.2599],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/545e2232-10cd-4d0f-a7e2-d26c9c893a7f.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3acf5064-cc75-42ac-be15-f48e2ef6f1cf.png","box":[0.4525,-0.0465,0.5375,0.0484],"head":1}}};
 if(NEWART) for(const [id,vs] of Object.entries(ACC_FIT)) for(const [v,f] of Object.entries(vs)){ if(!f) continue; const k='fit_'+id+'_'+v, im=new Image(); im.onload=()=>{ ART.ok[k]=true; }; im.src=f.url; ART.img[k]=im; }
 function drawAccessory(g,x,y,w,view,fr){
   if(!NEWART||!wearing) return;
