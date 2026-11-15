@@ -332,6 +332,19 @@ html.na #v-therapist .cols{grid-template-columns:minmax(0,1fr)}
 .rp mark{padding:2px 10px;border-radius:99px;font-size:13px;font-weight:700}.rp .m1{background:#d5ebe8;color:#0b5350}.rp .m2{background:#fbe0bd;color:#8a4a06}.rp .m0{background:#eceeed;color:#6a7673}
 .rpo{margin:0;background:#f2f6f5;border-radius:8px;padding:11px 14px}.rpo.w{background:#fdf0dc}.rpo b{display:inline-block;min-width:4.6em;margin-right:8px;font-size:14px;color:#0b5350}.rpo.w b{color:#8a4a06}
 .rps,.rpf,.rpe,.rpx{margin:0;font-size:14px;color:#55615e}.rpf{border-top:1px solid #e3e6e4;padding-top:12px;line-height:1.6}.rpx{background:#fdf0dc;padding:8px 12px;border-radius:8px;color:#8a4a06}
+/* 시작 단추는 늘 보이게: 설정을 내려 보는 동안에도 화면 아래에 붙어 있음 */
+html.na .walk>.box>.stepno:last-of-type{position:sticky;bottom:0;z-index:4;background:var(--card);padding-top:12px;padding-bottom:14px;box-shadow:0 -12px 14px -12px rgba(40,50,40,.28)}
+html.na #btnStart{min-height:92px;font-size:34px;width:100%}
+html.na .lvbox .planbox{margin:4px 0 0}html.na .lvbox .planbox[open]{display:flex;flex-direction:column;gap:12px}
+.tlink{display:flex;flex-direction:column;gap:12px;background:var(--card);border:1.5px solid var(--soft);border-radius:18px;padding:20px;margin-bottom:8px}
+.tlink h2{margin:0;font:800 26px var(--num)}.tlink h3{margin:6px 0 0;font:800 20px var(--num)}
+.tlk{margin:6px 0 0;font-size:17px;color:var(--text-2)}
+.tlcode{font:800 84px/1 var(--num);letter-spacing:.14em;color:var(--pick,#3f6650);font-variant-numeric:tabular-nums}
+.tln{background:var(--note-bg);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;font-size:19px}.tln small{color:var(--text-2);font-size:15px}.tln p{margin:0}
+.tnote{margin:0;background:var(--note-bg);border-radius:12px;padding:12px 16px;font-size:20px;line-height:1.5}.tnote b{display:block;font-size:16px;color:var(--text-2)}
+.tlt{display:flex;flex-direction:column;gap:14px;max-width:1100px}.tlt h1{margin:0;font:800 30px var(--num)}.tlt p{margin:0}
+.tlform{display:flex;flex-direction:column;gap:12px;background:var(--card);border:1.5px solid var(--soft);border-radius:18px;padding:20px}.tlform h2{margin:0;font:800 24px var(--num)}
+.tlform textarea{font:500 19px var(--font);border:2px solid var(--edge);border-radius:12px;padding:10px 12px;background:var(--card);color:var(--text)}
 html.na:not([data-mood="dawn"]) .guide{background:var(--card);color:var(--text);border:2px solid var(--pick)}
 html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
 html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
@@ -511,14 +524,18 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
         <p class="say" id="say"><b>내가 한 걸음 걸으면<br>남생이도 한 걸음.</b><span>걸을수록 쓰레기를 건져서 하천이 맑아져요.</span></p>
         <canvas id="pic" aria-label="하천을 헤엄치는 남생이와 떠 있는 쓰레기 그림"></canvas>
         <p class="today" id="todayLine">오늘은 아직 걷지 않았어요.</p>
+        <p class="tnote" id="homeNote" hidden></p>
         <section class="lvbox" id="lvBox" hidden aria-label="레벨과 옷장">
           <div class="lvtop"><b class="lvb">레벨 <span id="lvNum">1</span></b><span id="lvNext"></span></div>
           <div class="lvbar"><i id="lvFill"></i></div>
+          <details class="planbox" id="wardBox">
+          <summary><span class="plant">옷장 · 하천 친구</span> <span class="plansum" id="wardSum"></span><span class="planbtn" aria-hidden="true"></span></summary>
           <h3>옷장</h3>
           <div class="wardrow" id="wardRow"></div>
           <h3>하천 친구 <small class="lvsm">같이 헤엄치는 친구는 최대 3마리</small></h3>
           <div class="wardrow" id="compRow"></div>
           <p class="lvfr" id="lvFriends"></p>
+          </details>
         </section>
         <details class="morestory"><summary>남생이 이야기 · 걸음 기부 보기</summary>
         <div class="story" id="namStory">
@@ -716,6 +733,15 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
     <div class="vh"><h1>치료사와 공유</h1><p>최근 걸음 기록을 보고서로 만들어 치료사에게 보낼 수 있어요. 아래 수치는 시제품의 측정값이며 진단이 아니에요.</p></div>
     <div class="cols">
       <div class="linkout">
+        <section class="tlink" id="tlBox" hidden>
+          <h2>치료사와 바로 연결</h2>
+          <p class="small">치료사가 자기 휴대폰이나 컴퓨터에서 아래 주소를 열고 번호 4자리를 넣으면, 이 기록을 바로 보고 <b>다음 목표와 메모</b>를 이 화면으로 보내 줄 수 있어요. 기록은 두 기기 사이로만 오가고 어디에도 따로 저장되지 않아요.</p>
+          <button class="btn go" id="btnTL">치료사와 연결하기</button>
+          <div id="tlOn" hidden><p class="tlk">치료사에게 알려 줄 번호</p><div class="tlcode" id="tlCode"></div><p class="tlk">치료사가 열 주소</p><p class="addr" id="tlAddr"></p></div>
+          <p class="state" id="tlState"></p>
+          <h3>치료사가 보낸 목표와 메모</h3>
+          <div class="notes" id="tlNotes"></div>
+        </section>
         <div class="seg" role="group" aria-label="보고서 기간" id="rangeSeg">
           <button data-days="7" aria-pressed="true">최근 7일</button>
           <button data-days="14" aria-pressed="false">최근 14일</button>
@@ -2588,6 +2614,56 @@ function reportHTML2(R){
   if(ob.length) h+='<h4>자동 관찰</h4><p class="rps">기기가 숫자에서 찾은 변화입니다. 진단이 아니며, 판단은 치료사가 합니다.</p>'+ob.map(o=>`<p class="rpo${o[2]?' w':''}"><b>${o[0]}</b>${o[1]}</p>`).join('');
   return h+'<p class="rpf">RiverStep은 집에서 하는 보행 재활 운동을 안내하고 걸음과 좌우 차이를 재서 기록하는 시제품입니다. 이 보고서는 진단이 아닙니다.<br>좌우 걸음 차이는 왼발·오른발 걸음 수로, 보행 주기는 같은 발이 다시 닿기까지의 평균 시간으로 계산했습니다. 영상과 위치 정보는 저장하지 않습니다.</p></div>';
 }
+// ── 시안: 치료사와 바로 연결(양방향). TV에 뜬 번호를 치료사가 넣으면 기록을 바로 보고, 다음 목표·메모를 TV로 보내 줌 ──
+// 두 기기가 직접 주고받음(휴대폰 센서 연결과 같은 방식). 서버에 기록을 저장하지 않으므로, 두 화면이 같은 때에 켜져 있어야 함
+const TL={peer:null,code:null,conns:[]};
+function tlPlans(){ try{ return JSON.parse(localStorage.getItem('riverstep:tplan')||'[]'); }catch(e){ return []; } }
+function tlRender(){ const L=tlPlans(), el=$('#tlNotes'); if(el) el.innerHTML=L.length?L.slice().reverse().map(x=>`<div class="tln"><small>${esc(fmtWhen(new Date(x.at).toISOString()))}</small>${x.goal?`<b>다음 목표 ${x.goal}걸음</b>`:''}${x.memo?`<p>${esc(x.memo)}</p>`:''}</div>`).join(''):'<p class="small">아직 받은 것이 없어요.</p>';
+  const hn=$('#homeNote'), last=L[L.length-1]; if(hn){ hn.hidden=!last; if(last) hn.innerHTML='<b>치료사 선생님 말씀</b> '+(last.goal?`오늘 목표 ${last.goal}걸음. `:'')+esc(last.memo||''); } }
+function tlState(t,bad){ const el=$('#tlState'); el.innerHTML=t; el.style.color=bad?'var(--warn)':''; }
+async function tlStart(){
+  if(TL.peer&&!TL.peer.destroyed) return; tlState('연결을 준비하고 있어요.');
+  try{ await loadScript(PEERJS_URL); }catch(e){ tlState('연결 프로그램을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.',true); return; }
+  TL.code=newCode(); let p; try{ p=new window.Peer(PEER_PREFIX+'t'+TL.code, window.RS_PEER||{}); }catch(e){ tlState('연결을 시작하지 못했어요.',true); return; } TL.peer=p;
+  p.on('open',()=>{ $('#tlOn').hidden=false; $('#btnTL').hidden=true; $('#tlCode').textContent=TL.code; $('#tlAddr').textContent=location.origin+location.pathname+'?newart&therapist'; tlState('치료사가 번호를 넣기를 기다리고 있어요. 이 화면을 켜 두세요.'); });
+  p.on('connection',conn=>{
+    conn.on('open',()=>{ TL.conns.push(conn); tlState('<b>치료사와 연결됐어요.</b> 기록을 보냈어요.'); try{ conn.send({type:'report',R:buildReport(14),goal:S.goal}); }catch(e){} });
+    conn.on('data',m=>{ if(!m||m.type!=='plan') return; const g=Number(m.goal), ok=g>=GOAL_MIN&&g<=GOAL_MAX, memo=String(m.memo||'').slice(0,300); if(!ok&&!memo) return;
+      const L=tlPlans(); L.push({at:Date.now(),goal:ok?g:null,memo}); try{ localStorage.setItem('riverstep:tplan',JSON.stringify(L.slice(-20))); }catch(e){}
+      if(ok) setGoal(g,![20,30,50,100].includes(g),true); tlRender(); notify('치료사가 목표와 메모를 보냈어요',ok?`다음 목표 ${g}걸음`:'메모를 확인해 보세요',true,4000); try{ conn.send({type:'ack'}); }catch(e){} });
+    conn.on('close',()=>{ TL.conns=TL.conns.filter(c=>c!==conn); if(!TL.conns.length) tlState('치료사와의 연결이 끝났어요. 번호는 그대로 쓸 수 있어요.'); });
+    conn.on('error',()=>{});
+  });
+  p.on('disconnected',()=>{ try{ p.reconnect(); }catch(e){} });
+  p.on('error',err=>{ if(err&&err.type==='unavailable-id'){ try{ p.destroy(); }catch(e){} TL.peer=null; tlStart(); return; } if(!TL.code||$('#tlOn').hidden) tlState('연결 서버에 닿지 못했어요. 인터넷 연결을 확인해 주세요.',true); });
+}
+if(NEWART) setTimeout(()=>{ $('#tlBox').hidden=false; $('#btnTL').addEventListener('click',tlStart); tlRender(); },0);
+// 치료사 쪽 화면(?therapist)
+const TH={peer:null,conn:null};
+function thState(t,bad){ const el=$('#thState'); el.innerHTML=t; el.style.color=bad?'var(--warn)':''; }
+function thPage(){
+  $('#reportView').innerHTML=`<div class="tlt"><h1>RiverStep 치료사 화면</h1><p>환자 화면(TV)의 “치료사와 공유”에 뜬 번호 4자리를 넣어 주세요.</p>
+    <div class="row"><input id="thCode" class="namein" inputmode="numeric" maxlength="4" placeholder="번호 4자리" style="max-width:220px" aria-label="연결 번호"><button class="btn go sm" id="thGo">연결하기</button></div><p class="state" id="thState"></p>
+    <div id="thReport"></div>
+    <div class="tlform" id="thForm" hidden><h2>환자에게 보내기</h2>
+      <label class="field">다음 하루 목표 걸음 (${GOAL_MIN}~${GOAL_MAX}, 안 바꾸려면 비워 두기)<input id="thGoal" inputmode="numeric" maxlength="3"></label>
+      <label class="field">메모<textarea id="thMemo" maxlength="300" rows="3" placeholder="예: 오른발을 조금 더 높이 들어 보세요."></textarea></label>
+      <button class="btn go" id="thSend">환자 화면으로 보내기</button></div></div>`;
+  $('#thGo').addEventListener('click',thConnect); $('#thCode').addEventListener('keydown',e=>{ if(e.key==='Enter') thConnect(); });
+  $('#thSend').addEventListener('click',()=>{ const g=Number($('#thGoal').value), memo=$('#thMemo').value.trim(); if(!(g>=GOAL_MIN&&g<=GOAL_MAX)&&!memo){ thState('목표 걸음이나 메모 중 하나는 넣어 주세요.',true); return; }
+    if(!TH.conn||!TH.conn.open){ thState('연결이 끊겼어요. 번호를 다시 넣어 연결해 주세요.',true); return; } try{ TH.conn.send({type:'plan',goal:g||null,memo}); thState('보내는 중이에요.'); }catch(e){ thState('보내지 못했어요.',true); } });
+}
+async function thConnect(){
+  const code=$('#thCode').value.trim(); if(!/^\d{4}$/.test(code)){ thState('번호 4자리를 넣어 주세요.',true); return; }
+  thState('연결하고 있어요.'); try{ await loadScript(PEERJS_URL); }catch(e){ thState('연결 프로그램을 불러오지 못했어요. 인터넷 연결을 확인해 주세요.',true); return; }
+  if(TH.peer&&TH.peer.destroyed) TH.peer=null;
+  if(!TH.peer){ TH.peer=new window.Peer(undefined, window.RS_PEER||{}); TH.peer.on('error',()=>thState('환자 화면을 찾지 못했어요. 번호가 맞는지, 환자 화면에 번호가 떠 있는지 확인해 주세요.',true)); }
+  const go=()=>{ const conn=TH.peer.connect(PEER_PREFIX+'t'+code,{reliable:true}); TH.conn=conn;
+    conn.on('open',()=>thState('<b>연결됐어요.</b> 기록을 받는 중이에요.'));
+    conn.on('data',m=>{ if(!m) return; if(m.type==='report'){ $('#thReport').innerHTML=reportHTML2(m.R); $('#thForm').hidden=false; if(m.goal) $('#thGoal').placeholder='지금 목표 '+m.goal+'걸음'; thState('<b>연결됐어요.</b> 아래가 환자의 최근 14일 기록이에요.'); } else if(m.type==='ack'){ thState('<b>보냈어요.</b> 환자 화면에 목표와 메모가 떴어요.'); $('#thMemo').value=''; } });
+    conn.on('close',()=>thState('연결이 끊겼어요. 환자 화면이 꺼졌을 수 있어요.',true)); };
+  if(TH.peer.open) go(); else TH.peer.once('open',go);
+}
 function renderShare(){ $('#reportBox').innerHTML=reportHTML(buildReport()); $('#linkOut').hidden=true; $('#linkMsg').textContent=''; }
 function b64e(o){ const bytes=new TextEncoder().encode(JSON.stringify(o)); let s=''; bytes.forEach(b=>s+=String.fromCharCode(b)); return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
 function b64d(s){ s=s.replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; const bin=atob(s); return JSON.parse(new TextDecoder().decode(Uint8Array.from(bin,c=>c.charCodeAt(0)))); }
@@ -2934,6 +3010,7 @@ function lifeSteps(){ let n=0; for(const d of Object.keys(LOG.days)) for(const k
 function levelOf(n){ let l=1; for(let i=1;i<LV_STEPS.length;i++) if(n>=LV_STEPS[i]) l=i+1; const next=LV_STEPS[l]??null; return {lv:l, cur:LV_STEPS[l-1], next}; }
 let wearing=null; try{ wearing=localStorage.getItem('riverstep:wear')||null; }catch(e){}
 function renderWardrobe(){
+  { const ws=$('#wardSum'); if(ws){ const it=WARDROBE.find(x=>x.id===wearing), n=compOn(LV_PREVIEW||CUR_LV).filter(x=>x!=='egret').length; ws.textContent=(it?it.name:'옷 안 씀')+' · 친구 '+n+'마리'; } }
   const box=$('#lvBox'); if(!box) return; const n=lifeSteps(), L=levelOf(n); CUR_LV=L.lv;
   { const nx=FRIENDS[L.lv-1]; const el=$('#lvFriends'); if(el) el.textContent=nx?`레벨 ${L.lv+1}이 되면 ${nx.name}${hasBatchim(nx.name)?'이':'가'} 친구가 돼요.`:'친구들이 모두 모였어요.'; }
   { const cr=$('#compRow'); if(cr){ cr.innerHTML=''; const on=compOn(L.lv), SW=1397, SH=275;
@@ -3019,6 +3096,8 @@ if(LOGO_SRC){ const img=$('#logoImg'); img.src=LOGO_SRC; img.hidden=false; $('#l
 if(params.has('sensor')){
   S.screen='sensor'; $('#scrSite').hidden=true; $('#scrSensor').hidden=false;
   const c=(params.get('sensor')||'').replace(/\D/g,'').slice(0,4); $('#spCode').value=c;
+} else if(params.has('therapist')){
+  S.screen='report'; $('#scrSite').hidden=true; $('#scrReport').hidden=false; thPage();
 } else if(params.has('report')){
   S.screen='report'; $('#scrSite').hidden=true; $('#scrReport').hidden=false;
   try{ $('#reportView').innerHTML=reportHTML(b64d(params.get('report'))); }catch(e){ $('#reportView').innerHTML='<p class="empty">보고서 링크가 잘렸거나 잘못됐어요. 링크 전체를 다시 받아 주세요.</p>'; }
