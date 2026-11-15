@@ -311,7 +311,7 @@ html.na .row .ch{border-radius:99px;border-width:1.5px}
   html.na .walk>.box>.stepno{position:relative}
   html.na .walk>.box>.stepno{padding-left:62px}html.na .walk>.box>.stepno>h2{margin-left:-62px}
   html.na .walk>.box>.stepno::after{content:'';position:absolute;left:24px;top:52px;bottom:-14px;width:2px;border-radius:2px;background:var(--pick);opacity:.28}
-  html.na .walk>.box>.stepno:last-of-type::after{display:none}
+  html.na .walk>.box>.stepno.startstep::after{display:none}
 }
 html.na #v-therapist .cols{grid-template-columns:minmax(0,1fr)}
 .rp{background:#fff;color:#1b2422;border:1px solid #d9dedc;border-radius:14px;padding:26px;display:flex;flex-direction:column;gap:12px;font-size:16px}
@@ -333,7 +333,7 @@ html.na #v-therapist .cols{grid-template-columns:minmax(0,1fr)}
 .rpo{margin:0;background:#f2f6f5;border-radius:8px;padding:11px 14px}.rpo.w{background:#fdf0dc}.rpo b{display:inline-block;min-width:4.6em;margin-right:8px;font-size:14px;color:#0b5350}.rpo.w b{color:#8a4a06}
 .rps,.rpf,.rpe,.rpx{margin:0;font-size:14px;color:#55615e}.rpf{border-top:1px solid #e3e6e4;padding-top:12px;line-height:1.6}.rpx{background:#fdf0dc;padding:8px 12px;border-radius:8px;color:#8a4a06}
 /* 시작 단추는 늘 보이게: 설정을 내려 보는 동안에도 화면 아래에 붙어 있음 */
-html.na .walk>.box>.stepno:last-of-type{position:sticky;bottom:0;z-index:4;background:var(--card);padding-top:12px;padding-bottom:14px;box-shadow:0 -12px 14px -12px rgba(40,50,40,.28)}
+html.na .walk>.box>.stepno.startstep{position:sticky;bottom:0;z-index:4;background:var(--card);padding-top:12px;padding-bottom:14px;box-shadow:0 -12px 14px -12px rgba(40,50,40,.28)}
 html.na #btnStart{min-height:92px;font-size:34px;width:100%}
 html.na .lvbox .planbox{margin:4px 0 0}html.na .lvbox .planbox[open]{display:flex;flex-direction:column;gap:12px}
 .tlink{display:flex;flex-direction:column;gap:12px;background:var(--card);border:1.5px solid var(--soft);border-radius:18px;padding:20px;margin-bottom:8px}
@@ -635,7 +635,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
           <p class="small" id="songSrc" hidden>내가 가진 노래 파일(MP3 등)을 고르세요. 무료로 쓸 수 있는 민요·국악 음원은 <a href="https://gongu.copyright.or.kr/gongu/main/main.do" target="_blank" rel="noopener">공유마당(한국저작권위원회)</a>에서 찾을 수 있어요. 음원마다 이용 조건을 확인하세요.</p>
         </div>
         <p class="safety">손잡이나 벽 옆에서 걷고, 어지러우면 바로 멈춰요.</p>
-        <div class="stepno">
+        <div class="stepno startstep">
           <h2><span class="n">4</span>준비되면 누르세요</h2>
           <button class="btn go" id="btnStart">시작하기</button>
         </div>
