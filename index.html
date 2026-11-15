@@ -395,11 +395,11 @@ html.na[data-th="c"] .today,html.na[data-th="c"] .tnote{margin-top:14px}
 .hgb{width:64px;height:64px;flex:none;border-radius:50%;border:2px solid var(--edge);background:var(--card);color:var(--text);font:800 36px/1 var(--num);cursor:pointer}
 .hgb:focus-visible{outline:5px solid var(--pick);outline-offset:3px}
 #hgNum{font:800 40px/1 var(--num);min-width:4.6em;text-align:center;font-variant-numeric:tabular-nums}
-html.na[data-th="d"]:not([data-mood="dawn"]){--bg:#F6F2E8;--card:#FFFDF8;--text:#1F2C27;--text-2:#56625C;--soft:#E2DBC9;--edge:#B5AF9E;--pick:#2F6B57;--accent:#2F6B57;--r-bg:#F0893A;--r-bg-down:#D9742A;--r-t:#1F2C27;--note-bg:#F3EAD2;--chip:#EEE8D8}
+html.na:is([data-th="d"],[data-th="e"]):not([data-mood="dawn"]){--bg:#F6F2E8;--card:#FFFDF8;--text:#1F2C27;--text-2:#56625C;--soft:#E2DBC9;--edge:#B5AF9E;--pick:#2F6B57;--accent:#2F6B57;--r-bg:#F0893A;--r-bg-down:#D9742A;--r-t:#1F2C27;--note-bg:#F3EAD2;--chip:#EEE8D8}
 html.na[data-th="d"] *{box-shadow:none!important;text-shadow:none!important}
-html.na[data-th="d"] .brand b{font:500 42px/1 'Fraunces',Georgia,serif;letter-spacing:-.02em;color:var(--pick)}
-html.na[data-th="d"] .top{border-bottom:1.5px solid var(--soft)}
-html.na[data-th="d"] .walk{grid-template-columns:minmax(0,1fr);gap:22px}
+html.na:is([data-th="d"],[data-th="e"]) .brand b{font:500 42px/1 'Fraunces',Georgia,serif;letter-spacing:-.02em;color:var(--pick)}
+html.na:is([data-th="d"],[data-th="e"]) .top{border-bottom:1.5px solid var(--soft)}
+html.na:is([data-th="d"],[data-th="e"]) .walk{grid-template-columns:minmax(0,1fr);gap:22px}
 html.na[data-th="d"] .intro{position:relative;top:auto;gap:0}
 html.na[data-th="d"] .intro #pic{border-radius:20px}
 html.na[data-th="d"] .say{position:absolute;z-index:2;left:clamp(18px,2.6vw,40px);top:clamp(16px,2.2vw,32px)}
@@ -408,18 +408,46 @@ html.na[data-th="d"] .say span{display:none}
 html.na[data-th="d"] .intro .startstep{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:16px}
 html.na[data-th="d"] .intro #btnStart{min-height:88px;font-size:38px;border-radius:18px}
 html.na[data-th="d"] .intro .safety{text-align:left}
-html.na[data-th="d"] .today,html.na[data-th="d"] .tnote{margin-top:12px}
+html.na:is([data-th="d"],[data-th="e"]) .today,html.na[data-th="d"] .tnote{margin-top:12px}
 @media (max-width:900px){html.na[data-th="d"] .say{position:static;margin-bottom:12px}}
 @media (max-width:520px){.hgoal{gap:8px;padding:8px 12px;justify-content:space-between}.hgl{font-size:16px}.hgb{width:54px;height:54px}#hgNum{font-size:30px;min-width:3.6em}}
-html.na[data-th="d"] .rcol::before{content:'설정과 더 보기';font:800 24px var(--num);color:var(--text-2);border-top:1.5px solid var(--soft);padding-top:18px}
+html.na:is([data-th="d"],[data-th="e"]) .rcol::before{content:'설정과 더 보기';font:800 24px var(--num);color:var(--text-2);border-top:1.5px solid var(--soft);padding-top:18px}
 @media (min-width:901px){
   html.na[data-th="d"] .intro #pic{aspect-ratio:auto;height:clamp(300px,calc(100vh - 300px),660px)}
   html.na[data-th="d"] .intro .startstep{grid-template-columns:auto minmax(0,1fr)}
   html.na[data-th="d"] .intro .safety{grid-column:1/-1}
-  html.na[data-th="d"] .rcol{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px 32px;align-items:start}
-  html.na[data-th="d"] .rcol::before{grid-column:1/-1}
-  html.na[data-th="d"] .rcol>.box{grid-row:2/span 4}
+  html.na:is([data-th="d"],[data-th="e"]) .rcol{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px 32px;align-items:start}
+  html.na:is([data-th="d"],[data-th="e"]) .rcol::before{grid-column:1/-1}
+  html.na:is([data-th="d"],[data-th="e"]) .rcol>.box{grid-row:2/span 4}
 }
+/* E 큰 카드 메뉴(TV 리모컨 우선): 질문 하나 → 카드 고르기 → 걸음 수 → 시작. 주황은 시작 하나뿐, 선택은 초록 테두리 + "선택됨" */
+html.na[data-th="e"] .intro{position:relative;top:auto;gap:14px}
+html.na[data-th="e"] .intro>.say,html.na[data-th="e"] .intro>#pic,html.na[data-th="e"] .intro>.startstep{display:none}
+.menuE{display:flex;flex-direction:column;gap:16px}
+.mq{margin:0;font:800 clamp(26px,3.1vw,46px)/1.25 var(--num);text-align:center;letter-spacing:-.01em}
+.mcards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(12px,1.6vw,26px);padding-top:6px}
+.mcards.two{grid-template-columns:repeat(2,minmax(0,1fr));max-width:1100px;margin:0 auto;width:100%}
+.mcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 0 16px;border:6px solid var(--soft);border-radius:28px;background:var(--card);color:var(--text);cursor:pointer;overflow:hidden;font:inherit;transition:transform .15s,border-color .15s}
+.mpic{display:block;width:100%;height:clamp(150px,calc(100vh - 520px),400px);background:var(--stage)}
+.mpic canvas{width:100%;height:100%;display:block}
+.mpic.mar{background:#cfc7b8 url(https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/96543f2f-241e-4491-bc40-60c9628dd41e.jpg) center/cover}
+.mcard b{font:800 clamp(21px,2.2vw,34px)/1.2 var(--num);margin-top:12px}
+.mcard small{font:500 clamp(15px,1.2vw,19px)/1.4 var(--font);color:var(--text-2);padding:0 12px;text-align:center;word-break:keep-all}
+.mcard i{display:none;position:absolute;left:12px;top:12px;font:800 17px var(--font);font-style:normal;background:var(--pick);color:#fff;padding:6px 14px;border-radius:99px}
+.mcard[aria-pressed="true"]{border-color:var(--pick);transform:translateY(-5px);box-shadow:0 9px 0 rgba(47,107,87,.2)}
+.mcard[aria-pressed="true"] i{display:block}
+.mcard:focus-visible,.mchip:focus-visible{outline:5px solid var(--text);outline-offset:4px}
+.mguard{display:flex;align-items:center;gap:14px;background:var(--note-bg);border-radius:16px;padding:14px 18px;font:700 clamp(18px,1.5vw,22px)/1.4 var(--font);cursor:pointer}
+.mguard input{width:34px;height:34px;flex:none;accent-color:var(--pick)}.mguard small{font-weight:500;color:var(--text-2)}
+.mbar{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:stretch}
+.mgoal{display:flex;align-items:center;gap:12px;background:var(--card);border:1.5px solid var(--soft);border-radius:20px;padding:10px 18px}
+.mchips{display:flex;gap:10px;align-items:center}
+.mchip{width:72px;height:72px;flex:none;border-radius:50%;border:2px solid var(--edge);background:var(--card);color:var(--text);font:800 28px/1 var(--num);cursor:pointer}
+.mchip[aria-pressed="true"]{background:var(--pick);border-color:var(--pick);color:#fff}
+.mfix{font:800 24px var(--num);padding:0 6px}
+html.na .mbar #btnStart{min-height:92px;font-size:40px;border-radius:20px;width:100%;border:0}
+@media (max-width:900px){.mcards,.mcards.two{grid-template-columns:minmax(0,1fr)}.mpic{height:170px}.mbar{grid-template-columns:minmax(0,1fr)}.mgoal{justify-content:space-between}}
+@media (max-width:520px){.mchip{width:56px;height:56px;font-size:22px}.mchips{gap:6px}}
 html.na:not([data-mood="dawn"]) .guide{background:var(--card);color:var(--text);border:2px solid var(--pick)}
 html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
 html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
@@ -2966,6 +2994,13 @@ $('#spRefix').addEventListener('click',()=>spArm(FIX_SEC));
 
 // ── 메인 루프 ───────────────────────────────────────
 let last=performance.now();
+// 후보 E: 카드 속 그림 = 실제 게임 화면. 고른 카드만 움직이고(한 프레임 걸러), 나머지는 멈춘 그림(가끔 다시 그림)
+function drawMenuE(t){ const E=window.MENU_E, sel=E.mode(); E.n++;
+  for(const o of E.cvs){ const on=o.mode===sel; if(!(o.dirty||(on?E.n%2===0:E.n%45===0))) continue; o.dirty=false;
+    const D=Math.min(2,devicePixelRatio||1), vw=o.W/(o.H/300), tt=on?t:.6, st={t:tt, cam:BOTTLE_EVERY*STEP_PX-vw*.72, tx:.34, clarity:.35, phase:tt*2, moving:false, bottles:true, picked:0, goal:0, lifts:false, name:''};
+    try{ if(o.mode==='straight') drawScene(o.g,o.W,o.H,D,st);
+      else if(o.mode==='turn'){ const ox=turtle.x, oh=TC.heading; turtle.x=STEP_PX*4.3; TC.heading=0; try{ drawTurnScene(o.g,o.W,o.H,D,st); }finally{ turtle.x=ox; TC.heading=oh; } }
+      else drawSceneAR(o.g,o.W,o.H,D,st); }catch(e){ if(!o.err){ o.err=1; console.log('menuE',o.mode,e.message); } } } }
 function frame(now){
   const dt=Math.min(.05,(now-last)/1000); last=now; const t=now/1000;
   if(S.screen==='game'){
@@ -2974,8 +3009,9 @@ function frame(now){
     if(TC.active) drawTurnScene(ctx,Wr,Hr,DPR,st); else if(cam.on) drawSceneAR(ctx,Wr,Hr,DPR,st); else drawScene(ctx,Wr,Hr,DPR,st);
     updateNextCue();
   } else if(S.screen==='site' && !$('#v-walk').hidden){
+    if(window.MENU_E){ drawMenuE(t); } else {
     const vw=Wp/(Hp/300);
-    drawScene(pctx,Wp,Hp,DPR,{t, cam:BOTTLE_EVERY*STEP_PX-vw*.66, tx:.3, clarity:.35, phase:t*2, moving:false, bottles:true, picked:0, goal:0, lifts:false, name:tname()});
+    drawScene(pctx,Wp,Hp,DPR,{t, cam:BOTTLE_EVERY*STEP_PX-vw*.66, tx:.3, clarity:.35, phase:t*2, moving:false, bottles:true, picked:0, goal:0, lifts:false, name:tname()}); }
   }
   requestAnimationFrame(frame);
 }
@@ -3140,6 +3176,26 @@ if(NEWART){ document.documentElement.classList.add('na'); { const th=params.get(
     const rc=document.createElement('div'); rc.className='rcol'; walk.insertBefore(rc,box); rc.appendChild(box);
     let n=$('#homeNote').nextElementSibling; while(n){ const nx=n.nextElementSibling; rc.appendChild(n); n=nx; }
     pic.insertAdjacentElement('afterend',st); const saf=box.querySelector('.safety'); if(saf) st.appendChild(saf);
+    if(document.documentElement.dataset.th==='e'){   // 후보 E(큰 카드 메뉴): 카드 그림은 새로 그린 그림이 아니라 실제 게임 화면을 작게 보여 줌
+      const noCam=IN_APP||$('#bgSeg').hidden, card=(m,t,sub,cls)=>`<button type="button" class="mcard" data-mode="${m}" aria-pressed="false"><span class="mpic${cls||''}"><canvas></canvas></span><b>${t}</b><small>${sub}</small><i>✓ 선택됨</i></button>`;
+      const M=document.createElement('section'); M.className='menuE';
+      M.innerHTML=`<h1 class="mq">오늘은 어떻게 걸을까요?</h1><div class="mcards${noCam?' two':''}" role="group" aria-label="걷는 방법">${card('straight','곧게 걷기','하천을 따라 앞으로 걸어요')}${card('turn','방향 전환 연습','굽은 물길을 따라 돌아요 · 보호자와 함께')}${noCam?'':card('ar','카메라로 걷기','카메라에 비친 내 방에 하천이 흘러요',' mar')}</div>
+        <label class="mguard" id="mGuard" hidden><input type="checkbox" id="guardChkE"><span>보호자가 옆에 있고, 주변이 넓고 걸리는 물건이 없어요 <small>(체크해야 시작할 수 있어요)</small></span></label>
+        <div class="mbar"><div class="mgoal"><span class="hgl">걸음 수</span><div class="mchips" id="mChips"></div></div></div>`;
+      intro.insertBefore(M,intro.firstChild); M.querySelector('.mbar').appendChild($('#btnStart')); if(saf) M.appendChild(saf);
+      $('#courseSeg').closest('.stepno').hidden=true;
+      const PS=[20,30,50,100], mode=()=>course==='turn'?'turn':((bgPref==='cam'&&!noCam)?'ar':'straight');
+      const upM=()=>{ const m=mode(); M.querySelectorAll('.mcard').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.mode===m))); $('#mGuard').hidden=m!=='turn'; $('#guardChkE').checked=$('#guardChk').checked;
+        const html=m==='turn'?`<b class="mfix">정해진 길 ${courseSteps()}걸음</b>`:PS.concat(PS.includes(S.goal)?[]:[S.goal]).sort((a,b)=>a-b).map(n=>`<button type="button" class="mchip" data-n="${n}" aria-pressed="${n===S.goal}" aria-label="${n}걸음">${n}</button>`).join(''); const mc=$('#mChips'); if(mc.dataset.h!==html){ mc.dataset.h=html; mc.innerHTML=html; } };
+      const setMode=m=>{ const cb=$(`#courseSeg [data-course="${m==='turn'?'turn':'straight'}"]`); if(cb) cb.click(); if(!noCam){ const bb=$(`#bgSeg [data-bg="${m==='ar'?'cam':'art'}"]`); if(bb) bb.click(); } upM(); };
+      M.addEventListener('click',e=>{ const c=e.target.closest('.mcard'); if(c){ setMode(c.dataset.mode); return; } const ch=e.target.closest('.mchip'); if(ch){ const n=+ch.dataset.n; setGoal(n,!PS.includes(n),true); upM(); const nb=M.querySelector(`.mchip[data-n="${n}"]`); if(nb) nb.focus(); } });
+      $('#guardChkE').addEventListener('change',e=>{ const g=$('#guardChk'); g.checked=e.target.checked; g.dispatchEvent(new Event('change',{bubbles:true})); });
+      $('#btnStart').addEventListener('click',()=>{ if(course==='turn'&&!$('#guardChk').checked) setTimeout(()=>$('#guardChkE').focus(),0); });
+      const cvs=[...M.querySelectorAll('canvas')].map(c=>({c,g:c.getContext('2d'),W:1,H:1,dirty:true,mode:c.closest('.mcard').dataset.mode}));
+      const rs=()=>cvs.forEach(o=>{ const r=o.c.getBoundingClientRect(), D=Math.min(2,devicePixelRatio||1); o.W=Math.max(1,r.width); o.H=Math.max(1,r.height); o.c.width=Math.round(o.W*D); o.c.height=Math.round(o.H*D); o.dirty=true; });
+      new ResizeObserver(rs).observe(M.querySelector('.mcards'));
+      window.MENU_E={cvs,n:0,mode}; setTimeout(()=>{ upM(); document.addEventListener('click',()=>setTimeout(upM,0)); document.addEventListener('input',()=>setTimeout(upM,0)); },0);
+    }
     if(document.documentElement.dataset.th==='d'){   // 후보 D(납작한 타이틀 화면): 그림 아래 한 줄에 목표 걸음 − + 와 시작만
       const hg=document.createElement('div'); hg.className='hgoal'; hg.innerHTML='<span class="hgl">오늘 목표</span><button type="button" class="hgb" id="hgMinus" aria-label="목표 걸음 줄이기">−</button><b id="hgNum"></b><button type="button" class="hgb" id="hgPlus" aria-label="목표 걸음 늘리기">+</button>'; st.insertBefore(hg,$('#btnStart'));
       setTimeout(()=>{ const up=()=>{ $('#hgNum').textContent=S.goal+'걸음'; }, step=d=>{ const n=Math.max(10,Math.min(GOAL_MAX,Math.round((S.goal+d)/10)*10)); setGoal(n,![20,30,50,100].includes(n),true); up(); };
