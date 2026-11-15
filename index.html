@@ -111,6 +111,17 @@ a{color:inherit}
 
 .dress{display:flex;flex-direction:column;gap:12px;border-top:2px solid var(--soft);padding-top:18px}
 .dress h2{margin:0;font:800 24px/1.3 var(--num)}
+.planbox{margin:14px 0 0;border:2px solid var(--soft);padding:10px 14px;background:var(--bg)}
+.planbox summary{font:800 19px var(--num);cursor:pointer;min-height:40px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.plansum{font:500 16px var(--font);color:var(--text-2)}
+.chkrow{display:flex;align-items:center;gap:10px;min-height:46px;font-size:18px}.chkrow input{width:26px;height:26px;accent-color:#3f7a3a;flex:none}
+.chkrow button{margin-left:auto;border:0;background:none;font-size:22px;color:var(--text-2);cursor:pointer;min-width:40px;min-height:40px}
+.chkadd{display:flex;gap:8px;margin-top:8px}.chkadd input{flex:1;min-width:0;font:400 17px var(--font);padding:8px 10px;border:2px solid var(--edge);background:var(--card);color:var(--text)}
+.subh{margin:14px 0 6px;font:800 19px var(--num)}
+.pacefoot{position:absolute;top:50%;transform:translateY(-50%);width:clamp(84px,9vw,150px);aspect-ratio:1;border-radius:50%;border:5px solid rgba(54,53,47,.45);background:rgba(252,251,247,.72);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:3;pointer-events:none;transition:background .08s,border-color .08s,transform .08s}
+.pacefoot.l{left:max(14px,2vw)}.pacefoot.r{right:max(14px,2vw)}
+.pacefoot canvas{width:52%;height:52%}.pacefoot b{font:800 clamp(15px,1.5vw,22px) var(--num);color:#2a2a25;line-height:1}
+.pacefoot.on{background:#d23f2e;border-color:#7f2318;transform:translateY(-50%) scale(1.12)}.pacefoot.on b{color:#fff}
 .tagchk{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:18px;cursor:pointer}.tagchk input{width:24px;height:24px;accent-color:#e08a2e}
 .namein{font:800 24px var(--font);min-height:58px;padding:6px 14px;border:3px solid var(--edge);border-radius:0;background:var(--card);color:var(--text);width:100%;box-sizing:border-box}
 .extra summary .small{font-size:16px;margin-left:4px}
@@ -477,6 +488,16 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
             <p class="goalhint" id="goalHint" aria-live="polite">−, + 버튼으로 5걸음씩 바뀌어요. 5걸음에서 300걸음까지 정할 수 있어요.</p>
           </div>
         </div>
+        <details class="planbox" id="planBox" hidden>
+          <summary>목표 시간과 준비 확인 <span class="plansum" id="planSum"></span></summary>
+          <h3 class="subh">오늘 걸을 시간</h3>
+          <div class="seg" role="group" aria-label="오늘 걸을 시간" id="timeSeg">
+            <button data-min="0" aria-pressed="true">정하지 않기</button><button data-min="5" aria-pressed="false">5분</button><button data-min="10" aria-pressed="false">10분</button><button data-min="15" aria-pressed="false">15분</button><button data-min="20" aria-pressed="false">20분</button>
+          </div>
+          <h3 class="subh">걷기 전 준비 확인</h3>
+          <div id="chkList"></div>
+          <div class="chkadd"><label class="sr" for="chkNew">확인할 일 더하기</label><input id="chkNew" maxlength="24" placeholder="확인할 일 더하기 (예: 약 먹었어요)" autocomplete="off"><button type="button" class="btn sm" id="chkAdd">더하기</button></div>
+        </details>
         <div class="stepno">
           <h2><span class="n">+</span>걷는 길</h2>
           <div class="seg" role="group" aria-label="걷는 길" id="courseSeg">
@@ -497,6 +518,21 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
             <button data-music="off" aria-pressed="false">끄기</button>
           </div>
           <p class="small" id="musicHelp"></p>
+          <div id="paceBox" hidden>
+            <h3 class="subh">걷는 빠르기</h3>
+            <div class="seg" role="group" aria-label="걷는 빠르기" id="paceSeg">
+              <button data-pace="off" aria-pressed="true">내 속도로</button>
+              <button data-pace="on" aria-pressed="false">박자에 맞춰</button>
+            </div>
+            <div class="goalcustom" id="paceNumRow" hidden>
+              <span class="goalunit">1분에</span>
+              <button type="button" class="gstep" id="paceMinus" aria-label="2걸음 줄이기">−</button>
+              <output class="goalnum" id="paceNum" aria-live="polite">24</output>
+              <span class="goalunit">걸음</span>
+              <button type="button" class="gstep" id="pacePlus" aria-label="2걸음 늘리기">+</button>
+            </div>
+            <p class="small" id="paceHelp" hidden>화면 양옆 발 표시가 빨갛게 바뀌는 쪽 발을 디뎌요. 놓쳐도 괜찮아요.</p>
+          </div>
           <div class="seg" role="group" aria-label="박자 빠르기" id="tempoSeg" hidden>
             <button data-bpm="16" aria-pressed="false">아주 느리게 · 1분 16걸음</button>
             <button data-bpm="20" aria-pressed="false">느리게 · 1분 20걸음</button>
@@ -768,6 +804,8 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
   <div class="stage">
     <video id="cam" playsinline muted hidden></video>
     <canvas id="river" aria-label="남생이가 하천을 따라 헤엄치며 쓰레기를 줍는 화면"></canvas>
+    <div class="pacefoot l" id="paceL" hidden aria-hidden="true"><canvas width="120" height="120"></canvas><b>왼발</b></div>
+    <div class="pacefoot r" id="paceR" hidden aria-hidden="true"><canvas width="120" height="120"></canvas><b>오른발</b></div>
     <p class="camnote" id="camNote" hidden>카메라 영상은 저장하거나 보내지 않아요</p>
     <div class="notice" id="notice" hidden role="status" aria-live="polite"></div>
     <div class="side" id="side" role="status" aria-live="polite"></div>
@@ -968,7 +1006,7 @@ function renderName(){ const n=tname().replace(/[<>&"']/g,''); $('#say').innerHT
 
 // ── 노래와 함께 걷기 ────────────────────────────────
 // melody: 걸음마다 음 하나씩 이어지는 가락 / beat: 일정한 박자 + 발 버튼 깜박임 / song: 내 노래 파일(걸으면 나오고 50초 넘게 쉬면 멈춤) / off
-let musicMode='melody', bpm=24, voiceOn=true;
+let musicMode='melody', bpm=24, voiceOn=true, paceOn=false;
 try{ const m=localStorage.getItem('riverstep:music'); if(['melody','beat','song','off'].includes(m)) musicMode=m; const b=Number(localStorage.getItem('riverstep:bpm')); if([16,20,24,30].includes(b)) bpm=b; voiceOn=localStorage.getItem('riverstep:voice')!=='0'; }catch(e){}
 const MUSIC_HELP={melody:'걸을 때마다 음이 하나씩 이어져서 가락이 돼요.',
   beat:'박자 소리에 맞춰 디딜 발이 깜박여요. 놓쳐도 괜찮으니 편한 속도로 걸으세요.',
@@ -980,13 +1018,14 @@ let phraseI=0;
 function melodyNote(){ const semi=PHRASE[phraseI++%PHRASE.length]; const f=330*Math.pow(2,semi/12); const k=voice.speaking?.25:1; tone(f,.42,'triangle',.17*k); tone(f*2,.25,'sine',.04*k); } // 목소리가 나오는 동안은 가락을 작게
 const beat={timer:null,next:'L'};
 function beatTick(){
-  if(!soundOn) return;
+  if(NEWART){ const pf=beat.next==='L'?$('#paceL'):$('#paceR'), po=beat.next==='L'?$('#paceR'):$('#paceL'); po.classList.remove('on'); pf.classList.add('on'); setTimeout(()=>pf.classList.remove('on'),Math.min(900,60000/bpm*.55)); }   // 디딜 쪽 발 동그라미가 빨갛게
+  if(!soundOn){ beat.next=beat.next==='L'?'R':'L'; return; }
   const f=beat.next==='L'?150:190; tone(f,.16,'sine',.22,0,f*.6); tone(f*4,.05,'triangle',.05);
   const el=beat.next==='L'?$('#btnL'):$('#btnR'); el.classList.add('cue'); setTimeout(()=>el.classList.remove('cue'),Math.min(300,30000/bpm));
   beat.next=beat.next==='L'?'R':'L';
 }
-function startBeat(){ stopBeat(); if(musicMode!=='beat'||S.source==='replay') return; beat.next='L'; beat.timer=setInterval(beatTick,60000/bpm); }
-function stopBeat(){ if(beat.timer){ clearInterval(beat.timer); beat.timer=null; } $$('.foot').forEach(b=>b.classList.remove('cue')); }
+function startBeat(){ stopBeat(); if((NEWART?!paceOn:musicMode!=='beat')||S.source==='replay') return; beat.next='L'; beat.timer=setInterval(beatTick,60000/bpm); if(NEWART){ $('#paceL').hidden=false; $('#paceR').hidden=false; } }
+function stopBeat(){ if(beat.timer){ clearInterval(beat.timer); beat.timer=null; } $$('.foot').forEach(b=>b.classList.remove('cue')); const pl=$('#paceL'), pr=$('#paceR'); if(pl){ pl.hidden=true; pr.hidden=true; pl.classList.remove('on'); pr.classList.remove('on'); } }
 const song={audio:null,url:null,name:'',last:0};
 function pickSong(file){
   if(!file) return;
@@ -1081,7 +1120,7 @@ function show(name){ if(name==='site'&&NEWART) setTimeout(renderWardrobe,0);
   if(name==='site'){ restoreGoal(); route(); renderGive(); }
 }
 function resetSession(source){
-  Object.assign(S,{source, steps:0, left:0, right:0, bottles:0, kinds:{}, est:0, nextFoot:'L', times:{L:[],R:[]}, activeSec:0, lastT:null, completed:false, breaks:0, sid:Date.now()});
+  Object.assign(S,{source, steps:0, left:0, right:0, bottles:0, kinds:{}, est:0, nextFoot:'L', times:{L:[],R:[]}, activeSec:0, lastT:null, completed:false, breaks:0, timeDone:false, sid:Date.now()});
   turtle.x=0; turtle.target=0; clarityShown=0; lifts=[];
   TC.active=pendingTurn; pendingTurn=false; TC.log=[]; TC.turnStartT=null; TC.heading=0; footFlash.L=footFlash.R=0;
   $('#notice').hidden=true; $('#lost').hidden=true; $('#side').innerHTML='';
@@ -1141,7 +1180,7 @@ function afterStep(){
 function flashFoot(f){ const el=f==='L'?$('#btnL'):$('#btnR'); el.classList.add('hit'); setTimeout(()=>el.classList.remove('hit'),180); }
 function updateHud(){
   $('#hSteps').textContent=S.steps; $('#hBottles').textContent=S.bottles;
-  $('#hL').textContent=S.left; $('#hR').textContent=S.right; $('#hTime').textContent=fmt(S.activeSec);
+  $('#hL').textContent=S.left; $('#hR').textContent=S.right; $('#hTime').textContent=fmt(S.activeSec)+(NEWART&&planMin?` / ${planMin}:00`:''); if(NEWART&&planMin&&!S.timeDone&&S.activeSec>=planMin*60){ S.timeDone=true; notify(`목표 시간 ${planMin}분을 채웠어요`,'잘하셨어요. 힘들면 쉬어도 돼요',true,6000); speak(`목표 시간 ${planMin}분을 채웠어요.`); }
   $('#hLeft').textContent=Math.max(0,S.goal-S.steps);
   const p=Math.min(1,S.steps/S.goal);
   $('#trackFill').style.width=(p*100)+'%'; $('#track').setAttribute('aria-valuenow',Math.round(p*100));
@@ -2786,6 +2825,36 @@ function drawAccessory(g,x,y,w,view,fr){
 // ── 시작 ────────────────────────────────────────────
 applyMood();
 if(NEWART){ const sb=$('#sortBox'); if(sb) sb.hidden=false; }
+// ── 시안: 박자(1분에 N걸음) · 목표 시간 · 준비 확인 ──
+let planMin=0, planChk=null;
+if(NEWART){
+  try{ paceOn=localStorage.getItem('riverstep:pace')==='on'; }catch(e){}
+  if(musicMode==='beat'){ musicMode='melody'; paceOn=true; }
+  const mb=document.querySelector('#musicSeg [data-music="beat"]'); if(mb) mb.hidden=true; $('#tempoSeg').hidden=true;
+  $('#paceBox').hidden=false;
+  const renderPace=()=>{ $$('#paceSeg button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.pace==='on')===paceOn))); $('#paceNumRow').hidden=!paceOn; $('#paceHelp').hidden=!paceOn; $('#paceNum').textContent=bpm; };
+  $$('#paceSeg button').forEach(b=>b.addEventListener('click',()=>{ paceOn=b.dataset.pace==='on'; try{ localStorage.setItem('riverstep:pace',paceOn?'on':'off'); }catch(e){} renderPace(); }));
+  const setBpm=v=>{ bpm=Math.max(10,Math.min(80,v)); try{ localStorage.setItem('riverstep:bpm',String(bpm)); }catch(e){} renderPace(); };
+  $('#paceMinus').addEventListener('click',()=>setBpm(bpm-2)); $('#pacePlus').addEventListener('click',()=>setBpm(bpm+2));
+  renderPace();
+  for(const [id,side] of [['paceL','L'],['paceR','R']]){ const cv=$('#'+id+' canvas'), q=cv.getContext('2d'); q.translate(60,60); q.scale(side==='L'?-.95:.95,.95); q.rotate(.12); q.translate(0,4); footShape(q); q.fillStyle='rgba(42,42,37,.82)'; q.fill(); }
+  // 목표 시간·준비 확인
+  const today=new Date().toISOString().slice(0,10), DEF=['편한 신발을 신었어요','걸리는 물건을 치웠어요','물을 한 잔 마셨어요'];
+  try{ planMin=+(localStorage.getItem('riverstep:planmin')||0); planChk=JSON.parse(localStorage.getItem('riverstep:chk')||'null'); }catch(e){}
+  if(!planChk||!Array.isArray(planChk.items)) planChk={items:DEF.slice(),day:today,done:[]};
+  if(planChk.day!==today){ planChk.day=today; planChk.done=[]; }   // 체크는 날마다 새로
+  const saveChk=()=>{ try{ localStorage.setItem('riverstep:chk',JSON.stringify(planChk)); }catch(e){} };
+  const renderPlan=()=>{ $$('#timeSeg button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.min===planMin)));
+    const L=$('#chkList'); L.innerHTML=''; planChk.items.forEach((t,i)=>{ const row=document.createElement('label'); row.className='chkrow'; const c=document.createElement('input'); c.type='checkbox'; c.checked=planChk.done.includes(t);
+      c.addEventListener('change',()=>{ planChk.done=c.checked?[...planChk.done,t]:planChk.done.filter(x=>x!==t); saveChk(); renderPlan(); });
+      const sp=document.createElement('span'); sp.textContent=t; const del=document.createElement('button'); del.type='button'; del.textContent='×'; del.setAttribute('aria-label',t+' 지우기');
+      del.addEventListener('click',e=>{ e.preventDefault(); planChk.items.splice(i,1); planChk.done=planChk.done.filter(x=>x!==t); saveChk(); renderPlan(); }); row.append(c,sp,del); L.appendChild(row); });
+    const n=planChk.items.length, d=planChk.items.filter(t=>planChk.done.includes(t)).length; $('#planSum').textContent=(planMin?`${planMin}분 · `:'')+(n?`준비 ${d}/${n}`:''); };
+  $$('#timeSeg button').forEach(b=>b.addEventListener('click',()=>{ planMin=+b.dataset.min; try{ localStorage.setItem('riverstep:planmin',String(planMin)); }catch(e){} renderPlan(); }));
+  const addChk=()=>{ const v=$('#chkNew').value.trim(); if(!v||planChk.items.includes(v)||planChk.items.length>=8) return; planChk.items.push(v); $('#chkNew').value=''; saveChk(); renderPlan(); };
+  $('#chkAdd').addEventListener('click',addChk); $('#chkNew').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); addChk(); } });
+  $('#planBox').hidden=false; renderPlan();
+}
 if(NEWART){ const tr=$('#tagRow'), tc=$('#tagChk'); if(tr&&tc){ tr.hidden=false; tc.checked=showTag; tc.addEventListener('change',()=>{ showTag=tc.checked; try{ localStorage.setItem('riverstep:nametag',showTag?'on':'off'); }catch(e){} }); } } else showTag=true;
 if(LOGO_SRC){ const img=$('#logoImg'); img.src=LOGO_SRC; img.hidden=false; $('#logoText').hidden=true; }
 if(params.has('sensor')){
