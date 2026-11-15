@@ -252,18 +252,24 @@ tr.ex td{color:var(--text-2)}
 .report .rs span{display:block;font-size:14px;color:#4a4a40}
 .report .rs b{font:800 26px var(--num)}
 
-/* 분리배출(시안) */
+/* 분리배출(시안): 글 대신 그림 단계 */
 .sort{margin:0 0 22px;padding:18px;border:2px solid var(--edge);background:var(--card)}
-.sort h2{margin:0 0 6px;font:800 24px var(--num)}
-.sort-lead{margin:0 0 12px;font-size:17px;color:var(--text-2);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sort h2{margin:0 0 8px;font:800 24px var(--num)}
+.sort-lead{margin:0 0 12px;display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sort-lead .lg{font-size:16px;color:var(--text-2)}
 .hz{display:inline-block;padding:2px 10px;font-weight:800;font-size:15px;color:#fff;border-radius:99px}
 .hz.h3{background:#d23f2e}.hz.h2{background:#e77a24}.hz.h1{background:#e6b422;color:#3a2c05}
-.sortgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
-.sortc{border:2px solid var(--edge);padding:12px 14px;background:var(--bg,#fff);min-width:0}
-.sortc h3{margin:8px 0 4px;font:800 21px var(--num)}
-.sortc .why{margin:0 0 8px;font-size:16px;color:var(--text-2)}
-.sortc ol{margin:0;padding-left:22px;font-size:17px;line-height:1.55}
-.sortc .ex{margin:8px 0 0;font-size:15px;color:var(--text-2)}
+.sortgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.sortc{border:2px solid var(--edge);padding:12px;background:var(--bg,#fff);min-width:0;display:flex;flex-direction:column;gap:10px}
+.sorth{display:flex;align-items:center;gap:10px}.sorth img{width:64px;height:48px;object-fit:contain}
+.sortc h3{margin:4px 0 0;font:800 22px var(--num)}
+.steps{display:flex;align-items:flex-start;justify-content:space-between;gap:2px}
+.stp{margin:0;flex:1 1 0;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.stp figcaption{font-size:15px;font-weight:700;text-align:center;word-break:keep-all;line-height:1.25}
+.ico{display:block;width:68px;height:68px;background:url('https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/20fa5e7d-ef2b-4a40-b15d-60a361e533e9.png') no-repeat;background-size:816px 68px;background-position:calc(var(--i) * -68px) 0}
+.stp.bin .ico{outline:3px solid #e08a2e;outline-offset:2px;border-radius:10px}
+.arr{font-size:28px;color:var(--text-2);line-height:68px}
+.sortc .ex{margin:0;font-size:15px;color:var(--text-2)}
 /* 줍깅·환경 */
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:18px}
 .card{background:var(--card);border:2px solid var(--edge);padding:20px;display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -643,14 +649,9 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
     <div class="vh"><h1>함께 줍깅</h1><p>게임에서 하천을 맑게 했다면, 실제 동네에서도 해 볼 수 있어요. 걸으면서 쓰레기를 줍는 활동을 줍깅(플로깅)이라고 해요. 눌러 보면 자세한 내용과 사이트로 가는 버튼이 나와요.</p></div>
     <section class="sort" id="sortBox" hidden aria-labelledby="sortT">
       <h2 id="sortT">주운 쓰레기, 이렇게 버려요</h2>
-      <p class="sort-lead">게임 속 표시 색은 하천 생물에게 주는 피해 정도예요. <span class="hz h3">빨강 매우 위험</span> <span class="hz h2">주황 위험</span> <span class="hz h1">노랑 주의</span></p>
-      <div class="sortgrid">
-        <article class="sortc"><span class="hz h3">매우 위험</span><h3>비닐봉지</h3><p class="why">남생이가 해파리 같은 먹이로 착각해 삼킬 수 있어요.</p><ol><li>음식물·흙을 털고 헹궈요</li><li>날리지 않게 여러 장을 한 봉투에 모아요</li><li><b>비닐류</b>로 버려요</li></ol><p class="ex">음식물이 묻어 안 지워지면 일반쓰레기(종량제 봉투)</p></article>
-        <article class="sortc"><span class="hz h2">위험</span><h3>스티로폼 컵</h3><p class="why">잘게 부서져 물고기가 먹이로 알고 삼켜요.</p><ol><li>남은 음료를 비우고 헹궈요</li><li>테이프·스티커를 떼요</li><li>깨끗한 흰색이면 <b>스티로폼류</b>로 버려요</li></ol><p class="ex">색이 있거나 코팅·오염된 것은 일반쓰레기</p></article>
-        <article class="sortc"><span class="hz h1">주의</span><h3>페트병</h3><p class="why">오랫동안 썩지 않고 조금씩 미세플라스틱이 돼요.</p><ol><li>내용물을 비우고 헹궈요</li><li>라벨을 떼요</li><li>찌그러뜨려 뚜껑을 닫고 <b>투명 페트병</b> 칸에 버려요</li></ol><p class="ex">색이 있는 페트병은 플라스틱류</p></article>
-        <article class="sortc"><span class="hz h1">주의</span><h3>캔</h3><p class="why">날카로운 입구에 물고기나 남생이가 다칠 수 있어요.</p><ol><li>내용물을 비우고 헹궈요</li><li>담배꽁초 같은 이물질을 넣지 않아요</li><li>가능하면 찌그러뜨려 <b>캔류</b>로 버려요</li></ol></article>
-      </div>
-      <p class="note">버리는 요일과 방법은 사는 동네(구청)마다 조금씩 달라요.</p>
+      <p class="sort-lead"><span class="hz h3">매우 위험</span><span class="hz h2">위험</span><span class="hz h1">주의</span><span class="lg">하천 생물이 다치는 정도</span></p>
+      <div class="sortgrid"><article class="sortc"><div class="sorth"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/db302282-3882-4d7f-bfaa-94623820688e.png" alt=""><div><span class="hz h3">매우 위험</span><h3>비닐봉지</h3></div></div><div class="steps"><figure class="stp"><i class="ico" style="--i:1"></i><figcaption>털기</figcaption></figure><span class="arr" aria-hidden="true">›</span><figure class="stp"><i class="ico" style="--i:2"></i><figcaption>모으기</figcaption></figure><span class="arr" aria-hidden="true">›</span><figure class="stp bin"><i class="ico" style="--i:8"></i><figcaption>비닐류</figcaption></figure></div><p class="ex">음식물이 묻으면 일반쓰레기</p></article><article class="sortc"><div class="sorth"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7089d5d1-601f-40b9-a213-a762ad3e9626.png" alt=""><div><span class="hz h2">위험</span><h3>스티로폼 컵</h3></div></div><div class="steps"><figure class="stp"><i class="ico" style="--i:0"></i><figcaption>헹구기</figcaption></figure><span class="arr" aria-hidden="true">›</span><figure class="stp"><i class="ico" style="--i:5"></i><figcaption>테이프 떼기</figcaption></figure><span class="arr" aria-hidden="true">›</span><figure class="stp bin"><i class="ico" style="--i:9"></i><figcaption>스티로폼류</figcaption></figure></div><p class="ex">색·코팅 있으면 일반쓰레기</p></article><article class="sortc"><div class="sorth"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/cf734381-8308-443d-b33e-ddc7ab9d7fb4.png" alt=""><div><span class="hz h1">주의</span><h3>페트병</h3></div></div><div class="steps"><figure class="stp"><i class="ico" style="--i:3"></i><figcaption>라벨 떼기</figcaption></figure><span class="arr" aria-hidden="true">›</span><figure class="stp"><i class="ico" style="--i:4"></i><figcaption>찌그러뜨려 뚜껑</figcaption></figure><span class="arr" aria-hidden="true">›</span><figure class="stp bin"><i class="ico" style="--i:10"></i><figcaption>투명 페트병</figcaption></figure></div></article><article class="sortc"><div class="sorth"><img src="https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3b7721b2-95f6-469e-9769-cd9904b9d491.png" alt=""><div><span class="hz h1">주의</span><h3>캔</h3></div></div><div class="steps"><figure class="stp"><i class="ico" style="--i:0"></i><figcaption>헹구기</figcaption></figure><span class="arr" aria-hidden="true">›</span><figure class="stp"><i class="ico" style="--i:6"></i><figcaption>찌그러뜨리기</figcaption></figure><span class="arr" aria-hidden="true">›</span><figure class="stp bin"><i class="ico" style="--i:11"></i><figcaption>캔류</figcaption></figure></div></article></div>
+      <p class="note">버리는 요일은 동네(구청)마다 달라요.</p>
     </section>
     <div class="cards">
       <article class="card">
