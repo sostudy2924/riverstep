@@ -1664,7 +1664,7 @@ function drawScene(g,W,H,dpr,st){
   if(NA&&artOn('tA')) drawArtTurtle(g,tx,ty,Math.min(1,VW/300)*.7,st.phase,a,st.moving); else drawTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,L.turtle);
   /* 옆모습에서는 아래 큰 발 단추가 박자를 알려 주므로 화면 속 발바닥은 두지 않음 */   // 박자에 맞춰 걸을 때: 남생이 뒷발 쪽 발바닥 표시
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'front');
-  if(st.name&&showTag){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-(NA?50:62)-(NA?16:0)-(NA&&wearing?24:0);
+  if(st.name&&showTag){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-(NA?50:62)-(NA?16:0)-(NA&&wearing?24:0)-(NA&&hasFriend('frog',FLV)?20:0);
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,24); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,24);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.textAlign='center'; g.fillText(st.name,tx+18,ny+17); g.textAlign='left'; }
   if(NA){ if(artOn('decor')) drawArtFront(g,VW,cam); } else if(m==='day') frontDay(g,VW,cam); else frontDawn(g,VW,cam);
