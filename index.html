@@ -103,6 +103,7 @@ a{color:inherit}
 
 .dress{display:flex;flex-direction:column;gap:12px;border-top:2px solid var(--soft);padding-top:18px}
 .dress h2{margin:0;font:800 24px/1.3 var(--num)}
+.tagchk{display:flex;align-items:center;gap:10px;margin-top:10px;font-size:18px;cursor:pointer}.tagchk input{width:24px;height:24px;accent-color:#e08a2e}
 .namein{font:800 24px var(--font);min-height:58px;padding:6px 14px;border:3px solid var(--edge);border-radius:0;background:var(--card);color:var(--text);width:100%;box-sizing:border-box}
 .extra summary .small{font-size:16px;margin-left:4px}
 .stepno{display:flex;flex-direction:column;gap:12px}
@@ -388,7 +389,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
 .wardrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:8px}
 .ward small{word-break:keep-all}
 .lvsm{font:500 15px var(--num);color:var(--text-2)}
-.ward .fic{width:64px;height:52px;background-repeat:no-repeat}
+.ward .ficw{width:64px;height:52px;display:flex;align-items:center;justify-content:center}.ward .fic{display:block;background-repeat:no-repeat}
 .lvfr{margin:2px 0 0;font-size:16px;color:var(--text-2);word-break:keep-all}
 .ward.none .lk{font-size:34px;opacity:.45}
 .ward{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:2px solid var(--edge);background:var(--card);color:var(--text);cursor:pointer;min-height:132px}
@@ -425,7 +426,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
           <div class="lvbar"><i id="lvFill"></i></div>
           <h3>옷장</h3>
           <div class="wardrow" id="wardRow"></div>
-          <h3>함께 헤엄칠 친구 <small class="lvsm">최대 3마리</small></h3>
+          <h3>하천 친구 <small class="lvsm">같이 헤엄치는 친구는 최대 3마리</small></h3>
           <div class="wardrow" id="compRow"></div>
           <p class="lvfr" id="lvFriends"></p>
         </section>
@@ -447,6 +448,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
         <div class="stepno">
           <h2><span class="n">1</span>함께 걸을 <span id="spWord">남생이</span> 이름</h2>
           <label class="sr" for="tName" id="spWordSr">남생이 이름</label><input id="tName" class="namein" maxlength="8" placeholder="예: 순돌이" autocomplete="off">
+          <label class="tagchk" id="tagRow" hidden><input type="checkbox" id="tagChk" checked> 게임 화면에 이름표 보이기</label>
         </div>
         <div class="stepno">
           <h2><span class="n">2</span>오늘 몇 걸음 걸을까요?</h2>
@@ -1480,11 +1482,12 @@ const FRIENDS=[
  {id:'egret',  name:'백로',     lv:5},
  {id:'duck',   name:'원앙 한 쌍', lv:6},
  {id:'otter',  name:'수달',     lv:7}];
+let showTag=true; try{ showTag=localStorage.getItem('riverstep:nametag')!=='off'; }catch(e){}
 let CUR_LV=1; const LV_PREVIEW=+(params.get('lv')||0);   // 발표·확인용: ?lv=7 처럼 주면 그 레벨 친구들이 미리 보임
 function friendsAt(lv){ const out=[]; for(let L=2;L<=Math.min(lv,1+FRIENDS.length);L++){ const i=L-2; out.push({f:FRIENDS[i],i}); } return out; }
 const MAX_COMP=3;   // 화면이 복잡해지지 않게 함께 헤엄치는 친구는 최대 3마리
 let compSel=null; try{ compSel=JSON.parse(localStorage.getItem('riverstep:friends')||'null'); }catch(e){}
-function compOn(lv){ const open=friendsAt(lv).map(x=>x.f.id); if(Array.isArray(compSel)) return compSel.filter(id=>open.includes(id)).slice(0,MAX_COMP); return open.slice(-2); }   // 고른 적 없으면 가장 최근 친구 둘
+function compOn(lv){ const open=friendsAt(lv).map(x=>x.f.id); if(Array.isArray(compSel)){ const sel=compSel.filter(id=>open.includes(id)); const sw=sel.filter(id=>id!=='egret').slice(0,MAX_COMP); return sel.includes('egret')?sw.concat('egret'):sw; } const sw=open.filter(id=>id!=='egret').slice(-2); return open.includes('egret')?sw.concat('egret'):sw; }   // 백로는 목표에서 기다리는 친구라 3마리 수에 안 셈   // 고른 적 없으면 가장 최근 친구 둘
 function hasFriend(id,lv){ return (LV_PREVIEW&&!Array.isArray(compSel))?friendsAt(lv).some(x=>x.f.id===id):compOn(lv).includes(id); }
 // 친구 한 마리 그리기(옆모습 그림 한 칸) — 헤엄 느낌: 위아래로 출렁 + 살짝 기울기 + 걸을 때 앞으로 밀려 나감
 function drawFriendSprite(g,i,cx,bottom,w,t,alpha,flip,rot){
@@ -1572,7 +1575,7 @@ function drawScene(g,W,H,dpr,st){
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'back');
   if(NA&&artOn('tA')) drawArtTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,a,st.moving); else drawTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,L.turtle);
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'front');
-  if(st.name){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62-(NA?16:0)-(NA&&wearing?34:0);
+  if(st.name&&showTag){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62-(NA?16:0)-(NA&&wearing?34:0);
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,24); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,24);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.textAlign='center'; g.fillText(st.name,tx+18,ny+17); g.textAlign='left'; }
   if(NA){ if(artOn('decor')) drawArtFront(g,VW,cam); } else if(m==='day') frontDay(g,VW,cam); else frontDawn(g,VW,cam);
@@ -1679,7 +1682,7 @@ function drawSceneAR(g,W,H,dpr,st){
     drawCompanionsRear(g,T.cx,ty,w,a,st.phase,st.moving,LV_PREVIEW||CUR_LV,'front',T.w/2);   // 뒤에서 본 등딱지 한가운데
     g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.12,r,r*.26,0,.15,Math.PI-.15); g.stroke(); } g.restore();
   } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
-  if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
+  if(st.name&&showTag){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,26); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,26);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.fillText(st.name,nx+8,ny+19); }
   if(st.lifts){ const now=performance.now()/1000; if(lifts.length){ lifts.forEach(p=>arLifts.push({t0:p.t0,type:p.type})); lifts=[]; }
@@ -2697,9 +2700,9 @@ function renderWardrobe(){
   { const cr=$('#compRow'); if(cr){ cr.innerHTML=''; const on=compOn(L.lv), SW=1397, SH=275;
     FRIENDS.forEach((f,i)=>{ const open=L.lv>=f.lv, sel=on.includes(f.id), b=document.createElement('button'); b.type='button'; b.className='ward'+(sel?' on':'')+(open?'':' lock'); b.disabled=!open; b.setAttribute('aria-pressed',String(sel));
       const bx=FR_BOX[i], k=Math.min(64/bx[2],52/bx[3]);
-      const ic=open?`<span class="fic" style="background-image:url('${ART.src.friends}');background-size:${SW*k}px ${SH*k}px;background-position:${-bx[0]*k+(64-bx[2]*k)/2}px ${-bx[1]*k+(52-bx[3]*k)/2}px"></span>`:'<span class="lk">🔒</span>';
-      b.innerHTML=ic+`<b>${f.name}</b><small>${open?(sel?'같이 헤엄쳐요':'눌러서 부르기'):'레벨 '+f.lv}</small>`;
-      b.addEventListener('click',()=>{ let cur=compOn(L.lv); if(cur.includes(f.id)) cur=cur.filter(x=>x!==f.id); else { cur.push(f.id); if(cur.length>MAX_COMP) cur.shift(); }   // 넷째를 부르면 가장 먼저 부른 친구가 쉬러 감
+      const ic=open?`<span class="ficw"><span class="fic" style="width:${bx[2]*k}px;height:${bx[3]*k}px;background-image:url('${ART.src.friends}');background-size:${SW*k}px ${SH*k}px;background-position:${-bx[0]*k}px ${-bx[1]*k}px"></span></span>`:'<span class="lk">🔒</span>';
+      b.innerHTML=ic+`<b>${f.name}</b><small>${open?(f.id==='egret'?(sel?'목표에서 기다려요':'눌러서 부르기'):(sel?'같이 헤엄쳐요':'눌러서 부르기')):'레벨 '+f.lv}</small>`;
+      b.addEventListener('click',()=>{ let cur=compOn(L.lv); if(cur.includes(f.id)) cur=cur.filter(x=>x!==f.id); else { cur.push(f.id); const sw=cur.filter(x=>x!=='egret'); if(sw.length>MAX_COMP) cur.splice(cur.indexOf(sw[0]),1); }   // 넷째를 부르면 가장 먼저 부른 친구가 쉬러 감
         compSel=cur; try{ localStorage.setItem('riverstep:friends',JSON.stringify(cur)); }catch(e){} renderWardrobe(); });
       cr.appendChild(b); }); } }
   $('#lvNum').textContent=L.lv; $('#lvNext').textContent=L.next?`다음 레벨까지 ${L.next-n}걸음`:'가장 높은 레벨이에요';
@@ -2740,6 +2743,7 @@ function drawAccessory(g,x,y,w,view,fr){
 // ── 시작 ────────────────────────────────────────────
 applyMood();
 if(NEWART){ const sb=$('#sortBox'); if(sb) sb.hidden=false; }
+if(NEWART){ const tr=$('#tagRow'), tc=$('#tagChk'); if(tr&&tc){ tr.hidden=false; tc.checked=showTag; tc.addEventListener('change',()=>{ showTag=tc.checked; try{ localStorage.setItem('riverstep:nametag',showTag?'on':'off'); }catch(e){} }); } } else showTag=true;
 if(LOGO_SRC){ const img=$('#logoImg'); img.src=LOGO_SRC; img.hidden=false; $('#logoText').hidden=true; }
 if(params.has('sensor')){
   S.screen='sensor'; $('#scrSite').hidden=true; $('#scrSensor').hidden=false;
