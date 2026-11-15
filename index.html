@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>RiverStep</title>
-<meta name="description" content="한 걸음 걸으면 남생이도 한 걸음. 걸으면서 하천을 맑게 하는 재활 걷기 게임">
+<meta name="description" content="한 걸음씩 보행 재활 운동을 하면 남생이가 하천의 쓰레기를 건져 물이 맑아지는 걷기 게임">
 <meta property="og:type" content="website">
 <meta property="og:title" content="RiverStep">
-<meta property="og:description" content="한 걸음 걸으면 남생이도 한 걸음. 걸으면서 하천을 맑게 해요.">
+<meta property="og:description" content="한 걸음씩 보행 재활 운동을 하면 남생이가 하천의 쓰레기를 건져 물이 맑아지는 걷기 게임">
 <meta property="og:image" content="https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/760836e5-eb6e-4ac8-9bd5-8adf0c403a32.jpg">
 <meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
 <meta property="og:url" content="https://sostudy2924.github.io/riverstep/">
@@ -285,8 +285,8 @@ html.na .ward small{display:none}html.na .ward.on small,html.na .ward.lock small
 html.na .wardrow{grid-template-columns:repeat(auto-fit,minmax(72px,1fr));gap:8px}
 html.na .ward img,html.na .ward .ficw{width:54px;height:44px}html.na .ward b{font-size:15px;word-break:keep-all;text-align:center}
 html.na .planbox{border:1.5px solid var(--soft)}
-/* 시안: 검정 면적 줄이기 — 고른 단추는 까만 칠 대신 짙은 강물빛, 테두리는 한 톤 옅게(글자만 진하게 남김) */
-html.na:not([data-mood="dawn"]){--edge:#8b8676;--pick:#1f6a66}
+/* 시안: 검정 면적 줄이기 — 고른 단추는 까만 칠 대신 남생이 등딱지 갈색, 테두리는 한 톤 옅게(글자만 진하게 남김) */
+html.na:not([data-mood="dawn"]){--edge:#8b8676;--pick:#6e4a2c}
 html.na[data-mood="dawn"]{--pick:#e9edf1}
 html.na .goal[aria-pressed="true"]{background:var(--pick);box-shadow:inset 0 0 0 3px var(--pick),inset 0 0 0 4px var(--card)}
 html.na .seg button[aria-pressed="true"],html.na .feet button[aria-pressed="true"],html.na .pbtn[aria-pressed="true"],html.na .planbtn{background:var(--pick)}
@@ -1591,11 +1591,11 @@ function drawFrogOnShell(g,view,cx,bottom,w,t){ const b=FROG_BOX[view]; if(!b||!
 function drawCompanions(g,tx,ty,t,phase,moving,lv,layer){
   if(!artOn('friends')) return; const go=smoothGo(moving), im=ART.img.friends, sp=1+go*.8;
   if(layer==='back'){
-    if(hasFriend('duck',lv)){ const X=tx-104, Y=ty-24+Math.sin(t*1.1)*1.2; drawFriendSprite(g,4,X,Y,50,t,1,false,0); waterline(g,X,Y-1,25,t+4,.6); }   // 원앙: 흔들지 않고 물 위를 미끄러지듯
+    if(hasFriend('duck',lv)){ const X=tx-86, Y=ty-20+Math.sin(t*1.1)*1.2; drawFriendSprite(g,4,X,Y,50,t,1,false,0); waterline(g,X,Y-1,25,t+4,.6); }   // 원앙: 흔들지 않고 물 위를 미끄러지듯
   } else {
-    if(hasFriend('otter',lv)){ const b=FR_BOX[5], w=76, h=w*b[3]/b[2]; drawWave(g,im,b,tx-116,ty+34,w,h,'x',.035,4.2,t*3.2*sp,1); }   // 수달: 머리는 그대로, 몸과 꼬리가 물결치며
-    if(hasFriend('minnow',lv)) FISH_S.forEach((b,i)=>{ const w=25, h=w*b[3]/b[2], x=tx+62+[0,17,4][i]+Math.sin(t*.7+i*2.1)*4, y=ty+18+i*9+Math.sin(t*.9+i*1.7)*1.5; drawWave(g,im,b,x,y,w,h,'x',.07,3,t*7*sp+i*1.9,.62); });   // 송사리: 꼬리를 살랑살랑, 무리가 느슨하게 모였다 벌어짐
-    if(hasFriend('fly',lv)) drawFriendSprite(g,1,tx-64+Math.sin(t*.5)*7,ty-74+Math.sin(t*.8)*3,24,t,1,false,0);   // 잠자리: 떨지 않고 조용히 떠 있음
+    if(hasFriend('otter',lv)){ const b=FR_BOX[5], w=66, h=w*b[3]/b[2]; drawWave(g,im,b,tx-96,ty+30,w,h,'x',.035,4.2,t*3.2*sp,1); }   // 수달: 머리는 그대로, 몸과 꼬리가 물결치며
+    if(hasFriend('minnow',lv)) FISH_S.forEach((b,i)=>{ const w=25, h=w*b[3]/b[2], x=tx+52+[0,17,4][i]+Math.sin(t*.7+i*2.1)*4, y=ty+14+i*9+Math.sin(t*.9+i*1.7)*1.5; drawWave(g,im,b,x,y,w,h,'x',.07,3,t*7*sp+i*1.9,.62); });   // 송사리: 꼬리를 살랑살랑, 무리가 느슨하게 모였다 벌어짐
+    if(hasFriend('fly',lv)) drawFriendSprite(g,1,tx-52+Math.sin(t*.5)*7,ty-62+Math.sin(t*.8)*3,24,t,1,false,0);   // 잠자리: 떨지 않고 조용히 떠 있음
   }
 }
 // AR·방향 전환(뒤에서 본 모습): 친구들도 뒷모습으로 남생이 둘레에서 같이 앞으로 헤엄침
@@ -1617,7 +1617,7 @@ function drawEgretAtGoal(g,fx,t,lv){ if(!hasFriend('egret',lv)) return; drawFrie
 // 남생이에게 쓰레기는 '위험': 물을 더럽히는 얼룩 + 빨간 느낌표 경고. 가까워질수록 경고가 커지고 빨리 뜀
 const HARM={1:{c:'#e6b422',d:'#8a6a0e',label:'주의'},2:{c:'#e77a24',d:'#8c4310',label:'위험'},3:{c:'#d23f2e',d:'#7f2318',label:'매우 위험'}};   // 해양생물 피해 정도: 노랑·주황·빨강
 function drawDanger(g,x,y,s,t,near,wy,type){
-  const H=HARM[(ITEM[type]&&ITEM[type].harm)||1], k=Math.max(0,Math.min(1,near||0)), pul=.5+.5*Math.sin(t*(2.2+k*3));
+  const H=HARM[(ITEM[type]&&ITEM[type].harm)||1], k=Math.max(0,Math.min(1,near||0)), pul=.5+.5*Math.sin(t*2.2);   // 걸어서 가까워져도 빠르기는 그대로(떨리지 않게)
   // 오염 얼룩(물 위로 번지는 탁한 기름띠)
   g.save(); g.translate(x,(wy==null?y:wy)); g.scale(1,.32);
   const R=46*s*(1+.06*pul), gr=g.createRadialGradient(0,0,R*.15,0,0,R);
@@ -1626,7 +1626,7 @@ function drawDanger(g,x,y,s,t,near,wy,type){
   g.strokeStyle=`rgba(150,52,40,${.28+.25*pul})`; g.lineWidth=2.2/.32*.4; const rr=R*(.75+.25*((t*.6)%1)); g.beginPath(); g.arc(0,0,rr,0,Math.PI*2); g.stroke();
   g.restore();
   // 빨간 느낌표 표지(위아래로 살짝 뜀)
-  const r=(11+5*k)*s*(1+.08*pul*(.4+k)), by=y-(32+6*k)*s-Math.abs(Math.sin(t*(2+k*3)))*4*s;
+  const r=(11+5*k)*s*(1+.04*pul), by=y-(32+6*k)*s-(.5+.5*Math.sin(t*1.8))*3*s;
   g.save(); g.globalAlpha=1-Math.max(0,(k-.8)/.2)*.8;   // 바로 앞에 오면(이제 주울 때) 표지가 옅어져 남생이 얼굴을 가리지 않음
   g.fillStyle='rgba(30,20,16,.18)'; g.beginPath(); g.ellipse(x,by+r+3*s,r*.8,r*.22,0,0,Math.PI*2); g.fill();
   g.fillStyle=H.c; g.strokeStyle=H.d; g.lineWidth=2*s; g.beginPath(); g.arc(x,by,r,0,Math.PI*2); g.fill(); g.stroke();
@@ -1661,10 +1661,10 @@ function drawScene(g,W,H,dpr,st){
   if(st.moving&&!NA){ g.strokeStyle=m==='day'?'rgba(251,250,242,.7)':'rgba(255,226,180,.6)'; g.lineWidth=2.2; for(let i=0;i<2;i++){ g.beginPath(); g.arc(tx-62-i*14,ty+4,7+i*5,-.8,.8); g.stroke(); } }
   const FLV=LV_PREVIEW||CUR_LV;
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'back');
-  if(NA&&artOn('tA')) drawArtTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,a,st.moving); else drawTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,L.turtle);
-  if(NA&&beat.timer&&S.screen==='game') drawFeetUnder(g,tx-30,ty+42,34,32,a,m);   // 박자에 맞춰 걸을 때: 남생이 뒷발 쪽 발바닥 표시
+  if(NA&&artOn('tA')) drawArtTurtle(g,tx,ty,Math.min(1,VW/300)*.7,st.phase,a,st.moving); else drawTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,L.turtle);
+  /* 옆모습에서는 아래 큰 발 단추가 박자를 알려 주므로 화면 속 발바닥은 두지 않음 */   // 박자에 맞춰 걸을 때: 남생이 뒷발 쪽 발바닥 표시
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'front');
-  if(st.name&&showTag){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62-(NA?16:0)-(NA&&wearing?34:0);
+  if(st.name&&showTag){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-(NA?50:62)-(NA?16:0)-(NA&&wearing?24:0);
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,24); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,24);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.textAlign='center'; g.fillText(st.name,tx+18,ny+17); g.textAlign='left'; }
   if(NA){ if(artOn('decor')) drawArtFront(g,VW,cam); } else if(m==='day') frontDay(g,VW,cam); else frontDawn(g,VW,cam);
