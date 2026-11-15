@@ -1646,7 +1646,7 @@ function drawScene(g,W,H,dpr,st){
   const FLV=LV_PREVIEW||CUR_LV;
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'back');
   if(NA&&artOn('tA')) drawArtTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,a,st.moving); else drawTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,L.turtle);
-  if(NA&&beat.timer&&S.screen==='game') drawFeetUnder(g,tx-34,ty+46,30,24,a,m);   // 박자에 맞춰 걸을 때: 남생이 뒷발 쪽 발바닥 표시
+  if(NA&&beat.timer&&S.screen==='game') drawFeetUnder(g,tx-30,ty+42,34,32,a,m);   // 박자에 맞춰 걸을 때: 남생이 뒷발 쪽 발바닥 표시
   if(NA) drawCompanions(g,tx,ty,a,st.phase,st.moving,FLV,'front');
   if(st.name&&showTag){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62-(NA?16:0)-(NA&&wearing?34:0);
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,24); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,24);
