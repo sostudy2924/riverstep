@@ -298,6 +298,21 @@ html.na .namein,html.na .planbox{border-width:2px}
 html.na .planbtn{border-radius:99px}html.na .lvbar{border-radius:99px;overflow:hidden;border-width:1.5px}html.na #pic{border-radius:18px}
 html.na .goal[aria-pressed="true"]{box-shadow:none}
 html.na .stepno h2 .n{display:inline-flex;align-items:center;justify-content:center;width:50px;height:46px;min-width:0;margin-right:12px;border-radius:52% 48% 50% 50%/58% 56% 44% 42%;background:var(--pick);color:#fff;font-size:28px;vertical-align:middle}   /* 번호 = 물 위 징검돌 */
+html.na .ward.on{border:3px solid var(--pick,#e08a2e);box-shadow:none}
+html.na .btn{border-radius:16px;border-width:1.5px}
+html.na .btn.go{border:0;box-shadow:0 3px 0 var(--r-bg-down);border-radius:18px}
+html.na .row .ch{border-radius:99px;border-width:1.5px}
+/* A안: 남생이가 보는 쪽으로 징검돌이 1번까지 이어지고, 1→2→3→4가 징검돌 길로 내려감 */
+@media (min-width:901px){
+  html.na .walk>.box{position:relative}
+  html.na .walk>.box::before{content:'';position:absolute;left:-46px;top:43px;width:68px;height:10px;background:radial-gradient(ellipse 5px 4px at center,var(--pick) 96%,transparent) left center/17px 10px repeat-x;opacity:.5}
+}
+@media (min-width:621px){
+  html.na .walk>.box>.stepno{position:relative}
+  html.na .walk>.box>.stepno>*:not(h2){margin-left:62px}
+  html.na .walk>.box>.stepno::after{content:'';position:absolute;left:20px;top:54px;bottom:-16px;width:10px;background:radial-gradient(ellipse 4px 5px at center,var(--pick) 96%,transparent) center top/10px 17px repeat-y;opacity:.45}
+  html.na .walk>.box>.stepno:last-of-type::after{display:none}
+}
 html.na:not([data-mood="dawn"]) .guide{background:var(--card);color:var(--text);border:2px solid var(--pick)}
 html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
 html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
@@ -1864,7 +1879,7 @@ function buildTurnPath(){
 }
 function stepToDist(k){ const P=TC.path; if(k<=0) return P.lead+k; for(const g of P.segs){ if(k<=g.k1) return g.s0+(k-g.k0)/(g.k1-g.k0)*(g.s1-g.s0); } const L=P.segs[P.segs.length-1]; return L.s1+(k-L.k1); }
 function pathAt(d){ const P=TC.path; if(d<0){ const o=P.pts[0]; return {x:o.x+Math.sin(o.a)*d, y:o.y+Math.cos(o.a)*d, a:o.a}; }   // 출발점 뒤로도 물길이 곧게 이어짐(뒤돌았을 때 끊겨 보이지 않게)
-  const i=Math.max(0,Math.min(P.pts.length-1,Math.round(d/P.DS))); return P.pts[i]; }
+  const f=Math.min(P.pts.length-1,d/P.DS), i=Math.floor(f), u=f-i, A=P.pts[i], B=P.pts[Math.min(P.pts.length-1,i+1)]; return u<=0?A:{x:A.x+(B.x-A.x)*u, y:A.y+(B.y-A.y)*u, a:A.a+(B.a-A.a)*u}; }
 // 땅을 원근에 맞춰 깔기(위에서 본 풀밭 그림을 줄마다 비스듬히 펴서 그림) — 차로 지나가듯 땅이 흘러감
 let GROUND_PATS=null;
 function drawGround7(g,dpr,Lr,hz,K,P,a,T){
@@ -1930,7 +1945,7 @@ function drawTurnScene(g,W,H,dpr,st){
     for(let d=Math.floor((sv+12)/DS)*DS; d>sv-1; d-=DS){ for(const side of [-1,1]){ const h=hash(Math.round(d/DS)*2+(side>0?1:0),511), off=RW/2+.3+h*.24; if(!clearAt(d,side,off,RW/2+.24)) continue; const q=pathAt(d), p=proj(q.x+Math.cos(q.a)*side*off,q.y-Math.sin(q.a)*side*off); if(!p||p.y<hz+4) continue; list.push({k:p.k,f:()=>drawDecor(g,h<.55?0:3,p.x,p.y,Math.min(.32,p.k*(.0009+h*.0005)))}); } }   // 축대 바로 뒤 갈대·풀 한 줄
     for(let n=Math.floor((sv+26)/1.6); n*1.6>sv-1.2; n--){ const d=n*1.6; for(const side of [-1,1]){ if(!clearAt(d,side,RW/2+1.45,RW/2+1.25)) continue; const q=pathAt(d), off=side*(RW/2+1.45), p=proj(q.x+Math.cos(q.a)*off,q.y-Math.sin(q.a)*off); if(!p||p.y<hz+2) continue; const kind=hash(n*2+(side>0?1:0),77)<.5?1:2; list.push({k:p.k,f:()=>drawDecor(g,kind,p.x,p.y,Math.min(1.5,p.k*.0034))}); } }   // 산책로 따라 가로수
     if(artOn('bridge')){ const im=ART.img.bridge, str=TC.path.segs.filter(c=>c.t==='S'&&c.s1-c.s0>=4), segsS=str.length>1?[(str[1].s0+str[1].s1)/2]:str.map(c=>(c.s0+c.s1)/2);   // 다리는 하나만(되돌아오는 길 한가운데)
-      for(const d of segsS){ if(d<sv+.25||d>sv+40) continue; const q=pathAt(d), p=proj(q.x,q.y); if(!p||p.y<hz+2) continue; const w=p.k*(RW+2.5), h=w*im.naturalHeight/im.naturalWidth, al=Math.min(1,(d-sv-.25)/.9); list.push({k:p.k,f:()=>{ g.save(); g.globalAlpha=al; g.drawImage(im,p.x-w/2,p.y-h*.97,w,h); g.restore(); }}); } }   // 하천을 가로지르는 보행교(지나갈 때는 옅어짐)
+      for(const d of segsS){ if(d<sv+.25||d>sv+40) continue; const q=pathAt(d), p=proj(q.x,q.y); if(!p||p.y<hz+2) continue; const w=p.k*(RW+2.5), h=w*im.naturalHeight/im.naturalWidth, da=Math.abs(Math.atan2(Math.sin(q.a-a),Math.cos(q.a-a))), al=Math.min(1,(d-sv-.25)/.9)*Math.max(0,Math.min(1,1-(da-.12)/.3)); if(al<=.01) continue; list.push({k:p.k,f:()=>{ g.save(); g.globalAlpha=al; g.drawImage(im,p.x-w/2,p.y-h*.97,w,h); g.restore(); }}); } }   // 하천을 가로지르는 보행교(지나갈 때는 옅어짐)
     list.sort((a,b)=>a.k-b.k).forEach(o=>o.f()); }
   // 돌 곳 안내
   const ti=turnSegOfStep(S.steps+1);
