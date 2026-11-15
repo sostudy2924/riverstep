@@ -1427,7 +1427,7 @@ function drawArtTurtle(g,x,y,s,phase,t,moving){
   if(moving){ g.save(); g.strokeStyle='rgba(252,253,250,.55)'; g.lineWidth=1.6; g.lineCap='round';
     for(let i=0;i<3;i++){ const d=12+i*14+((t*30)%14), yy=top+h*wl+1; g.globalAlpha=1-i*.28; g.beginPath(); g.moveTo(left+w*.05-d,yy-3-i*2); g.quadraticCurveTo(left+w*.05-d-10,yy,left+w*.05-d-22,yy+3+i*2); g.stroke(); } g.restore(); }
   drawSubmerged(g,im,left,top,w,h,wl,rot);
-  { const an=(sw&&SWIM_ANCHOR[SWIM_LAST])||[.45,.06]; drawAccessory(g,left+w*an[0],top+h*(an[1]+.035),w,'side'); }   // 등딱지 꼭대기에서 살짝 안쪽
+  { const an=(sw&&SWIM_ANCHOR[SWIM_LAST])||[.45,.06], a0=SWIM_ANCHOR[0]; drawAccessory(g,left+w*an[0],top+h*(an[1]+.035),w,'side',{left, top, w, h, dl:(an[0]-a0[0])*w, dt:(an[1]-a0[1])*h, wl}); }   // 등딱지 꼭대기에서 살짝 안쪽
   waterline(g,left+w*.52,top+h*wl+1,w*.40,t,1);
   // 머리 앞 작은 물결
   g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.5; const hx=left+w*.98, hy=top+h*wl+1;
@@ -1562,7 +1562,7 @@ function drawSceneAR(g,W,H,dpr,st){
       const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh); im=c; iw=fw; ih=fh; }
     const w=84*ts, h=w*ih/iw, sway=artOn('rswim')?0:Math.sin(st.phase)*.04;
     drawSubmerged(g,im,T.cx-w/2,ty-h*.74,w,h,.80,sway);   // 등딱지 대부분이 물 위로, 다리 끝만 잠김
-    drawAccessory(g,T.cx,ty-h*.74+h*.36,w,'rear');   // 뒤에서 본 등딱지 한가운데
+    drawAccessory(g,T.cx,ty-h*.74+h*.36,w,'rear',{left:T.cx-w/2, top:ty-h*.74, w, h, wl:.80});   // 뒤에서 본 등딱지 한가운데
     g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.12,r,r*.26,0,.15,Math.PI-.15); g.stroke(); } g.restore();
   } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
   if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
@@ -1684,7 +1684,7 @@ function drawTurnScene(g,W,H,dpr,st){
   drawFeetUnder(g,cx,ty+Sz*1.95,Sz*1.05,Sz*1.55,st.t,m);
   if(NA){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=((st.phase/(Math.PI*2))%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
     const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh);
-    const w=Sz*3.1, h=w*fh/fw; g.save(); g.translate(cx,ty); g.rotate(lean); drawSubmerged(g,c,-w/2,-h*.62,w,h,.62,0); drawAccessory(g,0,-h*.62+h*.30,w,'rear'); g.restore(); }
+    const w=Sz*3.1, h=w*fh/fw; g.save(); g.translate(cx,ty); g.rotate(lean); drawSubmerged(g,c,-w/2,-h*.74,w,h,.80,0); drawAccessory(g,0,-h*.74+h*.36,w,'rear',{left:-w/2, top:-h*.74, w, h, wl:.80}); g.restore(); }
   else { g.save(); g.translate(cx,ty); g.rotate(lean); drawTurtleTop(g,0,0,Sz/30,st.phase,Lk.turtle); g.restore(); }
   g.restore();
   if(cam.on){ g.strokeStyle=edgeC; g.lineWidth=3; g.strokeRect(Lr.x,Lr.y,Lr.w,Lr.h); }
@@ -2570,7 +2570,7 @@ function startIntro(){
 // 레벨: 지금까지 걸은 모든 걸음(기록 합계)으로 올라감. 처음엔 빨리, 갈수록 천천히.
 // 옷장: 정해진 걸음 수가 되면 장식이 하나씩 열림. 한 번에 하나를 등딱지 위에 달 수 있음.
 const LV_STEPS=[0,50,150,300,500,800,1200,1700,2300,3000,4000,5200,6600,8200,10000];
-const WARDROBE=[{id:'ribbon',name:'빨간 리본',need:50},{id:'flowers',name:'들꽃 화관',need:200},{id:'lotus',name:'연잎 모자',need:500},{id:'star',name:'별 배지',need:1000}];
+const WARDROBE=[{id:'ribbon',name:'빨간 리본',need:50},{id:'flowers',name:'들꽃 화관',need:200},{id:'lotus',name:'연꽃 한 송이',need:500},{id:'crown',name:'작은 왕관',need:1000}];
 function lifeSteps(){ let n=0; for(const d of Object.keys(LOG.days)) for(const k of Object.keys(LOG.days[d].sessions)){ const x=LOG.days[d].sessions[k]; if(!x.sample&&(S.screen!=='game'||+k!==S.sid)) n+=x.steps||0; } return n+(S.screen==='game'?S.steps:0); }
 function levelOf(n){ let l=1; for(let i=1;i<LV_STEPS.length;i++) if(n>=LV_STEPS[i]) l=i+1; const next=LV_STEPS[l]??null; return {lv:l, cur:LV_STEPS[l-1], next}; }
 let wearing=null; try{ wearing=localStorage.getItem('riverstep:wear')||null; }catch(e){}
@@ -2580,7 +2580,7 @@ function renderWardrobe(){
   $('#lvFill').style.width=(L.next?Math.min(100,(n-L.cur)/(L.next-L.cur)*100):100)+'%';
   const row=$('#wardRow'); row.innerHTML='';
   for(const w of WARDROBE){ const open=n>=w.need, on=wearing===w.id; const b=document.createElement('button'); b.type='button'; b.className='ward'+(on?' on':'')+(open?'':' lock'); b.disabled=!open; b.setAttribute('aria-pressed',String(on));
-    b.innerHTML=(open&&ART.src['acc_'+w.id].startsWith('http')?`<img alt="" src="${ART.src['acc_'+w.id]}">`:`<span class="lk">🔒</span>`)+`<b>${w.name}</b><small>${open?(on?'달고 있어요':'눌러서 달기'):w.need+'걸음에 열려요'}</small>`;
+    const ic=(ACC_FIT[w.id]&&ACC_FIT[w.id].side&&ACC_FIT[w.id].side.icon)||ART.src['acc_'+w.id]||''; b.innerHTML=(open&&ic.startsWith('http')?`<img alt="" src="${ic}">`:`<span class="lk">🔒</span>`)+`<b>${w.name}</b><small>${open?(on?'달고 있어요':'눌러서 달기'):w.need+'걸음에 열려요'}</small>`;
     b.addEventListener('click',()=>{ wearing=on?null:w.id; try{ wearing?localStorage.setItem('riverstep:wear',wearing):localStorage.removeItem('riverstep:wear'); }catch(e){} renderWardrobe(); });
     row.appendChild(b); }
 }
@@ -2591,8 +2591,18 @@ function checkLevelUp(){
   if(L.lv>lastLv){ lastLv=L.lv; notify(`레벨 ${L.lv}이 되었어요!`,`${tSubj()} 더 힘차게 헤엄쳐요`,true,5000); try{ sfx.mile(); }catch(e){} speak(`축하해요. 레벨 ${L.lv}이 되었어요.`); }
   const u=WARDROBE.filter(w=>n>=w.need).length; if(u>lastUnlock){ const w=WARDROBE[u-1]; lastUnlock=u; notify(`옷장에 '${w.name}'이 생겼어요`,'걷기를 마치고 처음 화면에서 달아 줄 수 있어요',true,6000); }
 }
-function drawAccessory(g,x,y,w,view){
-  if(!NEWART||!wearing) return; const im=ART.img['acc_'+wearing]; if(!im||!ART.ok['acc_'+wearing]) return;
+// 남생이가 실제로 쓴 모습으로 그린 장식(옆모습·뒷모습 따로). 상자=헤엄 그림 한 칸 안에서의 위치 비율 [왼, 위, 오른, 아래]
+const ACC_FIT={"ribbon":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b7ff6ce9-7ed8-4988-972d-db82f41042fe.png","box":[0.3881,-0.1159,0.5469,0.6733],"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b7ff6ce9-7ed8-4988-972d-db82f41042fe.png"},"rear":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/d596028b-e5a8-4244-837a-19ce47eee061.png","box":[0.1312,0.0618,0.8612,0.755]}},"flowers":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/093c76e7-feac-4a91-9779-f65050084df2.png","box":[0.8122,0.1854,0.9634,0.3055],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/093c76e7-feac-4a91-9779-f65050084df2.png"},"rear":null},"lotus":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/59bdabde-86d7-4d14-a3d0-3b3a88de5096.png","box":[0.8351,0.1449,0.9645,0.3267],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/59bdabde-86d7-4d14-a3d0-3b3a88de5096.png"},"rear":null},"crown":{"side":{"url":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/545e2232-10cd-4d0f-a7e2-d26c9c893a7f.png","box":[0.8515,0.1542,0.9566,0.2561],"head":1,"icon":"https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/545e2232-10cd-4d0f-a7e2-d26c9c893a7f.png"},"rear":null}};
+if(NEWART) for(const [id,vs] of Object.entries(ACC_FIT)) for(const [v,f] of Object.entries(vs)){ if(!f) continue; const k='fit_'+id+'_'+v, im=new Image(); im.onload=()=>{ ART.ok[k]=true; }; im.src=f.url; ART.img[k]=im; }
+function drawAccessory(g,x,y,w,view,fr){
+  if(!NEWART||!wearing) return;
+  if(ACC_FIT[wearing]&&ACC_FIT[wearing][view]===null) return;   // 이 시점 그림이 없으면 억지로 붙이지 않음
+  const fit=ACC_FIT[wearing]&&ACC_FIT[wearing][view], fk='fit_'+wearing+'_'+view;
+  if(fit&&fr&&ART.ok[fk]){ const b=fit.box, mv=fit.head?0:1, X=fr.left+(fr.dl||0)*mv+b[0]*fr.w, Y=fr.top+(fr.dt||0)*mv+b[1]*fr.h, W=(b[2]-b[0])*fr.w, H=(b[3]-b[1])*fr.h;
+    if(fit.sh){ // 닿는 곳에 옅은 그림자: 얹혀 있다는 느낌(떠 보이지 않게)
+      const sx=X+W*fit.sh[0], sy=Y+H*fit.sh[1], rx=W*fit.sh[2], ry=Math.max(1.5,rx*.18); const gr=g.createRadialGradient(sx,sy,0,sx,sy,rx);
+      gr.addColorStop(0,'rgba(44,26,14,.38)'); gr.addColorStop(1,'rgba(44,26,14,0)'); g.save(); g.translate(sx,sy); g.scale(1,ry/rx); g.translate(-sx,-sy); g.fillStyle=gr; g.beginPath(); g.arc(sx,sy,rx,0,Math.PI*2); g.fill(); g.restore(); }
+    const wl=fr.wl?(fr.top+(fr.dt||0)*mv+fr.h*fr.wl-Y)/H:2; if(wl<1) drawSubmerged(g,ART.img[fk],X,Y,W,H,Math.max(0,wl),0); else g.drawImage(ART.img[fk],X,Y,W,H); return; } const im=ART.img['acc_'+wearing]; if(!im||!ART.ok['acc_'+wearing]) return;
   // 장식마다 등딱지에 닿는 지점이 다름: k=그림 위에서부터 닿는 곳 비율, sq=납작하게(화관은 등에 눕혀 놓은 모양), sz=등딱지 대비 크기
   const P={ribbon:{k:.40,sq:[1,1],sz:[.30,.34]}, flowers:{k:.55,sq:[.42,.62],sz:[.36,.42]}, lotus:{k:.86,sq:[1,.8],sz:[.36,.40]}, star:{k:.42,sq:[1,1],sz:[.22,.26]}}[wearing]||{k:.6,sq:[1,1],sz:[.3,.3]};
   const v=view==='rear'?1:0, aw=w*P.sz[v], ah=aw*im.naturalHeight/im.naturalWidth*P.sq[v];
