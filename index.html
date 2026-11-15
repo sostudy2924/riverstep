@@ -369,6 +369,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
 .lvbox h3{margin:6px 0 0;font:800 20px var(--num)}
 .wardrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(86px,1fr));gap:8px}
 .ward small{word-break:keep-all}
+.lvfr{margin:2px 0 0;font-size:16px;color:var(--text-2);word-break:keep-all}
 .ward.none .lk{font-size:34px;opacity:.45}
 .ward{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px;border:2px solid var(--edge);background:var(--card);color:var(--text);cursor:pointer;min-height:132px}
 .ward img{width:64px;height:52px;object-fit:contain}
@@ -404,6 +405,7 @@ html.tv :focus-visible{outline-width:8px;outline-offset:4px}
           <div class="lvbar"><i id="lvFill"></i></div>
           <h3>옷장</h3>
           <div class="wardrow" id="wardRow"></div>
+          <p class="lvfr" id="lvFriends"></p>
         </section>
         <details class="morestory"><summary>남생이 이야기 · 걸음 기부 보기</summary>
         <div class="story" id="namStory">
@@ -1354,7 +1356,7 @@ function frontDawn(g,VW,cam){
 // 배경: 옆으로 이어 붙여도 이음매가 없게 다듬은 하천 그림 한 장 → 걸을 때 천천히 뒤로 흐름
 // 남생이: 옆모습 2장(앞발을 앞으로/뒤로 저은 모습)을 걸음 박자에 맞춰 번갈아 보여 줌
 const NEWART=params.has('newart');
-const ART={ swimN:0, src:{decor:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/2452bb30-f588-46eb-a759-b0f77935bfb5.png', acc_ribbon:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/0a3af697-88e8-4581-949e-a353119f751b.png', acc_flowers:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/ec53b92f-0137-4db6-a11e-69b1df256a28.png', acc_lotus:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/4839de33-01dd-4d1d-8c1b-ea756ce14e65.png', acc_star:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/dce697ed-680c-41bf-96b9-d5f9b7eee2ea.png', rswim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5f10a7e4-69ef-4760-b6bb-0cc8bc09bce3.png', ar_bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/44cbc911-856d-4dc5-97d7-6f705724b701.png', ar_can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/65e18950-7b9e-4aaa-91e4-20882f9ac4c5.png', ar_bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/8188025a-4913-46dd-baec-f02f25c7a090.png', ar_cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7df1dcb4-1dfe-4216-870a-b4a0f6f50ae7.png', swim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5aa7c44c-1581-4034-abe3-f84f9588d995.png', up:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b6ad4e55-7aee-4f21-915b-e5f67b4d40d5.png', bg:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/6beb56df-94bc-463b-92b4-cee5e2f23af7.jpg', tA:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/23e3cd17-6f92-4de9-ab2b-d4d895e824f3.png', tB:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e0c2554b-293d-4fde-8bb3-97806e196d83.png', bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/cf734381-8308-443d-b33e-ddc7ab9d7fb4.png', can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3b7721b2-95f6-469e-9769-cd9904b9d491.png', bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/db302282-3882-4d7f-bfaa-94623820688e.png', cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7089d5d1-601f-40b9-a213-a762ad3e9626.png'}, img:{}, ok:{} };
+const ART={ swimN:0, src:{friends:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/983dd475-20a8-4644-b37a-65c77d3fd038.png', decor:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/2452bb30-f588-46eb-a759-b0f77935bfb5.png', acc_ribbon:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/0a3af697-88e8-4581-949e-a353119f751b.png', acc_flowers:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/ec53b92f-0137-4db6-a11e-69b1df256a28.png', acc_lotus:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/4839de33-01dd-4d1d-8c1b-ea756ce14e65.png', acc_star:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/dce697ed-680c-41bf-96b9-d5f9b7eee2ea.png', rswim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5f10a7e4-69ef-4760-b6bb-0cc8bc09bce3.png', ar_bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/44cbc911-856d-4dc5-97d7-6f705724b701.png', ar_can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/65e18950-7b9e-4aaa-91e4-20882f9ac4c5.png', ar_bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/8188025a-4913-46dd-baec-f02f25c7a090.png', ar_cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7df1dcb4-1dfe-4216-870a-b4a0f6f50ae7.png', swim:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/5aa7c44c-1581-4034-abe3-f84f9588d995.png', up:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/b6ad4e55-7aee-4f21-915b-e5f67b4d40d5.png', bg:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/6beb56df-94bc-463b-92b4-cee5e2f23af7.jpg', tA:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/23e3cd17-6f92-4de9-ab2b-d4d895e824f3.png', tB:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/e0c2554b-293d-4fde-8bb3-97806e196d83.png', bottle:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/cf734381-8308-443d-b33e-ddc7ab9d7fb4.png', can:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/3b7721b2-95f6-469e-9769-cd9904b9d491.png', bag:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/db302282-3882-4d7f-bfaa-94623820688e.png', cup:'https://d2ol7oe51mr4n9.cloudfront.net/user_3M58MQFImYHTWpNnTBPFqZJJuuP/7089d5d1-601f-40b9-a213-a762ad3e9626.png'}, img:{}, ok:{} };
 if(NEWART){ for(const [k,u] of Object.entries(ART.src)){ if(!u.startsWith('http')) continue; const im=new Image(); im.onload=()=>{ ART.ok[k]=true; }; im.src=u; ART.img[k]=im; } }
 const artOn=k=>NEWART&&ART.ok[k];
 function mixHex(a,b,k){ const pa=[1,3,5].map(i=>parseInt(a.substr(i,2),16)), pb=[1,3,5].map(i=>parseInt(b.substr(i,2),16)); return 'rgb('+pa.map((v,i)=>Math.round(v+(pb[i]-v)*k)).join(',')+')'; }
@@ -1435,6 +1437,28 @@ function drawArtTurtle(g,x,y,s,phase,t,moving){
   g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.5; const hx=left+w*.98, hy=top+h*wl+1;
   for(let i=0;i<2;i++){ const r=4+i*5+((t*8)%5); g.beginPath(); g.arc(hx,hy,r,-.7,.7); g.stroke(); } g.restore();
 }
+// 하천 친구들(레벨이 오를 때마다 하나씩 와서 삶): 레벨2 송사리 … 레벨7 수달, 그 뒤로는 한 마리씩 더
+const FR_BOX=[[6,6,179,123],[191,6,124,131],[321,6,189,131],[516,6,182,263],[704,6,289,108],[999,6,202,115]];   // 그림 한 장 안의 위치 [x,y,w,h]
+const FRIENDS=[
+ {id:'minnow', name:'송사리 떼', lv:2, y:228, w:46, par:1.00, vx:-9,  sub:.55},
+ {id:'fly',    name:'고추잠자리', lv:3, y:128, w:30, par:.85, vx:6,   fly:1},
+ {id:'frog',   name:'개구리',   lv:4, y:152, w:34, par:.75, vx:0},
+ {id:'egret',  name:'백로',     lv:5, y:268, w:40, par:1.00, vx:0},
+ {id:'duck',   name:'원앙 한 쌍', lv:6, y:146, w:52, par:.75, vx:-3},
+ {id:'otter',  name:'수달',     lv:7, y:176, w:48, par:.88, vx:-2}];
+let CUR_LV=1; const LV_PREVIEW=+(params.get('lv')||0);   // 발표·확인용: ?lv=7 처럼 주면 그 레벨 친구들이 미리 보임
+function friendsAt(lv){ const out=[]; for(let L=2;L<=lv;L++){ const i=(L-2)%FRIENDS.length; out.push({f:FRIENDS[i],i,copy:Math.floor((L-2)/FRIENDS.length)}); } return out; }
+function drawFriends(g,VW,cam,t,lv){
+  if(!artOn('friends')) return; const im=ART.img.friends;
+  for(const {f,i,copy} of friendsAt(lv)){ const b=FR_BOX[i]; if(!b) continue;
+    const P=Math.max(1000,VW+300), base=180+i*260+copy*470;
+    const x=((base+t*f.vx-cam*f.par)%P+P)%P-80; if(x>VW+80) continue;
+    const w=f.w, h=w*b[3]/b[2]; let y=f.y-h, bob=0, rot=0;
+    if(f.fly){ bob=Math.sin(t*2.1+i)*5; rot=Math.sin(t*9)*.02; } else if(f.id!=='egret'){ bob=Math.sin(t*1.2+i*1.7)*1.2; }
+    g.save(); if(f.sub) g.globalAlpha=f.sub; g.translate(x+w/2,y+h/2+bob); g.rotate(rot); g.drawImage(im,b[0],b[1],b[2],b[3],-w/2,-h/2,w,h); g.restore();
+    if(f.id==='duck'||f.id==='otter'||f.id==='frog') waterline(g,x+w/2,y+h-1+bob,w*.48,t+i,.55);
+  }
+}
 // 남생이에게 쓰레기는 '위험': 물을 더럽히는 얼룩 + 빨간 느낌표 경고. 가까워질수록 경고가 커지고 빨리 뜀
 function drawDanger(g,x,y,s,t,near,wy){
   const k=Math.max(0,Math.min(1,near||0)), pul=.5+.5*Math.sin(t*(2.2+k*3));
@@ -1446,7 +1470,7 @@ function drawDanger(g,x,y,s,t,near,wy){
   g.strokeStyle=`rgba(150,52,40,${.28+.25*pul})`; g.lineWidth=2.2/.32*.4; const rr=R*(.75+.25*((t*.6)%1)); g.beginPath(); g.arc(0,0,rr,0,Math.PI*2); g.stroke();
   g.restore();
   // 빨간 느낌표 표지(위아래로 살짝 뜀)
-  const r=(11+5*k)*s*(1+.08*pul*(.4+k)), by=y-(40+6*k)*s-Math.abs(Math.sin(t*(2+k*3)))*4*s;
+  const r=(11+5*k)*s*(1+.08*pul*(.4+k)), by=y-(32+6*k)*s-Math.abs(Math.sin(t*(2+k*3)))*4*s;
   g.save(); g.fillStyle='rgba(30,20,16,.18)'; g.beginPath(); g.ellipse(x,by+r+3*s,r*.8,r*.22,0,0,Math.PI*2); g.fill();
   g.fillStyle='#d23f2e'; g.strokeStyle='#7f2318'; g.lineWidth=2*s; g.beginPath(); g.arc(x,by,r,0,Math.PI*2); g.fill(); g.stroke();
   g.fillStyle='#fffaf0'; g.beginPath(); g.roundRect?g.roundRect(x-r*.14,by-r*.6,r*.28,r*.72,r*.14):g.rect(x-r*.14,by-r*.6,r*.28,r*.72); g.fill(); g.beginPath(); g.arc(x,by+r*.42,r*.16,0,Math.PI*2); g.fill();
@@ -1463,7 +1487,7 @@ function drawScene(g,W,H,dpr,st){
   g.setTransform(dpr*k,0,0,dpr*k,0,0);
   const a=reduceMotion?0:st.t, cam=st.cam, c=st.clarity;
   const NA=m==='day'&&artOn('bg');
-  if(NA) drawArtBG(g,VW,cam,a,c); else if(m==='day'){ skyDay(g,VW,cam); waterDay(g,VW,cam,c,a); } else { skyDawn(g,VW,cam); waterDawn(g,VW,cam,c,a); }
+  if(NA){ drawArtBG(g,VW,cam,a,c); drawFriends(g,VW,cam,a,LV_PREVIEW||CUR_LV); } else if(m==='day'){ skyDay(g,VW,cam); waterDay(g,VW,cam,c,a); } else { skyDawn(g,VW,cam); waterDawn(g,VW,cam,c,a); }
   if(st.goal){ const fx=st.goal*STEP_PX+30-cam;
     if(fx>-60&&fx<VW+60){
       g.strokeStyle=m==='day'?'rgba(251,250,242,.85)':'rgba(255,226,180,.7)'; g.lineWidth=3; g.setLineDash([9,8]); g.beginPath(); g.moveTo(fx,SY.water+4); g.lineTo(fx,SY.front-4); g.stroke(); g.setLineDash([]);
@@ -2594,7 +2618,8 @@ function lifeSteps(){ let n=0; for(const d of Object.keys(LOG.days)) for(const k
 function levelOf(n){ let l=1; for(let i=1;i<LV_STEPS.length;i++) if(n>=LV_STEPS[i]) l=i+1; const next=LV_STEPS[l]??null; return {lv:l, cur:LV_STEPS[l-1], next}; }
 let wearing=null; try{ wearing=localStorage.getItem('riverstep:wear')||null; }catch(e){}
 function renderWardrobe(){
-  const box=$('#lvBox'); if(!box) return; const n=lifeSteps(), L=levelOf(n);
+  const box=$('#lvBox'); if(!box) return; const n=lifeSteps(), L=levelOf(n); CUR_LV=L.lv;
+  { const fr=friendsAt(L.lv).map(x=>x.f.name), nx=FRIENDS[(L.lv-1)%FRIENDS.length]; const el=$('#lvFriends'); if(el) el.textContent=(fr.length?'하천 친구: '+[...new Set(fr)].join(' · ')+'. ':'')+(L.next?`레벨 ${L.lv+1}이 되면 ${nx.name}${hasBatchim(nx.name)?'이':'가'} 와요.`:''); }
   $('#lvNum').textContent=L.lv; $('#lvNext').textContent=L.next?`다음 레벨까지 ${L.next-n}걸음`:'가장 높은 레벨이에요';
   $('#lvFill').style.width=(L.next?Math.min(100,(n-L.cur)/(L.next-L.cur)*100):100)+'%';
   const row=$('#wardRow'); row.innerHTML='';
@@ -2610,7 +2635,7 @@ let lastLv=null, lastUnlock=null;
 function checkLevelUp(){
   if(!NEWART) return; const n=lifeSteps(), L=levelOf(n);
   if(lastLv===null){ lastLv=L.lv; lastUnlock=WARDROBE.filter(w=>n>=w.need).length; return; }
-  if(L.lv>lastLv){ lastLv=L.lv; notify(`레벨 ${L.lv}이 되었어요!`,`${tSubj()} 더 힘차게 헤엄쳐요`,true,5000); try{ sfx.mile(); }catch(e){} speak(`축하해요. 레벨 ${L.lv}이 되었어요.`); }
+  if(L.lv>lastLv){ lastLv=L.lv; CUR_LV=L.lv; const nf=FRIENDS[(L.lv-2)%FRIENDS.length]; notify(`레벨 ${L.lv}이 되었어요!`,`하천에 ${nf.name}${hasBatchim(nf.name)?'이':'가'} 놀러 왔어요`,true,5000); try{ sfx.mile(); }catch(e){} speak(`축하해요. 레벨 ${L.lv}이 되었어요. 하천에 ${nf.name}${hasBatchim(nf.name)?'이':'가'} 놀러 왔어요.`); }
   const u=WARDROBE.filter(w=>n>=w.need).length; if(u>lastUnlock){ const w=WARDROBE[u-1]; lastUnlock=u; notify(`옷장에 '${w.name}'이 생겼어요`,'걷기를 마치고 처음 화면 옷장에서 씌워 줄 수 있어요',true,6000); }
 }
 // 남생이가 실제로 쓴 모습으로 그린 장식(옆모습·뒷모습 따로). 상자=헤엄 그림 한 칸 안에서의 위치 비율 [왼, 위, 오른, 아래]
