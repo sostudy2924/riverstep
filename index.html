@@ -389,6 +389,35 @@ html.na[data-th="c"] .intro #pic{aspect-ratio:16/10.5;border-radius:28px}
 html.na[data-th="c"] .intro .startstep{width:74%;align-self:center;margin-top:-58px;position:relative;z-index:2}
 html.na[data-th="c"] .intro .safety{margin-top:10px}
 html.na[data-th="c"] .today,html.na[data-th="c"] .tnote{margin-top:14px}
+/* D 납작한 타이틀 화면: 그림자·질감·그라데이션 없이 색 다섯 가지(종이·먹·강물·모래·감)만. 그림 한 장 + 한 줄(목표 − + / 시작), 설정은 아래 */
+.hgoal{display:flex;align-items:center;gap:14px;background:var(--card);border:1.5px solid var(--soft);border-radius:18px;padding:10px 20px}
+.hgl{font:700 19px var(--font);color:var(--text-2);margin-right:4px;white-space:nowrap}
+.hgb{width:64px;height:64px;flex:none;border-radius:50%;border:2px solid var(--edge);background:var(--card);color:var(--text);font:800 36px/1 var(--num);cursor:pointer}
+.hgb:focus-visible{outline:5px solid var(--pick);outline-offset:3px}
+#hgNum{font:800 40px/1 var(--num);min-width:4.6em;text-align:center;font-variant-numeric:tabular-nums}
+html.na[data-th="d"]:not([data-mood="dawn"]){--bg:#F6F2E8;--card:#FFFDF8;--text:#1F2C27;--text-2:#56625C;--soft:#E2DBC9;--edge:#B5AF9E;--pick:#2F6B57;--accent:#2F6B57;--r-bg:#F0893A;--r-bg-down:#D9742A;--r-t:#1F2C27;--note-bg:#F3EAD2;--chip:#EEE8D8}
+html.na[data-th="d"] *{box-shadow:none!important;text-shadow:none!important}
+html.na[data-th="d"] .brand b{font:500 42px/1 'Fraunces',Georgia,serif;letter-spacing:-.02em;color:var(--pick)}
+html.na[data-th="d"] .top{border-bottom:1.5px solid var(--soft)}
+html.na[data-th="d"] .walk{grid-template-columns:minmax(0,1fr);gap:22px}
+html.na[data-th="d"] .intro{position:relative;top:auto;gap:0}
+html.na[data-th="d"] .intro #pic{border-radius:20px}
+html.na[data-th="d"] .say{position:absolute;z-index:2;left:clamp(18px,2.6vw,40px);top:clamp(16px,2.2vw,32px)}
+html.na[data-th="d"] .say b{font-size:clamp(26px,3.3vw,50px);line-height:1.28}
+html.na[data-th="d"] .say span{display:none}
+html.na[data-th="d"] .intro .startstep{display:grid;grid-template-columns:minmax(0,1fr);gap:12px;margin-top:16px}
+html.na[data-th="d"] .intro #btnStart{min-height:88px;font-size:38px;border-radius:18px}
+html.na[data-th="d"] .intro .safety{text-align:left}
+html.na[data-th="d"] .today,html.na[data-th="d"] .tnote{margin-top:12px}
+html.na[data-th="d"] .rcol::before{content:'설정과 더 보기';font:800 24px var(--num);color:var(--text-2);border-top:1.5px solid var(--soft);padding-top:18px}
+@media (min-width:901px){
+  html.na[data-th="d"] .intro #pic{aspect-ratio:auto;height:clamp(300px,calc(100vh - 300px),660px)}
+  html.na[data-th="d"] .intro .startstep{grid-template-columns:auto minmax(0,1fr)}
+  html.na[data-th="d"] .intro .safety{grid-column:1/-1}
+  html.na[data-th="d"] .rcol{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px 32px;align-items:start}
+  html.na[data-th="d"] .rcol::before{grid-column:1/-1}
+  html.na[data-th="d"] .rcol>.box{grid-row:2/span 4}
+}
 html.na:not([data-mood="dawn"]) .guide{background:var(--card);color:var(--text);border:2px solid var(--pick)}
 html.na #paceNumRow .gstep{min-width:60px;min-height:60px;font-size:34px;border:1.5px solid var(--edge)}
 html.na #paceNum{display:flex;align-items:center;justify-content:center;width:3.4em;min-height:60px;font-size:36px;line-height:1;border:1.5px solid var(--edge)}
@@ -3109,6 +3138,10 @@ if(NEWART){ document.documentElement.classList.add('na'); { const th=params.get(
     const rc=document.createElement('div'); rc.className='rcol'; walk.insertBefore(rc,box); rc.appendChild(box);
     let n=$('#homeNote').nextElementSibling; while(n){ const nx=n.nextElementSibling; rc.appendChild(n); n=nx; }
     pic.insertAdjacentElement('afterend',st); const saf=box.querySelector('.safety'); if(saf) st.appendChild(saf);
+    if(document.documentElement.dataset.th==='d'){   // 후보 D(납작한 타이틀 화면): 그림 아래 한 줄에 목표 걸음 − + 와 시작만
+      const hg=document.createElement('div'); hg.className='hgoal'; hg.innerHTML='<span class="hgl">오늘 목표</span><button type="button" class="hgb" id="hgMinus" aria-label="목표 걸음 줄이기">−</button><b id="hgNum"></b><button type="button" class="hgb" id="hgPlus" aria-label="목표 걸음 늘리기">+</button>'; st.insertBefore(hg,$('#btnStart'));
+      setTimeout(()=>{ const up=()=>{ $('#hgNum').textContent=S.goal+'걸음'; }, step=d=>{ const n=Math.max(10,Math.min(GOAL_MAX,Math.round((S.goal+d)/10)*10)); setGoal(n,![20,30,50,100].includes(n),true); up(); };
+        $('#hgMinus').addEventListener('click',()=>step(-10)); $('#hgPlus').addEventListener('click',()=>step(10)); document.addEventListener('click',()=>setTimeout(up,0)); document.addEventListener('input',()=>setTimeout(up,0)); up(); },0); }
   }catch(e){}   // 발 버튼에 넣을 발바닥 그림
   for(const [id,side] of [['btnL','L'],['btnR','R']]){ const cv=document.createElement('canvas'); cv.width=108; cv.height=152; const q=cv.getContext('2d'); q.translate(54,78); q.scale(side==='L'?-1.25:1.25,1.25); q.rotate(.1); footShape(q); q.fillStyle=side==='L'?'#3a2206':'#10330c'; q.fill(); $('#'+id).style.setProperty('--fi',`url(${cv.toDataURL()})`); } }
 // ── 시안: 박자(1분에 N걸음) · 목표 시간 · 준비 확인 ──
