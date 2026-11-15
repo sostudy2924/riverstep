@@ -309,7 +309,7 @@ html.na .row .ch{border-radius:99px;border-width:1.5px}
 }
 @media (min-width:621px){
   html.na .walk>.box>.stepno{position:relative}
-  html.na .walk>.box>.stepno>*:not(h2){margin-left:62px}
+  html.na .walk>.box>.stepno{padding-left:62px}html.na .walk>.box>.stepno>h2{margin-left:-62px}
   html.na .walk>.box>.stepno::after{content:'';position:absolute;left:20px;top:54px;bottom:-16px;width:10px;background:radial-gradient(ellipse 4px 5px at center,var(--pick) 96%,transparent) center top/10px 17px repeat-y;opacity:.45}
   html.na .walk>.box>.stepno:last-of-type::after{display:none}
 }
@@ -1945,7 +1945,7 @@ function drawTurnScene(g,W,H,dpr,st){
     for(let d=Math.floor((sv+12)/DS)*DS; d>sv-1; d-=DS){ for(const side of [-1,1]){ const h=hash(Math.round(d/DS)*2+(side>0?1:0),511), off=RW/2+.3+h*.24; if(!clearAt(d,side,off,RW/2+.24)) continue; const q=pathAt(d), p=proj(q.x+Math.cos(q.a)*side*off,q.y-Math.sin(q.a)*side*off); if(!p||p.y<hz+4) continue; list.push({k:p.k,f:()=>drawDecor(g,h<.55?0:3,p.x,p.y,Math.min(.32,p.k*(.0009+h*.0005)))}); } }   // 축대 바로 뒤 갈대·풀 한 줄
     for(let n=Math.floor((sv+26)/1.6); n*1.6>sv-1.2; n--){ const d=n*1.6; for(const side of [-1,1]){ if(!clearAt(d,side,RW/2+1.45,RW/2+1.25)) continue; const q=pathAt(d), off=side*(RW/2+1.45), p=proj(q.x+Math.cos(q.a)*off,q.y-Math.sin(q.a)*off); if(!p||p.y<hz+2) continue; const kind=hash(n*2+(side>0?1:0),77)<.5?1:2; list.push({k:p.k,f:()=>drawDecor(g,kind,p.x,p.y,Math.min(1.5,p.k*.0034))}); } }   // 산책로 따라 가로수
     if(artOn('bridge')){ const im=ART.img.bridge, str=TC.path.segs.filter(c=>c.t==='S'&&c.s1-c.s0>=4), segsS=str.length>1?[(str[1].s0+str[1].s1)/2]:str.map(c=>(c.s0+c.s1)/2);   // 다리는 하나만(되돌아오는 길 한가운데)
-      for(const d of segsS){ if(d<sv+.25||d>sv+40) continue; const q=pathAt(d), p=proj(q.x,q.y); if(!p||p.y<hz+2) continue; const w=p.k*(RW+2.5), h=w*im.naturalHeight/im.naturalWidth, da=Math.abs(Math.atan2(Math.sin(q.a-a),Math.cos(q.a-a))), al=Math.min(1,(d-sv-.25)/.9)*Math.max(0,Math.min(1,1-(da-.12)/.3)); if(al<=.01) continue; list.push({k:p.k,f:()=>{ g.save(); g.globalAlpha=al; g.drawImage(im,p.x-w/2,p.y-h*.97,w,h); g.restore(); }}); } }   // 하천을 가로지르는 보행교(지나갈 때는 옅어짐)
+      for(const d of segsS){ if(d<sv+.25||d>sv+40) continue; const q=pathAt(d), p=proj(q.x,q.y); if(!p||p.y<hz+2) continue; const w=p.k*(RW+2.5), h=w*im.naturalHeight/im.naturalWidth, da=Math.abs(Math.atan2(Math.sin(q.a-P.a),Math.cos(q.a-P.a))), al=Math.min(1,(d-sv-.25)/.9)*Math.max(0,Math.min(1,1-(da-.12)/.3)); if(al<=.01) continue; list.push({k:p.k,f:()=>{ g.save(); g.globalAlpha=al; g.drawImage(im,p.x-w/2,p.y-h*.97,w,h); g.restore(); }}); } }   // 하천을 가로지르는 보행교(지나갈 때는 옅어짐)
     list.sort((a,b)=>a.k-b.k).forEach(o=>o.f()); }
   // 돌 곳 안내
   const ti=turnSegOfStep(S.steps+1);
