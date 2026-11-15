@@ -1460,7 +1460,7 @@ function drawScene(g,W,H,dpr,st){
   if(m==='day'&&!NA){ g.fillStyle='rgba(40,70,80,.15)'; g.beginPath(); g.ellipse(tx,ty+34,46,6,0,0,Math.PI*2); g.fill(); }
   if(st.moving&&!NA){ g.strokeStyle=m==='day'?'rgba(251,250,242,.7)':'rgba(255,226,180,.6)'; g.lineWidth=2.2; for(let i=0;i<2;i++){ g.beginPath(); g.arc(tx-62-i*14,ty+4,7+i*5,-.8,.8); g.stroke(); } }
   if(NA&&artOn('tA')) drawArtTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,a,st.moving); else drawTurtle(g,tx,ty,Math.min(1,VW/300),st.phase,L.turtle);
-  if(st.name){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62-(NA?16:0);
+  if(st.name){ g.font='800 15px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=tx+18-w/2, ny=ty-62-(NA?16:0)-(NA&&wearing?34:0);
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,24); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,24);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.textAlign='center'; g.fillText(st.name,tx+18,ny+17); g.textAlign='left'; }
   if(NA){ if(artOn('decor')) drawArtFront(g,VW,cam); } else if(m==='day') frontDay(g,VW,cam); else frontDawn(g,VW,cam);
@@ -1561,11 +1561,11 @@ function drawSceneAR(g,W,H,dpr,st){
     if(artOn('rswim')){ const sh=ART.img.rswim, fw=sh.naturalWidth/RSWIM_N, fh=sh.naturalHeight, u=st.moving?((st.phase/(Math.PI*2))%1+1)%1:((a*.35)%1+1)%1, f=Math.floor(u*RSWIM_N)%RSWIM_N;
       const c=RSWIMC.cv; if(c.width!==fw||c.height!==fh){ c.width=fw; c.height=fh; } const q=c.getContext('2d'); q.clearRect(0,0,fw,fh); q.drawImage(sh,f*fw,0,fw,fh,0,0,fw,fh); im=c; iw=fw; ih=fh; }
     const w=84*ts, h=w*ih/iw, sway=artOn('rswim')?0:Math.sin(st.phase)*.04;
-    drawSubmerged(g,im,T.cx-w/2,ty-h*.62,w,h,.62,sway);
-    drawAccessory(g,T.cx,ty-h*.62+h*.30,w,'rear');
+    drawSubmerged(g,im,T.cx-w/2,ty-h*.74,w,h,.80,sway);   // 등딱지 대부분이 물 위로, 다리 끝만 잠김
+    drawAccessory(g,T.cx,ty-h*.74+h*.30,w,'rear');
     g.save(); g.strokeStyle='rgba(252,253,250,.6)'; g.lineWidth=1.6; for(let i=0;i<2;i++){ const r=w*(.34+i*.12)+((a*10)%6); g.beginPath(); g.ellipse(T.cx,ty+h*.12,r,r*.26,0,.15,Math.PI-.15); g.stroke(); } g.restore();
   } else drawTurtleTop(g,T.cx,ty,ts,st.phase,L.turtle);
-  if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=T.cx-T.w/2-w-8, ny=ty-12;
+  if(st.name){ g.font='800 16px "Nanum Gothic", sans-serif'; const w=g.measureText(st.name).width+16, nx=NA?T.cx-w/2:T.cx-T.w/2-w-8, ny=NA?ty-84*ts*1.05-34:ty-12;
     g.fillStyle=m==='day'?'rgba(252,251,247,.92)':'rgba(24,34,46,.88)'; g.fillRect(nx,ny,w,26); g.strokeStyle=m==='day'?'#36352f':'#c3ccd5'; g.lineWidth=1.5; g.strokeRect(nx,ny,w,26);
     g.fillStyle=m==='day'?'#2a2a25':'#f3f5f7'; g.fillText(st.name,nx+8,ny+19); }
   if(st.lifts){ const now=performance.now()/1000; if(lifts.length){ lifts.forEach(p=>arLifts.push({t0:p.t0,type:p.type})); lifts=[]; }
