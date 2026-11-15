@@ -1805,7 +1805,7 @@ function drawTurnScene(g,W,H,dpr,st){
   const sky=g.createLinearGradient(0,Lr.y,0,hz); if(NA){ sky.addColorStop(0,'#a9d4e2'); sky.addColorStop(1,'#e6f1f0'); } else if(day){ sky.addColorStop(0,'#8fcbe6'); sky.addColorStop(1,'#eef6f6'); } else { sky.addColorStop(0,'#141c25'); sky.addColorStop(1,'#3a3340'); }
   g.fillStyle=sky; g.fillRect(Lr.x,Lr.y,Lr.w,hz-Lr.y+1); g.fillStyle=NA?'#e6d9b8':day?'#8fab72':'#1a242d'; g.fillRect(Lr.x,hz,Lr.w,Lr.h);
   if(NA) drawGround7(g,dpr,Lr,hz,K,P,a,2.6);
-  if(NA&&artOn('skyline')){ const im=ART.img.skyline, bh=Lr.h*.085, bw=bh*im.naturalWidth/im.naturalHeight, off=(((a*K*.9)%bw)+bw)%bw; g.fillStyle='#d3ebf3'; g.fillRect(Lr.x,Lr.y,Lr.w,hz-Lr.y+2); for(let x=Lr.x-off; x<Lr.x+Lr.w; x+=bw-1) g.drawImage(im,x,hz+3-bh,bw,bh); }   // 멀리 도시(아파트·다리·산), 돌면 같이 흘러감
+  if(NA&&artOn('skyline')&&Lr.h>40){ const im=ART.img.skyline, bh=Lr.h*.085, bw=bh*im.naturalWidth/im.naturalHeight, off=(((a*K*.9)%bw)+bw)%bw; g.fillStyle='#d3ebf3'; g.fillRect(Lr.x,Lr.y,Lr.w,hz-Lr.y+2); for(let x=Lr.x-off, n=0; x<Lr.x+Lr.w&&n<40; x+=Math.max(8,bw-1), n++) g.drawImage(im,x,hz+3-bh,bw,bh); }   // 멀리 도시(아파트·다리·산), 돌면 같이 흘러감
   const clr=Math.max(0,Math.min(1,st.clarity==null?1:st.clarity)), water=NA?mixHex('#8f8a5c','#4fa49d',clr):day?'#62b4d8':'#c98a62', edgeC=NA?'#5f7a4c':day?'#faf7ec':'#f3d7b0', RW=NA?2.0:1.25;   // 시안: 친구들과 같이 헤엄칠 수 있게 물길을 넓힘
   let prev=null; for(let d=Math.max(0,sv-.6); d<=sv+14; d+=.1){ const q=pathAt(d), nx=Math.cos(q.a)*RW/2, ny=-Math.sin(q.a)*RW/2, l=proj(q.x-nx,q.y-ny), r=proj(q.x+nx,q.y+ny);
     if(prev&&l&&r&&prev.l&&prev.r){ g.fillStyle=water; g.beginPath(); g.moveTo(prev.l.x,prev.l.y); g.lineTo(prev.r.x,prev.r.y); g.lineTo(r.x,r.y); g.lineTo(l.x,l.y); g.closePath(); g.fill();
