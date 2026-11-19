@@ -2036,13 +2036,19 @@ function updateNextCue(){ const cf=cueFoot(); $('#btnL').classList.toggle('next'
 
 // ── 방향 전환 연습 코스 ─────────────────────────────
 // 걸음 수로 정한 코스. 돌기 구간에서는 한 걸음에 45°씩 돈 것으로 침(실제 몸 회전은 측정하지 않음)
-const TURN_COURSE=[{t:'S',n:6},{t:'T',dir:-1,n:4},{t:'S',n:6},{t:'T',dir:1,n:4},{t:'S',n:4}];
+let TURN_COURSE=[{t:'S',n:6},{t:'T',dir:-1,n:4},{t:'S',n:6},{t:'T',dir:1,n:4},{t:'S',n:4}];
+// 시안: 방향 전환 길도 고른 목표 걸음 수만큼. 6걸음 곧게 → 반 바퀴(4걸음)를 왼쪽·오른쪽 번갈아 되풀이하고, 남은 걸음은 마지막 곧은 길로
+function buildTurnCourse(G){ G=Math.max(10,Math.round(G)); if(G<14){ const a=Math.floor((G-4)/2); return [{t:'S',n:a},{t:'T',dir:-1,n:4},{t:'S',n:G-4-a}]; }
+  const out=[]; let left=G, dir=-1;
+  for(;;){ if(left<=10){ out.push({t:'S',n:left}); break; } out.push({t:'S',n:6}); left-=6; if(left<=5){ out[out.length-1].n+=left; break; } out.push({t:'T',dir,n:4}); left-=4; dir=-dir; }
+  return out; }
+function turnHelp(){ const C=NEWART?buildTurnCourse(S.goal):TURN_COURSE, nT=C.filter(c=>c.t==='T').length; return NEWART?`목표 ${C.reduce((a,c)=>a+c.n,0)}걸음 동안 곧게 6걸음 걷고 반 바퀴씩 ${nT}번(왼쪽·오른쪽 번갈아) 돌아요. 돌 때는 목소리로 안내해요.`:'6걸음 → 왼쪽 반 바퀴 → 6걸음 → 오른쪽 반 바퀴 → 4걸음. 돌 때는 목소리로 안내해요.'; }
 const TC={active:false,log:[],turnStartT:null,heading:0,path:null};
 let course='straight', pendingTurn=false, userGoal=null;
 function courseSteps(){ return TURN_COURSE.reduce((a,c)=>a+c.n,0); }
 function segRanges(){ let k=0; return TURN_COURSE.map(c=>{ const r={...c,k0:k,k1:k+c.n}; k+=c.n; return r; }); }
 function turnSegOfStep(k){ const R=segRanges(); for(let i=0;i<R.length;i++){ if(k>R[i].k0&&k<=R[i].k1) return R[i].t==='T'?i:-1; } return -1; }
-function applyCourseGoal(){ if(course==='turn'&&$('#guardChk').checked){ userGoal=S.goal; S.goal=courseSteps(); pendingTurn=true; } }
+function applyCourseGoal(){ if(course==='turn'&&$('#guardChk').checked){ userGoal=S.goal; if(NEWART){ TURN_COURSE=buildTurnCourse(S.goal); TC.path=null; } S.goal=courseSteps(); pendingTurn=true; } }
 function restoreGoal(){ if(userGoal!=null){ S.goal=userGoal; userGoal=null; } }
 function courseOnStep(){
   if(!TC.active) return;
@@ -2162,7 +2168,8 @@ function drawTurnScene(g,W,H,dpr,st){
 }
 $('#guardChk').addEventListener('change',()=>{ renderCourse(); });
 $('#courseSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b||b.disabled) return; course=b.dataset.course; renderCourse(); });
-function renderCourse(){ $$('#courseSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.course===course))); $('#turnBox').hidden=course!=='turn'; }
+function renderCourse(){ $$('#courseSeg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.course===course))); $('#turnBox').hidden=course!=='turn'; if(NEWART) $('#courseHelp').textContent=turnHelp(); }
+if(NEWART) ['click','input'].forEach(ev=>document.addEventListener(ev,()=>setTimeout(()=>{ const ch=$('#courseHelp'); if(ch&&S.screen!=='game') ch.textContent=turnHelp(); },0)));
 
 // ── TV 모드 ─────────────────────────────────────────
 function applyTV(){ document.documentElement.classList.toggle('tv',tvOn); $$('#tvSeg button[data-tv]').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.tv==='1')===tvOn))); requestAnimationFrame(resizeAll); }
@@ -3226,8 +3233,8 @@ if(NEWART){ document.documentElement.classList.add('na'); { const th=params.get(
       intro.insertBefore(M,intro.firstChild); M.querySelector('.mbar').appendChild($('#btnStart')); if(saf) M.appendChild(saf);
       $('#courseSeg').closest('.stepno').hidden=true;
       const PS=[20,30,50,100], mode=()=>course==='turn'?'turn':((bgPref==='cam'&&!noCam)?'ar':'straight');
-      const upM=()=>{ const m=mode(); M.querySelectorAll('.mcard').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.mode===m))); $('#mGuard').hidden=m!=='turn'; $('#guardChkE').checked=$('#guardChk').checked;
-        const html=m==='turn'?`<b class="mfix">정해진 길 ${courseSteps()}걸음</b>`:PS.concat(PS.includes(S.goal)?[]:[S.goal]).sort((a,b)=>a-b).map(n=>`<button type="button" class="mchip" data-n="${n}" aria-pressed="${n===S.goal}" aria-label="${n}걸음">${n}</button>`).join(''); const mc=$('#mChips'); if(mc.dataset.h!==html){ mc.dataset.h=html; mc.innerHTML=html; } };
+      const upM=()=>{ const m=mode(); M.querySelectorAll('.mcard').forEach(c=>c.setAttribute('aria-pressed',String(c.dataset.mode===m))); $('#mGuard').hidden=m!=='turn'; { const ch=$('#courseHelp'); if(ch) ch.textContent=turnHelp(); } $('#guardChkE').checked=$('#guardChk').checked;
+        const html=PS.concat(PS.includes(S.goal)?[]:[S.goal]).sort((a,b)=>a-b).map(n=>`<button type="button" class="mchip" data-n="${n}" aria-pressed="${n===S.goal}" aria-label="${n}걸음">${n}</button>`).join(''); const mc=$('#mChips'); if(mc.dataset.h!==html){ mc.dataset.h=html; mc.innerHTML=html; } };
       const setMode=m=>{ const cb=$(`#courseSeg [data-course="${m==='turn'?'turn':'straight'}"]`); if(cb) cb.click(); if(!noCam){ const bb=$(`#bgSeg [data-bg="${m==='ar'?'cam':'art'}"]`); if(bb) bb.click(); } upM(); };
       M.addEventListener('click',e=>{ const c=e.target.closest('.mcard'); if(c){ setMode(c.dataset.mode); return; } const ch=e.target.closest('.mchip'); if(ch){ const n=+ch.dataset.n; setGoal(n,!PS.includes(n),true); upM(); const nb=M.querySelector(`.mchip[data-n="${n}"]`); if(nb) nb.focus(); } });
       $('#guardChkE').addEventListener('change',e=>{ const g=$('#guardChk'); g.checked=e.target.checked; g.dispatchEvent(new Event('change',{bubbles:true})); });
