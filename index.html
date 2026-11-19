@@ -1282,7 +1282,7 @@ function speak(text,force){
   if((!voiceOn&&!force)||!soundOn||!('speechSynthesis' in window)) return;
   try{
     if(speechSynthesis.pending) return;
-    const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(voice.ko) u.voice=voice.ko; u.rate=voice.rate; u.pitch=1.04; u.volume=1;
+    const u=new SpeechSynthesisUtterance(text); u.lang='ko-KR'; if(voice.ko) u.voice=voice.ko; u.rate=NEWART?Math.min(1,voice.rate*1.18):voice.rate; u.pitch=NEWART?1.12:1.04; u.volume=1;
     u.onstart=()=>{ voice.speaking=true; }; u.onend=u.onerror=()=>{ voice.speaking=false; };
     speechSynthesis.speak(u);
   }catch(e){}
@@ -1320,7 +1320,7 @@ function show(name){ if(name==='site'&&NEWART) setTimeout(renderWardrobe,0);
   if(name==='site'){ restoreGoal(); route(); renderGive(); }
 }
 function resetSession(source){
-  Object.assign(S,{source, steps:0, left:0, right:0, bottles:0, kinds:{}, est:0, nextFoot:'L', times:{L:[],R:[]}, activeSec:0, lastT:null, completed:false, breaks:0, timeDone:false, sid:Date.now()});
+  Object.assign(S,{source, saved:0, steps:0, left:0, right:0, bottles:0, kinds:{}, est:0, nextFoot:'L', times:{L:[],R:[]}, activeSec:0, lastT:null, completed:false, breaks:0, timeDone:false, sid:Date.now()});
   turtle.x=0; turtle.target=0; clarityShown=0; lifts=[];
   TC.active=pendingTurn; pendingTurn=false; TC.log=[]; TC.turnStartT=null; TC.heading=0; footFlash.L=footFlash.R=0;
   $('#notice').hidden=true; $('#lost').hidden=true; $('#side').innerHTML='';
@@ -1338,7 +1338,7 @@ function setConn(){
 let seenHarm=new Set();
 function announceHarm(){   // 다음에 주울 쓰레기를 이번 걷기에서 처음 만나면, 왜 위험한지 딱 한 문장
   if(!NEWART||S.screen!=='game') return; const type=itemAt(S.bottles+1), it=ITEM[type]; if(!it||seenHarm.has(type)) return; seenHarm.add(type);
-  const H=HARM[it.harm]; sideToast(`${it.name} · ${H.label}`,it.why,H.c);
+  const H=HARM[it.harm]; sideToast(`${it.name} · ${it.bonus?'보너스':H.label}`,it.why,it.bonus?'#e0a81e':H.c);
 }
 function sideToast(main,sub,col){
   const box=$('#side'), d=document.createElement('div'), m=document.createElement('span'), s2=document.createElement('small');
@@ -1372,7 +1372,11 @@ function step(foot, tData, est){
 }
 function afterStep(){
   courseOnStep(); checkLevelUp();
-  if(S.steps%MILE===0 && S.steps<S.goal){ notify(`${S.steps}걸음 걸었어요`,`목표까지 ${S.goal-S.steps}걸음 남았어요`,true); if(musicMode!=='melody') sfx.mile(); speak(`와, 벌써 ${S.steps}걸음이에요. 목표까지, ${S.goal-S.steps}걸음 남았어요.`); }
+  if(S.steps%MILE===0 && S.steps<S.goal){
+    if(NEWART){ const rem=S.goal-S.steps, CHEER=['힘차게 잘 걷고 계세요!','발걸음이 아주 좋아요!','하천이 점점 맑아지고 있어요!','이 박자 그대로 가 볼까요?','남생이도 신이 났어요!'], c=CHEER[(S.steps/MILE-1)%CHEER.length];
+      if(rem===20){ notify(`${S.steps}걸음 걸었어요`,'목표까지 20걸음 남았어요',true); if(musicMode!=='melody') sfx.mile(); speak(`와, ${S.steps}걸음이에요! 이제 20걸음만 더 가면 목표예요. 힘내세요!`); }
+      else { notify(`${S.steps}걸음 걸었어요`,c,true); if(musicMode!=='melody') sfx.mile(); speak(`와, 벌써 ${S.steps}걸음이에요! ${c}`); } }
+    else { notify(`${S.steps}걸음 걸었어요`,`목표까지 ${S.goal-S.steps}걸음 남았어요`,true); if(musicMode!=='melody') sfx.mile(); speak(`와, 벌써 ${S.steps}걸음이에요. 목표까지, ${S.goal-S.steps}걸음 남았어요.`); } }
   const b=Math.floor(S.activeSec/BREAK_EVERY_SEC);
   if(b>S.breaks){ S.breaks=b; notify('잠시 쉬어 가세요',`${Math.round(S.activeSec/60)}분 걸었어요. ${tSubj()} 기다려 줘요.`,false,9000); if(musicMode!=='melody') sfx.rest(); speak(`조금, 쉬어 가셔도 괜찮아요. ${tSubj()} 여기서, 기다리고 있을게요.`); }
   updateHud(); scheduleSave();
@@ -1528,12 +1532,19 @@ const ITEM={
   bottle:{name:'페트병',obj:'페트병을',decay:'약 450년', harm:1, why:'페트병은 오랫동안 썩지 않고 조금씩 부서져 미세플라스틱이 돼요.'},
   can:{name:'캔',obj:'캔을',decay:'약 200년', harm:1, why:'찌그러진 캔의 날카로운 입구에 물고기나 남생이가 다칠 수 있어요.'},
   bag:{name:'비닐봉지',obj:'비닐봉지를',decay:'최대 20년', harm:3, why:'비닐봉지는 남생이가 해파리 같은 먹이로 착각해 삼킬 수 있어 가장 위험해요.'},
-  cup:{name:'스티로폼 컵',obj:'스티로폼 컵을',decay:'약 50년', harm:2, why:'스티로폼은 잘게 부서져 물고기들이 먹이로 알고 삼켜요.'}
+  cup:{name:'스티로폼 컵',obj:'스티로폼 컵을',decay:'약 50년', harm:2, why:'스티로폼은 잘게 부서져 물고기들이 먹이로 알고 삼켜요.'},
+  // 시안에서만 나오는 쓰레기
+  snack:{name:'과자봉지',obj:'과자봉지를',decay:'오래', harm:2, why:'과자봉지는 비닐과 은박이 붙어 있어 재활용이 어렵고, 물고기가 삼킬 수 있어요.'},
+  box:{name:'젖은 상자',obj:'젖은 상자를',decay:'약 2개월', harm:1, why:'젖은 종이상자는 가라앉아 물 밑을 덮고, 붙은 테이프는 썩지 않아요.'},
+  shoe:{name:'신발',obj:'신발을',decay:'약 50~80년', harm:2, why:'고무 신발 밑창은 오래 남고, 닳으면서 미세플라스틱이 돼요.'},
+  line:{name:'엉킨 낚싯줄',obj:'낚싯줄을',decay:'약 600년', harm:3, bonus:true, why:'낚싯줄은 물고기와 새의 몸에 감겨요. 건지면 하천 친구를 구하는 보너스예요!'}
 };
 const ORDER=['bottle','can','bag','bottle','cup','can','bag','bottle','cup','can'];
-const itemAt=k=>ORDER[(Math.max(1,k)-1)%ORDER.length];
+const ORDER_NA=['bottle','snack','can','box','bag','bottle','line','cup','shoe','can','snack','bag','box','bottle','line','cup','shoe','bag'];   // 시안: 7·8번째쯤마다 보너스(엉킨 낚싯줄)
+const itemAt=k=>{ const O=NEWART?ORDER_NA:ORDER; return O[(Math.max(1,k)-1)%O.length]; };
 function drawItem(g,type,x,y,s,P,ph){
   if(type==='bottle'){ drawBottle(g,x,y,-.12,s,P); return; }
+  if(NEWART&&ITEM[type]&&'snack box shoe line'.includes(type)) P=Object.assign({},P,{line:'rgba(70,60,48,.5)',lw:1.1});   // 시안: 그린 그림(가는 선)과 어울리게 테두리를 얇게. Higgsfield 그림이 생기면 그걸로 바뀜
   g.save(); g.translate(x,y); g.scale(s,s); g.lineJoin='round';
   const glow=()=>{ if(P.glow){ g.shadowColor=P.glow; g.shadowBlur=22; } };
   const edge=(lw)=>{ if(P.line){ g.strokeStyle=P.line; g.lineWidth=lw||P.lw; g.stroke(); } };
@@ -1551,6 +1562,29 @@ function drawItem(g,type,x,y,s,P,ph){
     g.strokeStyle=P.line||'rgba(120,120,110,.6)'; g.lineWidth=1.6;
     g.beginPath(); g.arc(-10,-11,5,Math.PI,0); g.stroke(); g.beginPath(); g.arc(9,-11,5,Math.PI,0); g.stroke();
     g.strokeStyle='rgba(150,150,140,.45)'; g.beginPath(); g.moveTo(-10,0); g.lineTo(-2,6); g.moveTo(4,-2); g.lineTo(12,5); g.stroke();
+  } else if(type==='snack'){   // 과자봉지: 구겨진 은박 봉지, 바랜 주황·노랑
+    g.rotate(-.2+Math.sin(ph*.8)*.06);
+    glow(); g.fillStyle='#e9a24a'; g.beginPath(); g.moveTo(-18,-11); g.lineTo(-12,-9); g.lineTo(-5,-12); g.lineTo(3,-9); g.lineTo(10,-12); g.lineTo(17,-10); g.lineTo(15,10); g.lineTo(8,12); g.lineTo(0,9); g.lineTo(-8,12); g.lineTo(-16,10); g.closePath(); g.fill(); g.shadowBlur=0; edge();
+    g.fillStyle='#f3d27a'; g.beginPath(); g.ellipse(1,0,7,5,-.2,0,Math.PI*2); g.fill();
+    g.fillStyle='rgba(225,228,230,.85)'; g.beginPath(); g.moveTo(-18,-11); g.lineTo(-12,-9); g.lineTo(-5,-12); g.lineTo(3,-9); g.lineTo(10,-12); g.lineTo(17,-10); g.lineTo(16,-6); g.lineTo(-17,-7); g.closePath(); g.fill();
+    g.strokeStyle='rgba(120,80,40,.35)'; g.lineWidth=1.1; g.beginPath(); g.moveTo(-9,-4); g.lineTo(-4,6); g.moveTo(8,-5); g.lineTo(5,7); g.stroke();
+  } else if(type==='box'){   // 젖은 상자: 축 처진 종이상자, 진한 물 얼룩, 찢긴 테이프
+    g.rotate(.12+Math.sin(ph*.7)*.04);
+    glow(); g.fillStyle='#b9925f'; g.beginPath(); g.moveTo(-18,-6); g.lineTo(14,-9); g.lineTo(18,10); g.lineTo(-15,12); g.closePath(); g.fill(); g.shadowBlur=0; edge();
+    g.fillStyle='#a07a4a'; g.beginPath(); g.moveTo(-18,-6); g.lineTo(-24,-13); g.lineTo(-6,-15); g.lineTo(-2,-7); g.closePath(); g.fill(); edge(1.4);
+    g.fillStyle='rgba(90,62,36,.45)'; g.beginPath(); g.ellipse(-4,6,9,4,.1,0,Math.PI*2); g.fill(); g.beginPath(); g.ellipse(10,2,4,3,0,0,Math.PI*2); g.fill();
+    g.fillStyle='rgba(222,206,170,.9)'; g.save(); g.rotate(-.08); g.fillRect(-4,-9,6,20); g.restore();
+  } else if(type==='shoe'){   // 신발: 바랜 회색 운동화, 흰 고무 밑창, 풀린 끈
+    g.rotate(-.08+Math.sin(ph*.7)*.04);
+    glow(); g.fillStyle='#9aa0a0'; g.beginPath(); g.moveTo(-20,4); g.quadraticCurveTo(-21,-8,-10,-9); g.lineTo(-2,-8); g.quadraticCurveTo(6,-1,16,0); g.quadraticCurveTo(22,2,21,6); g.closePath(); g.fill(); g.shadowBlur=0; edge();
+    g.fillStyle='#ece8dc'; g.beginPath(); g.moveTo(-21,4); g.lineTo(21,6); g.quadraticCurveTo(21,10,15,10); g.lineTo(-17,9); g.quadraticCurveTo(-22,8,-21,4); g.closePath(); g.fill(); edge(1.4);
+    g.strokeStyle='#efeae0'; g.lineWidth=1.4; g.beginPath(); g.moveTo(-6,-6); g.lineTo(2,-3); g.moveTo(-4,-8); g.lineTo(4,-5); g.moveTo(2,-3); g.quadraticCurveTo(8,-12,12,-10); g.stroke();
+  } else if(type==='line'){   // 엉킨 낚싯줄(보너스): 반투명한 줄 뭉치 + 빨강·흰 찌
+    g.rotate(Math.sin(ph*.6)*.06);
+    glow(); g.strokeStyle='rgba(232,240,240,.9)'; g.lineWidth=1.3;
+    for(let i=0;i<6;i++){ g.beginPath(); g.ellipse(Math.sin(i*2.1)*5,Math.cos(i*1.7)*3,13-i,6+i*.6,i*.55,0,Math.PI*2); g.stroke(); }
+    g.shadowBlur=0; g.strokeStyle='rgba(120,140,140,.55)'; g.lineWidth=.8; g.beginPath(); g.ellipse(2,1,15,8,.3,0,Math.PI*2); g.stroke();
+    g.fillStyle='#d8503c'; g.beginPath(); g.arc(14,-6,4.5,Math.PI,0); g.fill(); g.fillStyle='#f7f3ea'; g.beginPath(); g.arc(14,-6,4.5,0,Math.PI); g.fill(); edge(1.2);
   } else if(type==='cup'){
     g.rotate(-.18);
     glow(); g.fillStyle=P.glow?'#ffffff':'#f5f2e8';
@@ -1800,6 +1834,10 @@ function drawDanger(g,x,y,s,t,near,wy,type){
   const r=(11+5*k)*s*(1+.04*pul), by=y-(32+6*k)*s-(.5+.5*Math.sin(t*1.8))*3*s;
   g.save(); g.globalAlpha=1-Math.max(0,(k-.8)/.2)*.8;   // 바로 앞에 오면(이제 주울 때) 표지가 옅어져 남생이 얼굴을 가리지 않음
   g.fillStyle='rgba(30,20,16,.18)'; g.beginPath(); g.ellipse(x,by+r+3*s,r*.8,r*.22,0,0,Math.PI*2); g.fill();
+  if(ITEM[type]&&ITEM[type].bonus){   // 보너스: 반짝이는 금빛 별 + "보너스"
+    g.fillStyle='#f6c64a'; g.strokeStyle='#9a6d10'; g.lineWidth=2*s; g.beginPath(); for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, R=i%2?r*.5:r*1.15; g.lineTo(x+Math.cos(a)*R,by+Math.sin(a)*R); } g.closePath(); g.fill(); g.stroke();
+    g.font=`800 ${Math.round(11*s)}px "Nanum Gothic", sans-serif`; g.textAlign='center'; g.lineWidth=3*s; g.strokeStyle='rgba(255,252,240,.95)'; g.strokeText('보너스',x,by-r*1.35); g.fillStyle='#7a520a'; g.fillText('보너스',x,by-r*1.35); g.textAlign='left';
+    g.restore(); return; }
   g.fillStyle=H.c; g.strokeStyle=H.d; g.lineWidth=2*s; g.beginPath(); g.arc(x,by,r,0,Math.PI*2); g.fill(); g.stroke();
   g.fillStyle='#fffaf0'; g.beginPath(); g.roundRect?g.roundRect(x-r*.14,by-r*.6,r*.28,r*.72,r*.14):g.rect(x-r*.14,by-r*.6,r*.28,r*.72); g.fill(); g.beginPath(); g.arc(x,by+r*.42,r*.16,0,Math.PI*2); g.fill();
   g.restore();
@@ -2156,9 +2194,11 @@ function pickBottle(){
   lifts.push({x:S.bottles*BOTTLE_EVERY*STEP_PX-(turtle.x-turtleX()),y:BY,t0:performance.now()/1000,type});
   const quiet=musicMode==='melody'; // 걸음 가락과 겹치지 않게 효과음(줍기·10걸음·쉬기·목표)과 줍기 말은 모두 생략
   if(!quiet) sfx.pick();
-  sideToast(`${tSubj()} ${ITEM[type].obj} 주웠어요`,`지금까지 쓰레기 ${S.bottles}개`);
+  const bonus=!!ITEM[type].bonus; if(bonus) S.saved=(S.saved||0)+1;
+  if(bonus) sideToast(`보너스! 물고기 친구를 구했어요`,`${tSubj()} ${ITEM[type].obj} 건졌어요 · 오늘 구한 친구 ${S.saved}마리`,'#e0a81e');
+  else sideToast(`${tSubj()} ${ITEM[type].obj} 주웠어요`,`지금까지 쓰레기 ${S.bottles}개`);
   announceHarm();
-  if(!quiet&&!(S.steps%MILE===0&&S.steps<S.goal)) speak(`${ITEM[type].obj} 주웠어요. ${praise()}`);
+  if(!quiet&&!(S.steps%MILE===0&&S.steps<S.goal)) speak(bonus?`보너스! 낚싯줄을 건져서 물고기 친구를 구했어요. 정말 잘하셨어요!`:`${ITEM[type].obj} 주웠어요. ${praise()}`);
   const box=$('#hBottleBox'); box.classList.add('flash'); setTimeout(()=>box.classList.remove('flash'),900);
   updateHud(); scheduleSave();
 }
@@ -2606,6 +2646,7 @@ function renderResultEco(tile){
       tile('지금까지 건진 쓰레기',T.bottles,'개',`이번에 +${S.bottles}개${tag}`);
   }
   h+=Object.keys(ITEM).filter(k=>S.kinds[k]).map(k=>tile(ITEM[k].name,S.kinds[k],'개',`바다에서 ${ITEM[k].decay} 남는 쓰레기`)).join('');
+  if(S.saved) h+=tile('보너스 · 구한 친구',S.saved,'마리','낚싯줄을 건져 물고기를 구했어요');
   $('#rEco').innerHTML=h;
   $('#rEcoNote').textContent=(S.bottles?'주운 쓰레기는 게임 속 하천 이야기예요. 실제 하천에서 같은 만큼 주우면 그 쓰레기가 수십~수백 년 동안 자연에 남지 않게 돼요. ':'')+'제자리 걷기 자체는 배출을 줄이지 않지만, 이 거리를 차 대신 걸으면 그만큼 이산화탄소가 줄어요. 분해 기간은 NOAA·우즈홀 시그랜트의 바다 기준 추정치, 이산화탄소는 2013년 국산 신차 평균 187.3g/km로 계산했어요.';
 }
